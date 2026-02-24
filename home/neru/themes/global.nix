@@ -10,6 +10,6 @@
     dotIcons.enable = false;
     gtk.enable = true;
     # this adds extra deps, so lets only enable it on wayland
-    x11.enable = false; 
+    x11.enable = false;
   };
 }

@@ -1,32 +1,38 @@
 { config, pkgs, ... }:
 
 {
-imports = [
-	./hardware-configuration.nix
-	../../modules/home/system
-];
+  imports = [
+    ./hardware-configuration.nix
+    ../../modules/home/system
+  ];
 
-nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.allowUnfree = true;
 
-networking.hostName = "victus";
+  networking.hostName = "victus";
 
-time.timeZone = "Europe/Lisbon";
+  time.timeZone = "Europe/Lisbon";
 
-programs.zsh.enable = true;
+  programs.zsh.enable = true;
 
-users.users.neru = {	
-	isNormalUser = true;
-	description = "Diogo Nogueira";
-	extraGroups = [ "networkmanager" "wheel" "docker" ];
-	shell = pkgs.zsh;
-};
+  users.users.neru = {
+    isNormalUser = true;
+    description = "Diogo Nogueira";
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+      "docker"
+    ];
+    shell = pkgs.zsh;
+  };
 
-programs.zsh.shellAliases = {
-	build-sw = "sudo nixos-rebuild switch --flake ~/Developer/flake#victus";
-};
+  programs.zsh.shellAliases = {
+    build-sw = "sudo nixos-rebuild switch --flake ~/Developer/flake#victus";
+  };
 
-# sources ~/.local/bin
-environment.localBinInPath = true;
+  nix.settings.experimental-features = ["nix-command" "flakes"];
 
-system.stateVersion = "25.11";
+  # sources ~/.local/bin
+  environment.localBinInPath = true;
+
+  system.stateVersion = "25.11";
 }
