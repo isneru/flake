@@ -27,5 +27,6 @@
     just
     jdk21
     maven
+    jetbrains.idea
   ];
 }
