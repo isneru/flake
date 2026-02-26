@@ -24,5 +24,8 @@
     jq
     insomnia
     swappy
+    just
+    jdk21
+    maven
   ];
 }

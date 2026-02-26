@@ -4,6 +4,7 @@
   imports = [
     ./hardware-configuration.nix
     ../../modules/home/system
+    ../../modules/home/nixos/apps
   ];
 
   nixpkgs.config.allowUnfree = true;
@@ -21,12 +22,9 @@
       "networkmanager"
       "wheel"
       "docker"
+      "wireshark"
     ];
     shell = pkgs.zsh;
-  };
-
-  programs.zsh.shellAliases = {
-    build-sw = "sudo nixos-rebuild switch --flake ~/Developer/flake#victus";
   };
 
   nix.settings.experimental-features = ["nix-command" "flakes"];
