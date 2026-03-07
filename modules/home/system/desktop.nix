@@ -2,12 +2,18 @@
 
 {
   services.xserver.enable = true;
+  services.displayManager.ly.enable = true;
+  programs.sway = {
+    enable = true;
+    wrapperFeatures.gtk = true;
+  };
 
-  services.displayManager.gdm.enable = true;
-  services.desktopManager.gnome.enable = true;
+  services.gvfs.enable = true;
+  services.udisks2.enable = true;
 
-  fonts.packages = with pkgs; [
-    nerd-fonts.fira-code
-    nerd-fonts.jetbrains-mono
-  ];
+  xdg.portal = {
+    enable = true;
+    wlr.enable = true;
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+  };
 }

@@ -2,13 +2,10 @@
 
 {
   home.packages = with pkgs; [
-    chromium
     git
     vscode
     wget
     pipx
-    xterm
-    python3
     nmap
     inetutils
     gcc
@@ -16,17 +13,41 @@
     gnumake
     cmake
     qemu
-    gnome-terminal
     distrobox
     alacritty
     unzip
-    nix-output-monitor
     jq
     insomnia
-    swappy
     just
     jdk21
     maven
     jetbrains.idea
+    obsidian
+    nemo
+    nautilus
+    swaybg
+    wl-clipboard
+    pavucontrol
+    zip
+    killall
+    nixpkgs-fmt
+    wavemon
+    grim
+    slurp
+    swappy
+    nodejs
+    plantuml
+    graphviz
+    (pkgs.writeShellApplication {
+      name = "ns";
+      runtimeInputs = with pkgs; [
+        fzf
+        (nix-search-tv.overrideAttrs {
+          env.GOEXPERIMENT = "jsonv2";
+          allowGoReference = true;
+        })
+      ];
+      text = ''exec "${pkgs.nix-search-tv.src}/nixpkgs.sh" "$@"'';
+    })
   ];
 }

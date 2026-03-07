@@ -13,7 +13,6 @@
         "sudo"
         "docker"
       ];
-      theme = "robbyrussell";
     };
   };
 }

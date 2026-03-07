@@ -1,0 +1,14 @@
+{
+	"discordBranch": "stable",
+	"firstLaunch": false,
+	"arRPC": "on",
+	"splashColor": "rgb(20, 18, 22)",
+	"splashBackground": "rgb(39, 35, 43)",
+	"splashTheming": true,
+	"minimizeToTray": "on",
+	"closeToTray": "on",
+	"hardwareAcceleration": true,
+	"customTitleBar": false,
+	"appBadge": true,
+	"transparentWindow": true
+}

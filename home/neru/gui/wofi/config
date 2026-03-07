@@ -1,0 +1,6 @@
+location=center
+allow_markup=true
+width=500
+prompt=Search
+term=ghostty
+hide_scroll=true

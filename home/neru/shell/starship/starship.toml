@@ -1,0 +1,26 @@
+format = """
+[╭─](bold #ebbcba)\
+$directory\
+$git_branch\
+$git_status\
+$line_break\
+[╰─](bold #ebbcba)$character"""
+
+[directory]
+style = "bold #9ccfd8"
+format = "[  $path ]($style)"
+truncation_length = 3
+truncation_symbol = "…/"
+
+[git_branch]
+symbol = ""
+style = "bold #c4a7e7"
+format = "[ $symbol $branch ]($style)"
+
+[git_status]
+style = "bold #eb6f92"
+format = '([$all_status$ahead_behind]($style))'
+
+[character]
+success_symbol = "[ ❯](bold #31748f)"
+error_symbol = "[ ✗](bold #eb6f92)"

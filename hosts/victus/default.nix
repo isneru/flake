@@ -10,6 +10,15 @@
   nixpkgs.config.allowUnfree = true;
 
   networking.hostName = "victus";
+  networking.networkmanager.enable = true;
+  
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
 
   time.timeZone = "Europe/Lisbon";
 

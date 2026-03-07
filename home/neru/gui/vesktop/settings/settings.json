@@ -1,0 +1,47 @@
+{
+	"notifyAboutUpdates": false,
+	"autoUpdate": false,
+	"autoUpdateNotification": false,
+	"useQuickCss": true,
+	"themeLinks": [],
+	"enabledThemes": [""],
+	"enableReactDevtools": false,
+	"frameless": false,
+	"transparent": true,
+	"winCtrlQ": false,
+	"macosTranslucency": false,
+	"disableMinSize": false,
+	"winNativeTitleBar": false,
+	"plugins": {
+		"MessageLogger": {
+			"enabled": true
+		},
+		"NSFWGateBypass": {
+			"enabled": true
+		},
+		"FakeNitro": {
+			"enabled": true
+		},
+		"ShowHiddenChannels": {
+			"enabled": true
+		},
+		"TypingTweaks": {
+			"enabled": true
+		},
+		"WebRichPresence": {
+			"enabled": true
+		},
+		"YoutubeAdblock": {
+			"enabled": true
+		},
+		"AlwaysAnimate": {
+			"enabled": true
+		},
+		"ClearURLs": {
+			"enabled": true
+		},
+		"CrashHandler": {
+			"enabled": true
+		}
+	}
+}
