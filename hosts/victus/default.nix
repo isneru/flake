@@ -11,7 +11,7 @@
 
   networking.hostName = "victus";
   networking.networkmanager.enable = true;
-  
+
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -36,7 +36,10 @@
     shell = pkgs.zsh;
   };
 
-  nix.settings.experimental-features = ["nix-command" "flakes"];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 
   # sources ~/.local/bin
   environment.localBinInPath = true;

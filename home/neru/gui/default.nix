@@ -2,10 +2,10 @@
   imports = [
     ./chromium.nix
     ./ghostty
-    ./sway
+    ./hyprland
     ./vesktop
     ./waybar
     ./wofi
-    ./eww.nix
+    ./eww
   ];
 }

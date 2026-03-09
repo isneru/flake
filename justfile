@@ -55,6 +55,10 @@ alias fix := repair
 repair:
   nix-store --verify --check-contents --repair
 
+[group('utils')]
+fmt:
+  treefmt
+
 [group('vm')]
 [macos]
 run-vm:

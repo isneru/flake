@@ -8,7 +8,7 @@
 	"margin-right": 15,
 	"margin-left": 15,
 	"modules-left": [
-		"sway/workspaces"
+		"hyprland/workspaces"
 	],
 	"modules-center": [
 		"custom/applauncher"
@@ -20,7 +20,7 @@
 		"tray",
 		"clock"
 	],
-	"sway/workspaces": {
+	"hyprland/workspaces": {
 		"disable-scroll": true,
 		"all-outputs": false,
 		"tooltip": false
@@ -39,11 +39,12 @@
 		"tooltip": false
 	},
 	"network": {
-		"format-wifi": " {bandwidthDownBits}",
-		"format-ethernet": " {bandwidthDownBits}",
-		"format-disconnected": "󰤮 No Network",
+		"format-wifi": "  {essid}",
+		"format-ethernet": "󰈀  {bandwidthDownBits}",
+		"format-disconnected": "󰤮",
 		"interval": 5,
-		"tooltip": false
+		"tooltip": false,
+		"on-click": "networkmanager_dmenu"
 	},
 	"pulseaudio": {
 		"scroll-step": 5,
@@ -67,9 +68,9 @@
 		},
 		"format": "{icon} {capacity}%",
 		"format-charging": "󰂄 {capacity}%",
-		"format-plugged": "󰂄{capacity}%",
+		"format-plugged": "󰂄 {capacity}%",
 		"format-alt": "{icon} {time}",
-		"format-full": "󱈑 {capacity}%",
+		"format-full": "󰁹 {capacity}%",
 		"format-icons": [
 			"󱊡",
 			"󱊢",

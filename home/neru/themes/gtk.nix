@@ -18,11 +18,6 @@
   };
 
   home.packages = with pkgs; [
-    gnome-tweaks
-    gnome-extension-manager
-    gnomeExtensions.dash-to-dock
-    gnomeExtensions.blur-my-shell
-    gnomeExtensions.just-perfection
     rose-pine-cursor
   ];
 }

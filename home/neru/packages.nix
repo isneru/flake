@@ -2,42 +2,56 @@
 
 {
   home.packages = with pkgs; [
+    # --- CLI & System Utilities ---
     git
-    vscode
+    jq
+    just
+    killall
+    unzip
     wget
-    pipx
-    nmap
-    inetutils
+    zip
+
+    # --- Desktop & GUI Apps ---
+    insomnia
+    jetbrains.idea
+    obsidian
+    vscode
+
+    # --- Development & Compilers ---
+    cmake
     gcc
     gdb
     gnumake
-    cmake
-    qemu
-    distrobox
-    alacritty
-    unzip
-    jq
-    insomnia
-    just
     jdk21
     maven
-    jetbrains.idea
-    obsidian
-    nemo
-    nautilus
-    swaybg
-    wl-clipboard
-    pavucontrol
-    zip
-    killall
-    nixpkgs-fmt
-    wavemon
-    grim
-    slurp
-    swappy
     nodejs
-    plantuml
+    pipx
+
+    # --- Diagrams & Visualization ---
     graphviz
+    plantuml
+
+    # --- Networking Tools ---
+    inetutils
+    networkmanager_dmenu
+    nmap
+    wavemon
+
+    # --- Virtualization & Containers ---
+    distrobox
+
+    # --- Wayland & Desktop Utilities ---
+    grim # Screenshots
+    nautilus # GNOME file manager
+    pavucontrol # Audio control
+    slurp # Screen selection for screenshots
+    swappy # Screenshot editor
+    swaybg # Sway wallpaper utility
+    wl-clipboard # Wayland clipboard
+
+    # --- Nix & Custom Scripts ---
+    pkgs.nixfmt
+    pkgs.nixfmt-tree
     (pkgs.writeShellApplication {
       name = "ns";
       runtimeInputs = with pkgs; [

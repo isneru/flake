@@ -3,4 +3,7 @@ allow_markup=true
 width=500
 prompt=Search
 term=ghostty
+allow_images=true
+image_size=24
 hide_scroll=true
+show=drun
