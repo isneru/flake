@@ -4,7 +4,7 @@
 	"autoUpdateNotification": false,
 	"useQuickCss": true,
 	"themeLinks": [],
-	"enabledThemes": [""],
+	"enabledThemes": [],
 	"enableReactDevtools": false,
 	"frameless": false,
 	"transparent": true,

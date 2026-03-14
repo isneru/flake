@@ -16,6 +16,13 @@
     jetbrains.idea
     obsidian
     vscode
+    (rstudioWrapper.override {
+      packages = with rPackages; [
+        ggplot2
+        dplyr
+        tidyverse
+      ];
+    })
 
     # --- Development & Compilers ---
     cmake
