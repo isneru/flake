@@ -15,26 +15,26 @@ window#waybar {
 }
 
 .modules-left {
-	padding: 7px;
-	margin: 10px 0px 5px 10px;
-	border-radius: 10px;
-	background: alpha(@base, 0.6);
+	padding: 6px;
+	margin: 10px 0px 0px 10px;
+	border-radius: 8px;
+	background: alpha(@base, 0.8);
 	box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.6);
 }
 
 .modules-center {
-	padding: 7px;
-	margin: 10px 0px 5px 0px;
-	border-radius: 10px;
-	background: alpha(@base, 0.6);
+	padding: 6px;
+	margin: 10px 0px 0px 0px;
+	border-radius: 8px;
+	background: alpha(@base, 0.8);
 	box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.6);
 }
 
 .modules-right {
-	padding: 7px;
-	margin: 10px 10px 5px 0px;
-	border-radius: 10px;
-	background: alpha(@base, 0.6);
+	padding: 6px;
+	margin: 10px 10px 0px 0px;
+	border-radius: 8px;
+	background: alpha(@base, 0.8);
 	box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.6);
 }
 
@@ -57,18 +57,6 @@ tooltip {
 }
 
 #custom-notification {
-	padding: 0px 5px;
-	transition: all 0.3s ease;
-	color: @text;
-}
-
-#clock {
-	padding: 0px 5px;
-	color: @text;
-	transition: all 0.3s ease;
-}
-
-#custom-pacman {
 	padding: 0px 5px;
 	transition: all 0.3s ease;
 	color: @text;
@@ -117,34 +105,28 @@ tooltip {
 	text-shadow: 0px 0px 2px rgba(0, 0, 0, 0.5);
 }
 
-#bluetooth {
-	padding: 0px 5px;
-	transition: all 0.3s ease;
-	color: @text;
-}
-
-#network {
-	padding: 0px 5px;
-	transition: all 0.3s ease;
-	color: @text;
-}
-
-#battery {
+#clock,
+#bluetooth,
+#network,
+#battery,
+#cpu,
+#memory,
+#disk {
 	padding: 0px 5px;
 	transition: all 0.3s ease;
 	color: @text;
 }
 
 #battery.charging {
-	color: @pine; /* Verde/Azulado do Rose Pine */
+	color: @pine;
 }
 
 #battery.warning:not(.charging) {
-	color: @gold; /* Laranja do Rose Pine */
+	color: @gold;
 }
 
 #battery.critical:not(.charging) {
-	color: @love; /* Vermelho do Rose Pine */
+	color: @love;
 	animation-name: blink;
 	animation-duration: 0.5s;
 	animation-timing-function: linear;
@@ -159,7 +141,7 @@ tooltip {
 
 #custom-expand {
 	padding: 0px 5px;
-	color: alpha(@text, 0.2);
+	color: @text;
 	text-shadow: 0px 0px 2px rgba(0, 0, 0, 0.7);
 	transition: all 0.3s ease;
 }
@@ -167,14 +149,6 @@ tooltip {
 #custom-expand:hover {
 	color: rgba(255, 255, 255, 0.2);
 	text-shadow: 0px 0px 2px rgba(255, 255, 255, 0.5);
-}
-
-#cpu,
-#memory,
-#temperature {
-	padding: 0px 5px;
-	transition: all 0.3s ease;
-	color: @text;
 }
 
 #custom-endpoint {

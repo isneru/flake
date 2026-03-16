@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, inputs, ... }:
 
 {
   home.packages = with pkgs; [
@@ -12,6 +12,7 @@
     zip
 
     # --- Desktop & GUI Apps ---
+    inputs.helium.packages.${pkgs.system}.default
     insomnia
     jetbrains.idea
     obsidian
@@ -49,12 +50,15 @@
 
     # --- Wayland & Desktop Utilities ---
     grim # Screenshots
-    nautilus # GNOME file manager
-    pavucontrol # Audio control
+    thunar # file manager
+    thunar-archive-plugin # Thunar plugin for archive management
+    gvfs # Thunar dependency for mounting drives
+    pulsemixer # Audio control
     slurp # Screen selection for screenshots
     swappy # Screenshot editor
     swaybg # Sway wallpaper utility
     wl-clipboard # Wayland clipboard
+    xdg-desktop-portal-gtk
 
     # --- Nix & Custom Scripts ---
     pkgs.nixfmt

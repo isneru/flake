@@ -1,12 +1,12 @@
 {
   imports = [
-    ./chromium.nix
-    ./spotify.nix
     ./ghostty
-    ./vicinae
-    ./hyprland
+    ./networkmanager-dmenu
     ./vesktop
     ./waybar
-    ./networkmanager-dmenu
+    ./chromium.nix
+    ./hyprland.nix
+    ./spotify.nix
+    ./vicinae.nix
   ];
 }

@@ -16,7 +16,4 @@
       package = pkgs.rose-pine-cursor;
     };
   };
-  home.packages = with pkgs; [
-    rose-pine-cursor
-  ];
 }

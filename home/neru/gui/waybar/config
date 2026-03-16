@@ -2,11 +2,10 @@
 	"layer": "top",
 	"position": "top",
 	"modules-left": [
-		"clock",
-		"tray"
+		"hyprland/workspaces"
 	],
 	"modules-center": [
-		"hyprland/workspaces"
+		"clock"
 	],
 	"modules-right": [
 		"group/expand",
@@ -62,29 +61,31 @@
 			"custom/expand",
 			"cpu",
 			"memory",
-			"temperature"
+			"disk",
+			"tray"
 		]
 	},
 	"cpu": {
-		"format": "󰻠",
-		"tooltip": true
+		"format": "[CPU: {usage}%]",
+		"tooltip": false
 	},
 	"memory": {
-		"format": ""
+		"format": "[RAM: {used}GB]",
+		"tooltip": false
 	},
-	"temperature": {
-		"critical-threshold": 80,
-		"format": ""
+	"disk": {
+		"format": "[DSK: {used}/{total}]",
+		"tooltip": false
 	},
 	"tray": {
-		"icon-size": 14,
-		"spacing": 10
+		"icon-size": 16,
+		"spacing": 8
 	},
 	"pulseaudio": {
 		"scroll-step": 5,
 		"max-volume": 150,
-		"format": "{icon} {volume}%",
-		"format-bluetooth": "{icon} {volume}%",
+		"format": "{icon}",
+		"format-bluetooth": "{icon}",
 		"format-icons": [
 			"",
 			"",
@@ -93,7 +94,9 @@
 		"nospacing": 1,
 		"format-muted": " ",
 		"on-click": "pavucontrol",
-		"tooltip": false
+		"tooltip": {
+			"format": "Volume: {volume}%\n{if mute}Muted{/if}"
+		}
 	},
 	"battery": {
 		"states": {

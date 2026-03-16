@@ -2,23 +2,15 @@
 
 {
   imports = [
-    ./hardware-configuration.nix
-    ../../modules/home/system
-    ../../modules/home/nixos/apps
+    ./hardware.nix
+    ../../modules/system
+    ../../modules/apps
   ];
 
   nixpkgs.config.allowUnfree = true;
 
   networking.hostName = "victus";
   networking.networkmanager.enable = true;
-
-  security.rtkit.enable = true;
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-  };
 
   time.timeZone = "Europe/Lisbon";
 
@@ -36,6 +28,7 @@
     shell = pkgs.zsh;
   };
 
+  nix.settings.warn-dirty = false;
   nix.settings.experimental-features = [
     "nix-command"
     "flakes"
