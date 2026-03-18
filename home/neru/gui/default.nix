@@ -1,12 +1,15 @@
+{ lib, useAmbxst, ... }:
 {
   imports = [
     ./ghostty
     ./networkmanager-dmenu
     ./vesktop
-    ./waybar
-    ./chromium.nix
-    ./hyprland.nix
     ./spotify.nix
-    ./vicinae.nix
-  ];
+  ]
+  ++ lib.optional (useAmbxst) ./ambxst
+  ++ lib.optional (useAmbxst) ./hyprland/ambxst
+
+  ++ lib.optional (!useAmbxst) ./hyprland/waybar
+  ++ lib.optional (!useAmbxst) ./waybar
+  ++ lib.optional (!useAmbxst) ./vicinae.nix;
 }

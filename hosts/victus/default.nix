@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  useAmbxst,
+  ...
+}:
 
 {
   imports = [
@@ -14,6 +19,7 @@
 
   time.timeZone = "Europe/Lisbon";
 
+  programs.ambxst.enable = useAmbxst;
   programs.zsh.enable = true;
 
   users.users.neru = {
