@@ -22,7 +22,7 @@ format = "[@$hostname ]($style)"
 [directory]
 style = "italic #7dcfff"
 format = "[$path\\]]($style)"
-truncation_length = 4
+truncation_length = 3
 truncation_symbol = ""
 
 [git_branch]

@@ -6,6 +6,13 @@
 // Input device configuration.
 // Find the full list of options on the wiki:
 // https://yalter.github.io/niri/Configuration:-Input
+environment {
+    GTK_THEME "rose-pine-moon"
+    XDG_CURRENT_DESKTOP "Niri"
+    XDG_SESSION_DESKTOP "Niri"
+    XDG_SESSION_TYPE "wayland"
+}
+
 input {
     keyboard {
         xkb {
@@ -272,12 +279,8 @@ layout {
 // This line starts waybar, a commonly used bar for Wayland compositors.
 spawn-at-startup "waybar"
 spawn-at-startup "swaybg" "-m" "fill" "-i" "/home/neru/Pictures/wallpapers/chainsaw-man-the-1920x1080-22996.jpg"
-
 spawn-at-startup "vesktop"
-window-rule {
-    match app-id=r#"^io\.github\.vesktop\.Vesktop$"#
-    move-column-to-workspace 2
-}
+
 // To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
 // spawn-sh-at-startup "qs -c ~/source/qs/MyAwesomeShell"
 
