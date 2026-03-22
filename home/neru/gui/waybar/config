@@ -1,27 +1,26 @@
 {
-	"layer": "top",
-	"position": "top",
+	"layer": "bottom",
+	"height": 32,
+	"position": "bottom",
 	"modules-left": [
-		"hyprland/workspaces"
+		"custom/nixos",
+		"niri/workspaces"
 	],
 	"modules-center": [
-		"clock"
+		"niri/window"
 	],
 	"modules-right": [
-		"group/expand",
-		"network",
-		"pulseaudio",
-		"battery"
+		"group/tray-expander",
+		"group/ctl",
+		"clock"
 	],
-	"hyprland/workspaces": {
-		"disable-scroll": true,
+	"niri/workspaces": {
 		"all-outputs": false,
 		"tooltip": false,
 		"format": "{icon}",
 		"format-icons": {
-			"active": "",
-			"default": "",
-			"empty": ""
+			"default": "",
+			"active": ""
 		},
 		"persistent-workspaces": {
 			"*": [
@@ -33,9 +32,12 @@
 			]
 		}
 	},
+	"custom/nixos": {
+		"format": "󱄅"
+	},
 	"clock": {
 		"format": "{:%H:%M}",
-		"tooltip": false
+		"tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
 	},
 	"network": {
 		"format-wifi": " ",
@@ -46,27 +48,23 @@
 		"tooltip-format-ethernet": "{ifname} 󰈀",
 		"on-click": "networkmanager_dmenu"
 	},
-	"custom/expand": {
-		"format": "",
-		"tooltip": false
-	},
-	"group/expand": {
-		"orientation": "horizontal",
+	"group/tray-expander": {
+		"orientation": "inherit",
 		"drawer": {
 			"transition-duration": 600,
-			"transition-to-left": true,
-			"click-to-reveal": true
+			"children-class": "tray-group-item"
 		},
 		"modules": [
-			"custom/expand",
-			"cpu",
-			"memory",
-			"disk",
+			"custom/expand-icon",
 			"tray"
 		]
 	},
+	"custom/expand-icon": {
+		"format": "",
+		"tooltip": false
+	},
 	"cpu": {
-		"format": "[CPU: {usage}%]",
+		"format": "󰍛 {usage}%",
 		"tooltip": false
 	},
 	"memory": {
@@ -78,14 +76,20 @@
 		"tooltip": false
 	},
 	"tray": {
-		"icon-size": 16,
-		"spacing": 8
+		"icon-size": 12,
+		"spacing": 4
+	},
+	"bluetooth": {
+		"format": "",
+		"format-disabled": "󰂲",
+		"format-connected": "󰂱",
+		"format-no-controller": "",
+		"tooltip-format": "Devices connected: {num_connections}"
 	},
 	"pulseaudio": {
 		"scroll-step": 5,
 		"max-volume": 150,
 		"format": "{icon}",
-		"format-bluetooth": "{icon}",
 		"format-icons": [
 			"",
 			"",
@@ -93,10 +97,29 @@
 		],
 		"nospacing": 1,
 		"format-muted": " ",
-		"on-click": "pavucontrol",
+		"on-click": "ghostty --class=audio-mixer -e pulsemixer",
 		"tooltip": {
 			"format": "Volume: {volume}%\n{if mute}Muted{/if}"
 		}
+	},
+	"niri/window": {
+		"format": "{app-name | app-id | title}"
+	},
+	"custom/separator#blank": {
+		"format": " ",
+		"interval": "once",
+		"tooltip": false
+	},
+	"group/ctl": {
+		"orientation": "inherit",
+		"modules": [
+			"custom/separator#blank",
+			"bluetooth",
+			"network",
+			"pulseaudio",
+			"cpu",
+			"battery"
+		]
 	},
 	"battery": {
 		"states": {

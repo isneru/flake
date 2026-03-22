@@ -3,11 +3,10 @@
 {
   services.xserver.enable = true;
   services.displayManager.ly.enable = true;
-
-  programs.hyprland.enable = true;
-
   services.gvfs.enable = true;
   services.udisks2.enable = true;
+
+  programs.niri.enable = true;
 
   xdg.portal = {
     enable = true;

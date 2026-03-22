@@ -1,26 +1,40 @@
 format = """
-[╭─](bold #ebbcba)\
+$username\
+$hostname\
 $directory\
+$character"""
+
+right_format = """
 $git_branch\
-$git_status\
-$line_break\
-[╰─](bold #ebbcba)$character"""
+$git_status"""
+
+[username]
+show_always = true
+style_user = "italic #7dcfff"
+style_root = "italic #f7768e"
+format = "[\\[$user]($style)"
+
+[hostname]
+ssh_only = false
+style = "italic #7dcfff"
+format = "[@$hostname ]($style)"
 
 [directory]
-style = "bold #9ccfd8"
-format = "[  $path ]($style)"
-truncation_length = 3
-truncation_symbol = "…/"
+style = "italic #7dcfff"
+format = "[$path\\]]($style)"
+truncation_length = 4
+truncation_symbol = ""
 
 [git_branch]
 symbol = ""
-style = "bold #c4a7e7"
+style = "italic #bb9af7"
 format = "[ $symbol $branch ]($style)"
 
 [git_status]
-style = "bold #eb6f92"
+style = "italic #f7768e"
 format = '([$all_status$ahead_behind]($style))'
+disabled = true
 
 [character]
-success_symbol = "[ ❯](bold #31748f)"
-error_symbol = "[ ✗](bold #eb6f92)"
+success_symbol = '[ \$](italic #7dcfff)'
+error_symbol = '[ ✗](italic #f7768e)'

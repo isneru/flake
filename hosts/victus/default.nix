@@ -1,7 +1,6 @@
 {
   config,
   pkgs,
-  useAmbxst,
   ...
 }:
 
@@ -19,7 +18,6 @@
 
   time.timeZone = "Europe/Lisbon";
 
-  programs.ambxst.enable = useAmbxst;
   programs.zsh.enable = true;
 
   users.users.neru = {

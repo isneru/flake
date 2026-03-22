@@ -2,7 +2,7 @@
 
 {
   home.packages = with pkgs; [
-    # --- CLI & System Utilities ---
+    # cli and system utils
     git
     jq
     just
@@ -11,7 +11,7 @@
     wget
     zip
 
-    # --- Desktop & GUI Apps ---
+    # gui apps
     inputs.helium.packages.${pkgs.system}.default
     insomnia
     jetbrains.idea
@@ -25,7 +25,7 @@
       ];
     })
 
-    # --- Development & Compilers ---
+    # development and compilers
     cmake
     gcc
     gdb
@@ -35,32 +35,34 @@
     nodejs
     pipx
 
-    # --- Diagrams & Visualization ---
+    # puml
     graphviz
     plantuml
 
-    # --- Networking Tools ---
+    # networking
     inetutils
     networkmanager_dmenu
     nmap
     wavemon
 
-    # --- Virtualization & Containers ---
+    # virtualization and containers
     distrobox
 
-    # --- Wayland & Desktop Utilities ---
-    grim # Screenshots
-    thunar # file manager
-    thunar-archive-plugin # Thunar plugin for archive management
-    gvfs # Thunar dependency for mounting drives
-    pulsemixer # Audio control
-    slurp # Screen selection for screenshots
-    swappy # Screenshot editor
-    swaybg # Sway wallpaper utility
-    wl-clipboard # Wayland clipboard
+    # desktop utils
+    grim
+    thunar
+    thunar-archive-plugin
+    gvfs
+    pulsemixer
+    slurp
+    swappy
+    swaybg
+    wl-clipboard
+    xwayland-satellite
+    xwayland
     xdg-desktop-portal-gtk
 
-    # --- Nix & Custom Scripts ---
+    # nix
     pkgs.nixfmt
     pkgs.nixfmt-tree
     (pkgs.writeShellApplication {
