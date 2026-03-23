@@ -1,10 +1,7 @@
 { lib, ... }:
-
 {
-  boot.lanzaboote = {
-    enable = true;
-    pkiBundle = "/var/lib/sbctl";
-  };
+  boot.lanzaboote.enable = true;
+  boot.lanzaboote.pkiBundle = "/var/lib/sbctl";
 
   boot.loader.systemd-boot.enable = lib.mkForce false;
   boot.loader.systemd-boot.configurationLimit = 5;

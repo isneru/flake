@@ -1,7 +1,9 @@
 {
   imports = [
     ./fonts.nix
-    ./global.nix
+    ./cursor.nix
+    ./dconf.nix
     ./gtk.nix
+    ./qt.nix
   ];
 }

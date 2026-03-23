@@ -1,24 +1,14 @@
 {
   config,
   pkgs,
+  lib,
   ...
 }:
-
 {
   imports = [
     ./hardware.nix
-    ../../modules/system
-    ../../modules/apps
+    ./cfg
   ];
-
-  nixpkgs.config.allowUnfree = true;
-
-  networking.hostName = "victus";
-  networking.networkmanager.enable = true;
-
-  time.timeZone = "Europe/Lisbon";
-
-  programs.zsh.enable = true;
 
   users.users.neru = {
     isNormalUser = true;
@@ -32,14 +22,17 @@
     shell = pkgs.zsh;
   };
 
+  networking.hostName = "victus";
+  networking.networkmanager.enable = true;
+
+  environment.localBinInPath = true;
+  nixpkgs.config.allowUnfree = true;
+
   nix.settings.warn-dirty = false;
   nix.settings.experimental-features = [
     "nix-command"
     "flakes"
   ];
-
-  # sources ~/.local/bin
-  environment.localBinInPath = true;
 
   system.stateVersion = "25.11";
 }

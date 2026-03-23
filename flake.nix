@@ -43,7 +43,9 @@
             home-manager.useUserPackages = true;
             home-manager.backupFileExtension = "bak";
             home-manager.users.neru = import ./home/neru/default.nix;
-            home-manager.extraSpecialArgs = { inherit inputs; };
+            home-manager.extraSpecialArgs = {
+              inherit inputs;
+            };
           }
         ];
       };

@@ -8,6 +8,6 @@
     size = 24;
     dotIcons.enable = false;
     gtk.enable = true;
-    x11.enable = false;
+    x11.enable = true;
   };
 }
