@@ -18,6 +18,11 @@
       url = "github:AlvaroParker/helium-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    niri.url = "github:sodiboo/niri-flake";
+    noctalia = {
+      url = "github:noctalia-dev/noctalia-shell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -26,6 +31,8 @@
       nixpkgs,
       lanzaboote,
       home-manager,
+      niri,
+      noctalia,
       ...
     }@inputs:
     {

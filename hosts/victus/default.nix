@@ -24,6 +24,7 @@
 
   networking.hostName = "victus";
   networking.networkmanager.enable = true;
+  hardware.bluetooth.enable = true;
 
   environment.localBinInPath = true;
   nixpkgs.config.allowUnfree = true;

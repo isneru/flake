@@ -6,6 +6,7 @@
     ./vesktop
     ./waybar
     ./niri
+    ./noctalia
     ./spotify
     ./vicinae
   ];

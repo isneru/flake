@@ -9,7 +9,10 @@
 
   xdg.portal = {
     enable = true;
-    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+    extraPortals = [
+      pkgs.xdg-desktop-portal-gtk
+      pkgs.xdg-desktop-portal-gnome
+    ];
 
     config = {
       common = {
@@ -28,4 +31,7 @@
   };
 
   security.rtkit.enable = true;
+
+  services.power-profiles-daemon.enable = true;
+  services.upower.enable = true;
 }
