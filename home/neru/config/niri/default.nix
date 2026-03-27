@@ -97,6 +97,14 @@ in
           open-on-workspace = "other";
         }
         {
+          matches = [
+            { app-id = "ghostty"; }
+          ];
+          default-column-width = {
+            proportion = 1. / 2.;
+          };
+        }
+        {
           geometry-corner-radius = {
             top-left = 8.0;
             top-right = 8.0;
@@ -118,10 +126,11 @@ in
       ];
 
       binds = with config.lib.niri.actions; {
-        "Mod+Space".action.spawn = noctalia "launcher toggle";
+        "Mod+D".action.spawn = noctalia "launcher toggle";
         # "Mod+D".action.spawn = ["vicinae" "toggle"];
-        "Mod+S".action.spawn = noctalia "controlCenter toggle";
+        "Mod+Space".action.spawn = noctalia "controlCenter toggle";
         "Mod+Return".action.spawn = "ghostty";
+        "Mod+E".action.spawn = "thunar";
 
         "Mod+Escape".action.spawn = noctalia "sessionMenu toggle";
         "Mod+L".action.spawn = noctalia "lockScreen lock";
@@ -239,9 +248,9 @@ in
 
         "Mod+V".action = toggle-window-floating;
 
-        #"Print".action = screenshot;
-        #"Ctrl+Print".action = screenshot-screen;
-        #"Alt+Print".action = screenshot-window;
+        "Print".action.screenshot = { };
+        "Ctrl+Print".action.screenshot-screen = { };
+        "Alt+Print".action.screenshot-window = { };
 
         "Mod+Alt+Delete" = {
           action = toggle-keyboard-shortcuts-inhibit;

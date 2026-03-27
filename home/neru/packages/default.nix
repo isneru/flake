@@ -1,6 +1,8 @@
 { pkgs, inputs, ... }:
 
 {
+  imports = [ ./scripts.nix ];
+
   home.packages = with pkgs; [
     # cli and system utils
     git
@@ -44,6 +46,8 @@
     networkmanager_dmenu
     nmap
     wavemon
+    iw
+    pciutils
 
     # virtualization and containers
     distrobox
@@ -65,16 +69,5 @@
     # nix
     pkgs.nixfmt
     pkgs.nixfmt-tree
-    (pkgs.writeShellApplication {
-      name = "ns";
-      runtimeInputs = with pkgs; [
-        fzf
-        (nix-search-tv.overrideAttrs {
-          env.GOEXPERIMENT = "jsonv2";
-          allowGoReference = true;
-        })
-      ];
-      text = ''exec "${pkgs.nix-search-tv.src}/nixpkgs.sh" "$@"'';
-    })
   ];
 }

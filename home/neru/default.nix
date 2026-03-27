@@ -1,9 +1,10 @@
+{ ... }:
 {
   imports = [
-    ./gui
-    ./shell
+    ./config
     ./themes
-    ./packages.nix
-    ./state.nix
+    ./packages
   ];
+
+  home.stateVersion = "25.11";
 }

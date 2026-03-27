@@ -1,5 +1,0 @@
-require("lsp")
-require("ui")
-require("fmt")
-require("utils")
-require("theme")

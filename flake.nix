@@ -49,7 +49,7 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.backupFileExtension = "bak";
-            home-manager.users.neru = import ./home/neru/default.nix;
+            home-manager.users.neru = import ./home/neru;
             home-manager.extraSpecialArgs = {
               inherit inputs;
             };

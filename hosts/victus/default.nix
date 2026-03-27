@@ -7,7 +7,7 @@
 {
   imports = [
     ./hardware.nix
-    ./cfg
+    ./config
   ];
 
   users.users.neru = {
