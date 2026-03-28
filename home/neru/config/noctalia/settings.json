@@ -365,7 +365,7 @@
         "animationDisabled": false,
         "animationSpeed": 1,
         "autoStartAuth": false,
-        "avatarImage": "~/Developer/flake/home/neru/assets/pfp.jpeg",
+        "avatarImage": "~/.config/noctalia/pfp.jpeg",
         "boxRadiusRatio": 1,
         "clockFormat": "HH:mm",
         "clockStyle": "custom",
