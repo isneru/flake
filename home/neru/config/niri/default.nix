@@ -35,8 +35,8 @@ in
 
       environment = {
         GTK_THEME = "rose-pine-moon";
-        XDG_CURRENT_DESKTOP = "Niri";
-        XDG_SESSION_DESKTOP = "Niri";
+        XDG_CURRENT_DESKTOP = "niri";
+        XDG_SESSION_DESKTOP = "niri";
         XDG_SESSION_TYPE = "wayland";
       };
 

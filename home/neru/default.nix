@@ -2,8 +2,9 @@
 {
   imports = [
     ./config
-    ./themes
-    ./packages
+    ./cli.nix
+    ./theme.nix
+    ./packages.nix
   ];
 
   home.stateVersion = "25.11";

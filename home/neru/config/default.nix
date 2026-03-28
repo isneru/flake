@@ -8,8 +8,6 @@
     ./spotify
     ./starship
     ./vesktop
-    ./zoxide
-    ./zsh
     ./utils.nix
   ];
 }

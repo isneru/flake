@@ -13,13 +13,9 @@
       pkgs.xdg-desktop-portal-gtk
       pkgs.xdg-desktop-portal-gnome
     ];
-
     config = {
       common = {
         default = [ "gtk" ];
-      };
-      niri = {
-        default = lib.mkForce [ "gtk" ];
       };
     };
   };
