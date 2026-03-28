@@ -13,7 +13,6 @@
   dconf.settings = {
     "org/gnome/desktop/interface" = {
       color-scheme = "prefer-dark";
-      gtk-theme = "rose-pine-moon";
     };
   };
 
@@ -27,10 +26,6 @@
   gtk = {
     enable = true;
 
-    theme = {
-      name = "rose-pine-moon";
-      package = pkgs.rose-pine-gtk-theme;
-    };
     iconTheme = {
       name = "rose-pine";
       package = pkgs.rose-pine-icon-theme;
@@ -48,9 +43,6 @@
   qt = {
     enable = true;
 
-    platformTheme.name = "gtk";
-
-    style.name = "adwaita-dark";
-    style.package = pkgs.adwaita-qt;
+    platformTheme.name = "qtct";
   };
 }

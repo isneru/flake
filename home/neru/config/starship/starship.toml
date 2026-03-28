@@ -10,31 +10,31 @@ $git_status"""
 
 [username]
 show_always = true
-style_user = "italic #7dcfff"
-style_root = "italic #f7768e"
-format = "[\\[$user]($style)"
+style_user = ""
+style_root = ""
+format = "[\\[$user]()"
 
 [hostname]
 ssh_only = false
-style = "italic #7dcfff"
-format = "[@$hostname ]($style)"
+style = ""
+format = "[@$hostname ]()"
 
 [directory]
-style = "italic #7dcfff"
-format = "[$path\\]]($style)"
+style = ""
+format = "[$path\\]]()"
 truncation_length = 3
 truncation_symbol = ""
 
 [git_branch]
 symbol = ""
-style = "italic #bb9af7"
-format = "[ $symbol $branch ]($style)"
+style = ""
+format = "[ $symbol $branch ]()"
 
 [git_status]
-style = "italic #f7768e"
-format = '([$all_status$ahead_behind]($style))'
+style = ""
+format = '([$all_status$ahead_behind]())'
 disabled = true
 
 [character]
-success_symbol = '[ \$](italic #7dcfff)'
-error_symbol = '[ ✗](italic #f7768e)'
+success_symbol = '[ \$]()'
+error_symbol = '[ ✗]()'

@@ -1,4 +1,5 @@
 {
+  lib,
   config,
   pkgs,
   inputs,
@@ -34,7 +35,6 @@ in
       };
 
       environment = {
-        GTK_THEME = "rose-pine-moon";
         XDG_CURRENT_DESKTOP = "niri";
         XDG_SESSION_DESKTOP = "niri";
         XDG_SESSION_TYPE = "wayland";
@@ -127,7 +127,6 @@ in
 
       binds = with config.lib.niri.actions; {
         "Mod+D".action.spawn = noctalia "launcher toggle";
-        # "Mod+D".action.spawn = ["vicinae" "toggle"];
         "Mod+Space".action.spawn = noctalia "controlCenter toggle";
         "Mod+Return".action.spawn = "ghostty";
         "Mod+E".action.spawn = "thunar";
