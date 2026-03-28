@@ -12,7 +12,7 @@
     zip
 
     # gui apps
-    inputs.helium.packages.${pkgs.system}.default
+    inputs.helium.packages.${system}.default
     insomnia
     jetbrains.idea
     obsidian
@@ -64,8 +64,8 @@
     xdg-desktop-portal-gtk
 
     # nix
-    pkgs.nixfmt
-    pkgs.nixfmt-tree
+    nixfmt
+    nixfmt-tree
 
     # scripts
     (writeShellScriptBin "start-monitor" ''
@@ -93,7 +93,7 @@
       fi
     '')
 
-    (pkgs.writeShellApplication {
+    (writeShellApplication {
       name = "ns";
       runtimeInputs = with pkgs; [
         fzf
@@ -102,7 +102,7 @@
           allowGoReference = true;
         })
       ];
-      text = ''exec "${pkgs.nix-search-tv.src}/nixpkgs.sh" "$@"'';
+      text = ''exec "${nix-search-tv.src}/nixpkgs.sh" "$@"'';
     })
   ];
 }

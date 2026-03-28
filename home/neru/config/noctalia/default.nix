@@ -1,4 +1,9 @@
-{ inputs, pkgs, utils, ... }:
+{
+  inputs,
+  pkgs,
+  utils,
+  ...
+}:
 {
   imports = [
     inputs.noctalia.homeModules.default
