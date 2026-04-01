@@ -1,5 +1,4 @@
 {
-  lib,
   config,
   pkgs,
   inputs,
@@ -43,6 +42,7 @@ in
       input = {
         keyboard = {
           xkb.layout = "pt";
+          xkb.variant = "nodeadkeys";
           numlock = true;
         };
         touchpad = {
@@ -69,8 +69,8 @@ in
         focus-ring = {
           enable = true;
           width = 2;
-          active.color = "#7fc8ff";
-          inactive.color = "#505050";
+          active.color = "#ebbcba";
+          inactive.color = "#403d52";
         };
       };
 
@@ -248,8 +248,8 @@ in
         "Mod+V".action = toggle-window-floating;
 
         "Print".action.screenshot = { };
-        "Ctrl+Print".action.screenshot-screen = { };
-        "Alt+Print".action.screenshot-window = { };
+        "Alt+Print".action.screenshot-screen = { };
+        "Ctrl+Print".action.screenshot-window = { };
 
         "Mod+Alt+Delete" = {
           action = toggle-keyboard-shortcuts-inhibit;

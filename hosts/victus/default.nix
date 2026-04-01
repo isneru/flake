@@ -28,6 +28,9 @@
 
   environment.localBinInPath = true;
   nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.permittedInsecurePackages = [
+    "electron-38.8.4"
+  ];
 
   nix.settings.warn-dirty = false;
   nix.settings.experimental-features = [

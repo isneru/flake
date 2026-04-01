@@ -23,16 +23,18 @@
       url = "github:noctalia-dev/noctalia-shell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
     {
-      self,
       nixpkgs,
       lanzaboote,
       home-manager,
-      niri,
-      noctalia,
+      sops-nix,
       ...
     }@inputs:
     {
@@ -44,6 +46,7 @@
         modules = [
           ./hosts/victus/default.nix
           lanzaboote.nixosModules.lanzaboote
+          sops-nix.nixosModules.sops
           home-manager.nixosModules.home-manager
           {
             home-manager.useGlobalPkgs = true;

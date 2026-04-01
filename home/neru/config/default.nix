@@ -8,6 +8,8 @@
     ./spotify
     ./starship
     ./vesktop
+    ./tmux
+    ./nvim
     ./utils.nix
   ];
 }
