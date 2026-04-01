@@ -1,0 +1,5 @@
+[config]
+
+[templates.browser]
+input_path = "~/.config/noctalia/templates/browser.css"
+output_path = "~/browser-new-tab/noctalia.css"

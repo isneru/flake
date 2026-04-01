@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ pkgs, ... }:
 {
   services.displayManager.ly.enable = true;
   services.gvfs.enable = true;

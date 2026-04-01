@@ -1,8 +1,6 @@
 {
   inputs,
-  pkgs,
   utils,
-  lib,
   ...
 }:
 {
