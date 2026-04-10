@@ -14,4 +14,3 @@ opt.smartcase = true
 opt.wrap = false
 opt.clipboard = "unnamedplus"
 opt.termguicolors = true
-

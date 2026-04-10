@@ -170,7 +170,7 @@ require("nvim-tree").setup({
     },
     view = {
         width = 30,
-        side = "right",
+        side = "left",
     },
     disable_netrw = true,
     hijack_netrw = true,
@@ -187,12 +187,9 @@ require("nvim-tree").setup({
 vim.keymap.set("n", "<C-b>", ":NvimTreeToggle<CR>", { desc = "Toggle file explorer" })
 vim.keymap.set("n", "<leader>e", ":NvimTreeFocus<CR>", { desc = "Focus file explorer" })
 
-vim.api.nvim_set_hl(0, "Normal", { bg = "none" })
-vim.api.nvim_set_hl(0, "NormalNC", { bg = "none" })
-vim.api.nvim_set_hl(0, "SignColumn", { bg = "none" })
-vim.api.nvim_set_hl(0, "EndOfBuffer", { bg = "none" })
-vim.api.nvim_set_hl(0, "NormalFloat", { bg = "none" })
-vim.api.nvim_set_hl(0, "FloatBorder", { bg = "none" })
-vim.api.nvim_set_hl(0, "FloatTitle", { bg = "none" })
-vim.api.nvim_set_hl(0, "StatusLine", { bg = "none" })
-vim.api.nvim_set_hl(0, "StatusLineNC", { bg = "none" })
+require("rose-pine").setup({
+    styles = {
+        transparency = true,
+    }
+})
+vim.cmd("colorscheme rose-pine")

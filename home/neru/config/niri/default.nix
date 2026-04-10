@@ -70,7 +70,6 @@ in
           enable = true;
           width = 2;
           active.color = "#ebbcba";
-          inactive.color = "#403d52";
         };
       };
 
@@ -82,7 +81,7 @@ in
 
       spawn-at-startup = [
         { argv = [ "noctalia-shell" ]; }
-        { argv = [ "vesktop" ]; }
+        # { argv = [ "vesktop" ]; } this makes noctalia not detect vesktop (race condition?)
       ];
 
       prefer-no-csd = true;

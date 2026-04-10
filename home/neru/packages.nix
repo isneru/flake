@@ -10,6 +10,7 @@
     unzip
     wget
     zip
+    fzf
 
     # gui apps
     inputs.helium.packages.${system}.default
@@ -53,7 +54,6 @@
     grim
     thunar
     thunar-archive-plugin
-    gvfs
     pulsemixer
     slurp
     swappy
@@ -61,12 +61,11 @@
     wl-clipboard
     xwayland-satellite
     xwayland
-    xdg-desktop-portal-gtk
     libsForQt5.qt5ct
     qt6Packages.qt6ct
+    gpu-screen-recorder
 
     # nix
-    nixfmt
     nixfmt-tree
 
     # scripts
