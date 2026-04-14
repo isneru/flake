@@ -42,7 +42,7 @@ require("lualine").setup({
             normal = {
                 a = { fg = theme_colors.mSurface, bg = theme_colors.mPrimary, gui = "bold" },
                 b = { fg = theme_colors.mOnSurface, bg = theme_colors.mSurfaceVariant },
-                c = { fg = theme_colors.mOnSurfaceVariant, bg = "none" }, -- Transparent middle
+                c = { fg = theme_colors.mOnSurfaceVariant, bg = "none" },
             },
             insert = {
                 a = { fg = theme_colors.mSurface, bg = theme_colors.mTertiary, gui = "bold" },
@@ -186,10 +186,3 @@ require("nvim-tree").setup({
 
 vim.keymap.set("n", "<C-b>", ":NvimTreeToggle<CR>", { desc = "Toggle file explorer" })
 vim.keymap.set("n", "<leader>e", ":NvimTreeFocus<CR>", { desc = "Focus file explorer" })
-
-require("rose-pine").setup({
-    styles = {
-        transparency = true,
-    }
-})
-vim.cmd("colorscheme rose-pine")

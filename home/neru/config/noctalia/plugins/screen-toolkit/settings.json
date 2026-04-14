@@ -1,0 +1,26 @@
+{
+  "stateIsRunning": false,
+  "stateActiveTool": "record",
+  "detectedCompositor": "niri",
+  "transAvailable": false,
+  "detectedRecorder": "",
+  "installedLangs": [
+    "chi_sim",
+    "chi_tra",
+    "eng",
+    "jpn",
+    "kor",
+    "lat",
+    "spa"
+  ],
+  "stateMirrorVisible": false,
+  "resultHex": "#1E1E2E",
+  "resultRgb": "rgb(30, 30, 46)",
+  "resultHsv": "hsv(240, 35%, 18%)",
+  "resultHsl": "hsl(240, 21%, 15%)",
+  "colorCapturePath": "/tmp/screen-toolkit-colorpicker.png",
+  "colorCacheBust": 1776177366589,
+  "colorHistory": [
+    "#1E1E2E"
+  ]
+}

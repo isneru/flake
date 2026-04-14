@@ -1,11 +1,7 @@
-background-opacity = 1
-
 font-family = "CaskaydiaCove NFM"
-font-size = 13
+font-size = 14
 
 window-padding-balance = true
 window-decoration = false
-window-padding-x = 4
-window-padding-y = 4
 
 theme = noctalia

@@ -1,0 +1,60 @@
+/**
+ * @name Noctalia Master Theme
+ * @description Comprehensive semantic theme for modern Discord
+ */
+:root, .theme-dark, .theme-light {
+    /* 1. APP FRAME & ROOT BACKGROUNDS */
+    --app-frame-background: {{colors.surface.default.hex}} !important;
+    --chat-background: {{colors.surface.default.hex}} !important;
+    --chat-background-default: {{colors.surface.default.hex}} !important;
+    --home-background: {{colors.surface.default.hex}} !important;
+    
+    /* 2. BASE BACKGROUND LAYERS (Left Sidebar, Chat area) */
+    --background-base-low: {{colors.surface.default.hex}} !important;
+    --background-base-lower: {{colors.surface.default.hex}} !important;
+    --background-base-lowest: {{colors.surface.default.hex}} !important;
+    --background-primary: {{colors.surface.default.hex}} !important;
+    --background-secondary: {{colors.surface_variant.default.hex}} !important;
+    --background-secondary-alt: {{colors.surface_variant.default.hex}} !important;
+    --background-tertiary: {{colors.surface.default.hex}} !important;
+
+    /* 3. SURFACE LAYERS (Popouts, Cards, Modals) */
+    --background-surface-high: {{colors.surface_variant.default.hex}} !important;
+    --background-surface-higher: {{colors.surface_variant.default.hex}} !important;
+    --background-surface-highest: {{colors.surface_variant.default.hex}} !important;
+    --modal-background: {{colors.surface_variant.default.hex}} !important;
+    --modal-footer-background: {{colors.surface.default.hex}} !important;
+    --card-background-default: {{colors.surface_variant.default.hex}} !important;
+
+    /* 4. CHANNELS & INPUT TEXT AREA */
+    --channel-background-default: {{colors.surface.default.hex}} !important;
+    --channeltextarea-background: {{colors.surface_variant.default.hex}} !important;
+    --input-background-default: {{colors.surface_variant.default.hex}} !important;
+
+    /* 5. BRAND & ACCENT COLORS (Buttons, Mentions, Pings) */
+    --brand-experiment: {{colors.primary.default.hex}} !important;
+    --background-accent: {{colors.primary.default.hex}} !important;
+    --control-brand-foreground: {{colors.primary.default.hex}} !important;
+    --control-brand-foreground-new: {{colors.primary.default.hex}} !important;
+    --text-brand: {{colors.primary.default.hex}} !important;
+    
+    /* 6. TEXT COLORS */
+    --text-default: {{colors.on_surface.default.hex}} !important;
+    --text-normal: {{colors.on_surface.default.hex}} !important;
+    --text-muted: {{colors.on_surface_variant.default.hex}} !important;
+    --interactive-text-default: {{colors.on_surface_variant.default.hex}} !important;
+    --interactive-text-active: {{colors.primary.default.hex}} !important;
+    --interactive-text-hover: {{colors.on_surface.default.hex}} !important;
+    
+    /* 7. ICONS */
+    --icon-default: {{colors.on_surface_variant.default.hex}} !important;
+    --icon-muted: {{colors.on_surface_variant.default.hex}} !important;
+    --interactive-icon-default: {{colors.on_surface_variant.default.hex}} !important;
+    --interactive-icon-active: {{colors.primary.default.hex}} !important;
+
+    /* 8. BORDERS & DIVIDERS */
+    --app-frame-border: transparent !important;
+    --border-subtle: transparent !important;
+    --border-strong: transparent !important;
+    --chat-border: transparent !important;
+}

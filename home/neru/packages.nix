@@ -2,7 +2,6 @@
 
 {
   home.packages = with pkgs; [
-    # cli and system utils
     git
     jq
     just
@@ -11,8 +10,20 @@
     wget
     zip
     fzf
-
-    # gui apps
+    ffmpeg
+    wl-screenrec
+    grim
+    slurp
+    wl-clipboard
+    tesseract
+    imagemagick
+    zbar
+    curl
+    translate-shell
+    wl-screenrec
+    ffmpeg
+    gifski
+    jq
     inputs.helium.packages.${system}.default
     insomnia
     jetbrains.idea
@@ -25,8 +36,6 @@
         tidyverse
       ];
     })
-
-    # development and compilers
     cmake
     gcc
     gdb
@@ -34,23 +43,15 @@
     maven
     nodejs
     pipx
-
-    # puml
     graphviz
     plantuml
-
-    # networking
     inetutils
     networkmanager_dmenu
     nmap
     wavemon
     iw
     pciutils
-
-    # virtualization and containers
     distrobox
-
-    # desktop utils
     grim
     thunar
     thunar-archive-plugin
@@ -64,11 +65,7 @@
     libsForQt5.qt5ct
     qt6Packages.qt6ct
     gpu-screen-recorder
-
-    # nix
     nixfmt-tree
-
-    # scripts
     (writeShellScriptBin "start-monitor" ''
       IFACE=''${1:-wlp5s0} 
 

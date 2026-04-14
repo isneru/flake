@@ -24,7 +24,7 @@
       telescope-fzf-native-nvim
       telescope-nvim
       which-key-nvim
-      rose-pine
+      base16-nvim
     ];
     extraPackages = with pkgs; [
       ripgrep # Required by Telescope for fast text searching
