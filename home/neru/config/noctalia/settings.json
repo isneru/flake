@@ -152,7 +152,7 @@
                     "id": "ActiveWindow",
                     "maxWidth": 145,
                     "scrollingMode": "hover",
-                    "showIcon": true,
+                    "showIcon": false,
                     "textColor": "none",
                     "useFixedWidth": false
                 },
@@ -189,6 +189,22 @@
                     ]
                 },
                 {
+                    "defaultSettings": {
+                        "colorHistory": [
+                        ],
+                        "detectedCompositor": "",
+                        "detectedRecorder": "",
+                        "filenameFormat": "",
+                        "installedLangs": [
+                            "eng"
+                        ],
+                        "paletteColors": [
+                        ],
+                        "screenshotPath": "",
+                        "selectedOcrLang": "eng",
+                        "transAvailable": false,
+                        "videoPath": ""
+                    },
                     "id": "plugin:screen-toolkit"
                 },
                 {
@@ -201,7 +217,7 @@
                 },
                 {
                     "deviceNativePath": "__default__",
-                    "displayMode": "icon-always",
+                    "displayMode": "icon-hover",
                     "hideIfIdle": false,
                     "hideIfNotDetected": true,
                     "id": "Battery",

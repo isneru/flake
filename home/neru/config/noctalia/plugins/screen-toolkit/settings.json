@@ -1,9 +1,9 @@
 {
   "stateIsRunning": false,
-  "stateActiveTool": "record",
+  "stateActiveTool": "",
   "detectedCompositor": "niri",
-  "transAvailable": false,
-  "detectedRecorder": "",
+  "transAvailable": true,
+  "detectedRecorder": "wl-screenrec",
   "installedLangs": [
     "chi_sim",
     "chi_tra",
