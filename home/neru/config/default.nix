@@ -4,12 +4,14 @@
   imports = [
     ./ghostty
     ./niri
-    ./noctalia
+    ./waybar
     ./spotify
     ./starship
     ./vesktop
     ./tmux
     ./nvim
+    ./fuzzel
     ./utils.nix
+
   ];
 }

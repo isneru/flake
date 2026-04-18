@@ -1,6 +1,4 @@
-local colors_file = vim.fn.expand("~/.config/noctalia/colors.json")
 local theme_colors = {
-    -- Fallback colors just in case the file can't be read
     mPrimary = "#7ed0ff",
     mTertiary = "#cbc1e9",
     mError = "#ffb4ab",
@@ -9,20 +7,6 @@ local theme_colors = {
     mSurfaceVariant = "#1d2022",
     mOnSurfaceVariant = "#c1c7cd",
 }
-
-if vim.fn.filereadable(colors_file) == 1 then
-    local f = io.open(colors_file, "r")
-    if f then
-        local content = f:read("*a")
-        f:close()
-        local ok, parsed = pcall(vim.fn.json_decode, content)
-        if ok and type(parsed) == "table" then
-            for k, v in pairs(parsed) do
-                theme_colors[k] = v
-            end
-        end
-    end
-end
 
 require("gitsigns").setup({
     current_line_blame = true,

@@ -23,9 +23,7 @@
       autoUpdateNotification = false;
       useQuickCss = true;
       themeLinks = [ ];
-      enabledThemes = [
-        "noctalia.theme.css"
-      ];
+      enabledThemes = [ ];
       enableReactDevtools = false;
       frameless = true;
       transparent = false;
