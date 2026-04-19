@@ -2,6 +2,8 @@
 
 {
   home.packages = with pkgs; [
+    inputs.gazelle.packages.${pkgs.system}.default
+    inputs.helium.packages.${system}.default
     git
     jq
     just
@@ -12,10 +14,10 @@
     fzf
     ffmpeg
     curl
-    inputs.helium.packages.${system}.default
     insomnia
     jetbrains.idea
     obsidian
+    lazygit
     vscode
     (rstudioWrapper.override {
       packages = with rPackages; [
@@ -49,7 +51,6 @@
     swaybg
     swaylock
     wlogout
-    fuzzel
     wl-clipboard
     xwayland-satellite
     xwayland

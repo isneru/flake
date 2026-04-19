@@ -10,7 +10,7 @@
     ./vesktop
     ./tmux
     ./nvim
-    ./fuzzel
+    ./tofi
     ./utils.nix
 
   ];

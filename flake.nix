@@ -23,6 +23,7 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    gazelle.url = "github:Zeus-Deus/gazelle-tui";
   };
 
   outputs =
@@ -31,6 +32,7 @@
       lanzaboote,
       home-manager,
       sops-nix,
+      gazelle,
       ...
     }@inputs:
     {

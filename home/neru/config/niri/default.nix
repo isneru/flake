@@ -1,6 +1,5 @@
 {
   config,
-  pkgs,
   inputs,
   ...
 }:
@@ -11,7 +10,6 @@
 
   programs.niri = {
     enable = true;
-    package = pkgs.niri;
     settings = {
       workspaces = {
         "main" = { };
@@ -114,7 +112,10 @@
       ];
 
       binds = with config.lib.niri.actions; {
-        "Mod+D".action.spawn = "fuzzel";
+        "Mod+D".action.spawn = [
+          "tofi-drun"
+          "--drun-launch=true"
+        ];
         "Mod+Return".action.spawn = "ghostty";
         "Mod+E".action.spawn = "thunar";
         "Mod+L".action.spawn = "swaylock";

@@ -26,13 +26,23 @@
           format = "{value}";
         };
 
+        "niri/window" = {
+          format = "{app_id} >> {title}";
+          rewrite = {
+            "vesktop >> (.*)" = "Discord";
+            "helium >> (.*)" = "Helium";
+            "com.mitchellh.ghostty >> (.*)" = "Ghostty";
+            "z?.* >> (.*)" = "$1";
+          };
+        };
+
         "clock" = {
-          format = "󰥔  {:%H:%M}";
+          format = "{:%H:%M}";
           tooltip-format = "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>";
         };
 
         "pulseaudio" = {
-          format = "{icon}  {volume}%";
+          format = "{icon} {volume}%";
           format-muted = "󰝟 ";
           format-icons = {
             default = [
@@ -41,13 +51,14 @@
               "󰕾"
             ];
           };
-          on-click = "pavucontrol";
+          on-click = "ghostty -e pulsemixer";
         };
 
         "network" = {
-          format-wifi = "󰤨  {essid}";
-          format-ethernet = "󱘖  {ifname}";
+          format-wifi = "󰤨 {essid}";
+          format-ethernet = "󱘖 {ifname}";
           format-disconnected = "󰤮 ";
+          on-click = "ghostty -e gazelle";
         };
 
         "cpu" = {
@@ -65,7 +76,7 @@
             warning = 30;
             critical = 15;
           };
-          format = "{icon}  {capacity}%";
+          format = "{icon} {capacity}%";
           format-icons = [
             "󰂎"
             "󰁺"
