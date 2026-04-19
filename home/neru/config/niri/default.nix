@@ -91,6 +91,19 @@
           open-on-workspace = "other";
         }
         {
+          matches = [
+            { title = "audiomantui"; }
+            { title = "netwmantui"; }
+          ];
+          open-floating = true;
+          default-column-width = {
+            proportion = 2. / 5.;
+          };
+          default-window-height = {
+            proportion = 1. / 2.;
+          };
+        }
+        {
           geometry-corner-radius = {
             top-left = 0.0;
             top-right = 0.0;

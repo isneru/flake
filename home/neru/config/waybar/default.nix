@@ -29,9 +29,11 @@
         "niri/window" = {
           format = "{app_id} >> {title}";
           rewrite = {
-            "vesktop >> (.*)" = "Discord";
-            "helium >> (.*)" = "Helium";
-            "com.mitchellh.ghostty >> (.*)" = "Ghostty";
+            "vesktop >> (.*)" = "discord";
+            "helium >> (.*)" = "helium";
+            "com.mitchellh.ghostty >> (.*)" = "terminal";
+            "Spotify >> (.*)" = "spotify";
+            "obsidian >> (.*)" = "obsidian";
             "z?.* >> (.*)" = "$1";
           };
         };
@@ -51,14 +53,14 @@
               "󰕾"
             ];
           };
-          on-click = "ghostty -e pulsemixer";
+          on-click = "ghostty --title=audiomantui -e pulsemixer";
         };
 
         "network" = {
           format-wifi = "󰤨 {essid}";
           format-ethernet = "󱘖 {ifname}";
           format-disconnected = "󰤮 ";
-          on-click = "ghostty -e gazelle";
+          on-click = "ghostty --title=netwmantui -e gazelle";
         };
 
         "cpu" = {
@@ -113,6 +115,11 @@
         border-bottom: 1px solid #393552;
       }
 
+      #workspaces {
+        border-right: 1px solid #393552;
+        margin-right: 8px;
+      }
+
       #workspaces button {
         padding: 0 10px;
         color: #6e6a86;
@@ -128,8 +135,7 @@
       }
 
       #pulseaudio, #network, #cpu, #memory, #battery, #tray {
-        padding: 0 12px;
-        margin: 4px 0;
+        padding: 0 10px;
       }
 
       #pulseaudio { color: #ea9a97; }
