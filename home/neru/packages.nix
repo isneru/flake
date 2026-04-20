@@ -2,23 +2,66 @@
 
 {
   home.packages = with pkgs; [
+    # keep-sorted start
+    claude-code
+    cmake
+    curl
+    deadnix
+    distrobox
+    ffmpeg
+    fzf
+    gcc
+    gdb
+    git
+    gnumake
+    graphviz
+    grim
+    inetutils
     inputs.gazelle.packages.${pkgs.system}.default
     inputs.helium.packages.${system}.default
-    git
+    insomnia
+    iw
+    jetbrains.idea
     jq
     just
+    keep-sorted
     killall
-    unzip
-    wget
-    zip
-    fzf
-    ffmpeg
-    curl
-    insomnia
-    jetbrains.idea
-    obsidian
     lazygit
+    libsForQt5.qt5ct
+    maven
+    networkmanager_dmenu
+    nixfmt
+    nixfmt-tree
+    nmap
+    nodejs
+    obsidian
+    pciutils
+    pipx
+    plantuml
+    pulsemixer
+    qt6Packages.qt6ct
+    shfmt
+    slurp
+    stylua
+    swappy
+    swaybg
+    swaylock
+    thunar
+    thunar-archive-plugin
+    tinymist
+    typst
+    typst-live
+    unzip
     vscode
+    wavemon
+    wget
+    wl-clipboard
+    wlogout
+    xwayland
+    xwayland-satellite
+    zathura
+    zip
+    # keep-sorted end
     (rstudioWrapper.override {
       packages = with rPackages; [
         ggplot2
@@ -26,37 +69,6 @@
         tidyverse
       ];
     })
-    cmake
-    gcc
-    gdb
-    gnumake
-    maven
-    nodejs
-    pipx
-    graphviz
-    plantuml
-    inetutils
-    networkmanager_dmenu
-    nmap
-    wavemon
-    iw
-    pciutils
-    distrobox
-    grim
-    thunar
-    thunar-archive-plugin
-    pulsemixer
-    slurp
-    swappy
-    swaybg
-    swaylock
-    wlogout
-    wl-clipboard
-    xwayland-satellite
-    xwayland
-    libsForQt5.qt5ct
-    qt6Packages.qt6ct
-    nixfmt-tree
     (writeShellScriptBin "start-monitor" ''
       IFACE=''${1:-wlp5s0} 
       echo "Creating virtual interface 'mon0' from $IFACE..."

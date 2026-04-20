@@ -1,6 +1,7 @@
 {
   config,
   inputs,
+  colors,
   ...
 }:
 {
@@ -55,7 +56,7 @@
         focus-ring = {
           enable = true;
           width = 1;
-          active.color = "#ebbcba";
+          active.color = colors.info;
         };
       };
 

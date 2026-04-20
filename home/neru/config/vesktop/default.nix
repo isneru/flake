@@ -1,4 +1,4 @@
-{ ... }:
+{ colors, ... }:
 
 {
   programs.vesktop = {
@@ -7,8 +7,8 @@
       discordBranch = "stable";
       firstLaunch = false;
       arRPC = "on";
-      splashColor = "rgb(196, 167, 231)";
-      splashBackground = "rgb(25, 23, 36)";
+      splashColor = colors.hexToRgb colors.accent;
+      splashBackground = colors.hexToRgb colors.bgDim;
       splashTheming = true;
       minimizeToTray = "on";
       closeToTray = "on";

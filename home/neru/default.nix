@@ -1,6 +1,7 @@
 { ... }:
 {
   imports = [
+    ./colors.nix
     ./config
     ./cli.nix
     ./theme.nix

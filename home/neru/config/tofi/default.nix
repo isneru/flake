@@ -1,4 +1,4 @@
-{ ... }:
+{ colors, ... }:
 {
   programs.tofi = {
     enable = true;
@@ -17,14 +17,14 @@
       font-size = 18;
 
       background-color = "#000A";
-      text-color = "#a9b1d6";
+      text-color = colors.fg;
 
-      selection-color = "#ea9a97";
-      selection-background = "#232136";
+      selection-color = colors.red;
+      selection-background = colors.bg;
       selection-background-padding = "5, 10";
       selection-background-corner-radius = 0;
 
-      prompt-color = "#bb9af7";
+      prompt-color = colors.accent;
     };
   };
 }

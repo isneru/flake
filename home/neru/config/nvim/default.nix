@@ -1,4 +1,4 @@
-{ pkgs, utils, ... }:
+{ pkgs, utils, colors, ... }:
 
 {
   programs.neovim = {
@@ -52,4 +52,13 @@
     source = utils.create_symlink "${utils.dotfiles}/nvim/";
     recursive = true;
   };
+
+  xdg.dataFile."nvim/site/lua/neru/colors.lua".text = ''
+    return {
+      bg = "${colors.bg}", bgDim = "${colors.bgDim}", bgAlt = "${colors.bgAlt}", border = "${colors.border}",
+      fg = "${colors.fg}", fgDim = "${colors.fgDim}", fgMuted = "${colors.fgMuted}",
+      accent = "${colors.accent}", error = "${colors.error}", warning = "${colors.warning}", success = "${colors.success}", info = "${colors.info}",
+      red = "${colors.red}", magenta = "${colors.magenta}", orange = "${colors.orange}", cyan = "${colors.cyan}", blue = "${colors.blue}", purple = "${colors.purple}",
+    }
+  '';
 }
