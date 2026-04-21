@@ -1,4 +1,4 @@
-{ colors, ... }:
+{ colors, fonts, ... }:
 {
   programs.tofi = {
     enable = true;
@@ -13,7 +13,7 @@
       result-spacing = 25;
       num-results = 5;
 
-      font = "CaskaydiaCove NFM";
+      font = fonts.mono;
       font-size = 18;
 
       background-color = "#000A";

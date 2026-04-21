@@ -1,9 +1,9 @@
-{ colors, ... }:
+{ colors, fonts, ... }:
 {
   programs.ghostty = {
     enable = true;
     settings = {
-      font-family = "CaskaydiaCove NFM";
+      font-family = [ fonts.mono ] ++ fonts.fallbacks;
       font-size = 14;
       window-padding-balance = true;
       window-decoration = false;

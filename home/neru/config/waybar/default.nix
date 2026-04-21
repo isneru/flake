@@ -1,4 +1,4 @@
-{ colors, ... }:
+{ colors, fonts, ... }:
 {
   programs.waybar = {
     enable = true;
@@ -105,7 +105,7 @@
       * {
         border: none;
         border-radius: 0;
-        font-family: "CaskaydiaCove NFM";
+        font-family: ${builtins.concatStringsSep ", " (map (f: "\"${f}\"") ([ fonts.mono ] ++ fonts.fallbacks))};
         font-size: 13px;
       }
 

@@ -2,6 +2,7 @@
 {
   imports = [
     ./colors.nix
+    ./fonts.nix
     ./config
     ./cli.nix
     ./theme.nix

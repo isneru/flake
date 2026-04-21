@@ -1,4 +1,4 @@
-{ pkgs, config, ... }:
+{ pkgs, config, fonts, ... }:
 {
   home.pointerCursor = {
     enable = true;
@@ -35,7 +35,7 @@
       package = pkgs.rose-pine-cursor;
     };
     font = {
-      name = "CaskaydiaCove NFM";
+      name = fonts.mono;
       size = 11;
     };
   };

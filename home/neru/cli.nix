@@ -1,4 +1,4 @@
-{ colors, ... }:
+{ colors, fonts, ... }:
 
 {
   programs.zsh = {
@@ -33,7 +33,7 @@
       statusbar-fg = colors.fg;
       highlight-color = colors.red;
       highlight-active-color = colors.cyan;
-      font = "CaskaydiaCove NFM 11";
+      font = "${fonts.mono} 11";
       selection-notification = true;
       guioptions = "none";
     };
