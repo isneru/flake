@@ -1,265 +1,180 @@
+{ config, colors, ... }:
 {
-  config,
-  inputs,
-  colors,
-  ...
-}:
-{
-  imports = [
-    inputs.niri.homeModules.niri
-  ];
+  xdg.configFile."niri/config.kdl".text = ''
+    workspace "main"
+    workspace "other"
 
-  programs.niri = {
-    enable = true;
-    settings = {
-      workspaces = {
-        "main" = { };
-        "other" = { };
-      };
+    hotkey-overlay {
+        skip-at-startup
+    }
 
-      hotkey-overlay = {
-        skip-at-startup = true;
-      };
+    environment {
+        XDG_CURRENT_DESKTOP "niri"
+        XDG_SESSION_DESKTOP "niri"
+        XDG_SESSION_TYPE "wayland"
+    }
 
-      environment = {
-        XDG_CURRENT_DESKTOP = "niri";
-        XDG_SESSION_DESKTOP = "niri";
-        XDG_SESSION_TYPE = "wayland";
-      };
-
-      input = {
-        keyboard = {
-          xkb.layout = "pt";
-          numlock = true;
-        };
-        touchpad = {
-          tap = true;
-          natural-scroll = true;
-        };
-        focus-follows-mouse = {
-          enable = true;
-          max-scroll-amount = "90%";
-        };
-      };
-
-      layout = {
-        background-color = "transparent";
-        gaps = 8;
-        default-column-width = {
-          proportion = 1. / 1.;
-        };
-        preset-column-widths = [
-          { proportion = 1. / 2.; }
-          { proportion = 3. / 4.; }
-          { proportion = 1. / 1.; }
-        ];
-        focus-ring = {
-          enable = true;
-          width = 1;
-          active.color = colors.info;
-        };
-      };
-
-      overview = {
-        workspace-shadow = {
-          enable = false;
-        };
-      };
-
-      spawn-at-startup = [
-        { argv = [ "vesktop" ]; }
-        { argv = [ "waybar" ]; }
-        {
-          argv = [
-            "swaybg"
-            "-i"
-            "/home/neru/Pictures/wallpapers/wallhaven_l3xk6q.jpg"
-            "-m"
-            "fill"
-          ];
+    input {
+        keyboard {
+            xkb {
+                layout "pt"
+            }
+            numlock
         }
-      ];
-
-      prefer-no-csd = true;
-
-      screenshot-path = "~/Pictures/Screenshots/screenshot_%Y-%m-%d %H-%M-%S.png";
-
-      window-rules = [
-        {
-          matches = [
-            { app-id = "vesktop"; }
-          ];
-          open-on-workspace = "other";
+        touchpad {
+            tap
+            natural-scroll
         }
-        {
-          matches = [
-            { title = "audiomantui"; }
-            { title = "netwmantui"; }
-          ];
-          open-floating = true;
-          default-column-width = {
-            proportion = 2. / 5.;
-          };
-          default-window-height = {
-            proportion = 1. / 2.;
-          };
+        focus-follows-mouse max-scroll-amount="90%"
+        workspace-auto-back-and-forth
+    }
+
+    layout {
+        background-color "transparent"
+        gaps 8
+        default-column-width { proportion 1.0; }
+        preset-column-widths {
+            proportion 0.5
+            proportion 0.75
+            proportion 1.0
         }
-        {
-          geometry-corner-radius = {
-            top-left = 0.0;
-            top-right = 0.0;
-            bottom-left = 0.0;
-            bottom-right = 0.0;
-          };
-          clip-to-geometry = true;
-          draw-border-with-background = false;
+        focus-ring {
+            width 1
+            active-color "${colors.accent}"
         }
-      ];
+    }
 
-      layer-rules = [
-        {
-          matches = [
-            { namespace = "^wallpaper$"; }
-          ];
-          place-within-backdrop = true;
+    overview {
+        workspace-shadow {
+            off
         }
-      ];
+    }
 
-      binds = with config.lib.niri.actions; {
-        "Mod+D".action.spawn = [
-          "tofi-drun"
-          "--drun-launch=true"
-        ];
-        "Mod+Return".action.spawn = "ghostty";
-        "Mod+E".action.spawn = "thunar";
-        "Mod+L".action.spawn = "swaylock";
+    spawn-at-startup "vesktop" "--use-tray-icon" "--ozone-platform-hint=auto" "--enable-features=WaylandWindowDecorations"
+    spawn-at-startup "waybar"
+    spawn-at-startup "swaybg" "-i" "${config.home.homeDirectory}/Pictures/wallpapers/wallhaven_l3xk6q.jpg" "-m" "fill"
 
-        "XF86AudioRaiseVolume" = {
-          action.spawn = [
-            "wpctl"
-            "set-volume"
-            "@DEFAULT_AUDIO_SINK@"
-            "5%+"
-          ];
-          allow-when-locked = true;
-        };
-        "XF86AudioLowerVolume" = {
-          action.spawn = [
-            "wpctl"
-            "set-volume"
-            "@DEFAULT_AUDIO_SINK@"
-            "5%-"
-          ];
-          allow-when-locked = true;
-        };
-        "XF86AudioMute" = {
-          action.spawn = [
-            "wpctl"
-            "set-mute"
-            "@DEFAULT_AUDIO_SINK@"
-            "toggle"
-          ];
-          allow-when-locked = true;
-        };
-        "XF86MonBrightnessUp" = {
-          action.spawn = [
-            "brightnessctl"
-            "set"
-            "+10%"
-          ];
-          allow-when-locked = true;
-        };
-        "XF86MonBrightnessDown" = {
-          action.spawn = [
-            "brightnessctl"
-            "set"
-            "-10%"
-          ];
-          allow-when-locked = true;
-        };
-        "Mod+O" = {
-          action = toggle-overview;
-          repeat = false;
-        };
-        "Mod+Q" = {
-          action = close-window;
-          repeat = false;
-        };
+    prefer-no-csd
 
-        "Mod+Left".action = focus-column-left;
-        "Mod+Down".action = focus-window-or-workspace-down;
-        "Mod+Up".action = focus-window-or-workspace-up;
-        "Mod+Right".action = focus-column-right;
+    screenshot-path "${config.home.homeDirectory}/Pictures/Screenshots/screenshot_%Y-%m-%d %H-%M-%S.png"
 
-        "Mod+Shift+Left".action = move-column-left;
-        "Mod+Shift+Down".action = move-window-down;
-        "Mod+Shift+Up".action = move-window-up;
-        "Mod+Shift+Right".action = move-column-right;
+    window-rule {
+        match app-id="vesktop"
+        open-on-workspace "other"
+    }
 
-        "Mod+WheelScrollDown" = {
-          action = focus-workspace-down;
-          cooldown-ms = 150;
-        };
-        "Mod+WheelScrollUp" = {
-          action = focus-workspace-up;
-          cooldown-ms = 150;
-        };
+    window-rule {
+        match title="audiomantui"
+        open-floating true
+        default-column-width { proportion 0.6; }
+        default-window-height { proportion 0.6; }
+    }
 
-        "Mod+Shift+WheelScrollDown".action = focus-column-right;
-        "Mod+Shift+WheelScrollUp".action = focus-column-left;
+    window-rule {
+        match title="power-menu-tui"
+        open-floating true
+        default-column-width { proportion 0.6; }
+        default-window-height { proportion 0.6; }
+    }
 
-        "Mod+1".action.focus-workspace = 1;
-        "Mod+2".action.focus-workspace = 2;
-        "Mod+3".action.focus-workspace = 3;
-        "Mod+4".action.focus-workspace = 4;
-        "Mod+5".action.focus-workspace = 5;
-        "Mod+6".action.focus-workspace = 6;
-        "Mod+7".action.focus-workspace = 7;
-        "Mod+8".action.focus-workspace = 8;
-        "Mod+9".action.focus-workspace = 9;
-        "Mod+Shift+1".action.move-column-to-workspace = 1;
-        "Mod+Shift+2".action.move-column-to-workspace = 2;
-        "Mod+Shift+3".action.move-column-to-workspace = 3;
-        "Mod+Shift+4".action.move-column-to-workspace = 4;
-        "Mod+Shift+5".action.move-column-to-workspace = 5;
-        "Mod+Shift+6".action.move-column-to-workspace = 6;
-        "Mod+Shift+7".action.move-column-to-workspace = 7;
-        "Mod+Shift+8".action.move-column-to-workspace = 8;
-        "Mod+Shift+9".action.move-column-to-workspace = 9;
+    window-rule {
+        geometry-corner-radius 0
+        clip-to-geometry true
+        draw-border-with-background false
+    }
 
-        "Mod+Comma".action = consume-or-expel-window-left;
-        "Mod+Period".action = consume-or-expel-window-right;
-        "Mod+W".action = toggle-column-tabbed-display;
+    window-rule {
+        match app-id="com.mitchellh.ghostty"
+        background-effect {
+            blur true
+        }
+    }
 
-        "Mod+R".action = switch-preset-column-width;
-        "Mod+F".action = maximize-column;
-        "Mod+Shift+F".action = expand-column-to-available-width;
+    layer-rule {
+        match namespace="^wallpaper$"
+        place-within-backdrop true
+    }
 
-        "Mod+Shift+R".action = switch-preset-window-height;
-        "Mod+Ctrl+R".action = reset-window-height;
+    binds {
+        Mod+D { spawn "tofi-drun" "--drun-launch=true"; }
+        Mod+Return { spawn "ghostty"; }
+        Mod+E { spawn "thunar"; }
+        Mod+L { spawn "swaylock"; }
 
-        "Mod+C".action = center-column;
-        "Mod+Ctrl+C".action = center-visible-columns;
+        XF86AudioRaiseVolume allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%+"; }
+        XF86AudioLowerVolume allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%-"; }
+        XF86AudioMute allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
+        XF86MonBrightnessUp allow-when-locked=true { spawn "brightnessctl" "set" "+10%"; }
+        XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "set" "-10%"; }
 
-        "Mod+Minus".action.set-column-width = "-10%";
-        "Mod+Equal".action.set-column-width = "+10%";
+        Mod+O repeat=false { toggle-overview; }
+        Mod+Q repeat=false { close-window; }
 
-        "Mod+Shift+Minus".action.set-window-height = "-10%";
-        "Mod+Shift+Equal".action.set-window-height = "+10%";
+        Mod+Left { focus-column-left; }
+        Mod+Down { focus-window-or-workspace-down; }
+        Mod+Up { focus-window-or-workspace-up; }
+        Mod+Right { focus-column-right; }
 
-        "Mod+V".action = toggle-window-floating;
+        Mod+Shift+Left { move-column-left; }
+        Mod+Shift+Down { move-window-down; }
+        Mod+Shift+Up { move-window-up; }
+        Mod+Shift+Right { move-column-right; }
 
-        "Print".action.screenshot = { };
-        "Alt+Print".action.screenshot-screen = { };
-        "Ctrl+Print".action.screenshot-window = { };
+        Mod+WheelScrollDown cooldown-ms=150 { focus-workspace-down; }
+        Mod+WheelScrollUp cooldown-ms=150 { focus-workspace-up; }
 
-        "Mod+Alt+Delete" = {
-          action = toggle-keyboard-shortcuts-inhibit;
-          allow-inhibiting = false;
-        };
+        Mod+Shift+WheelScrollDown { focus-column-right; }
+        Mod+Shift+WheelScrollUp { focus-column-left; }
 
-        "Mod+Shift+P".action = power-off-monitors;
-      };
-    };
-  };
+        Mod+1 { focus-workspace 1; }
+        Mod+2 { focus-workspace 2; }
+        Mod+3 { focus-workspace 3; }
+        Mod+4 { focus-workspace 4; }
+        Mod+5 { focus-workspace 5; }
+        Mod+6 { focus-workspace 6; }
+        Mod+7 { focus-workspace 7; }
+        Mod+8 { focus-workspace 8; }
+        Mod+9 { focus-workspace 9; }
+
+        Mod+Shift+1 { move-column-to-workspace 1; }
+        Mod+Shift+2 { move-column-to-workspace 2; }
+        Mod+Shift+3 { move-column-to-workspace 3; }
+        Mod+Shift+4 { move-column-to-workspace 4; }
+        Mod+Shift+5 { move-column-to-workspace 5; }
+        Mod+Shift+6 { move-column-to-workspace 6; }
+        Mod+Shift+7 { move-column-to-workspace 7; }
+        Mod+Shift+8 { move-column-to-workspace 8; }
+        Mod+Shift+9 { move-column-to-workspace 9; }
+
+        Mod+Comma { consume-or-expel-window-left; }
+        Mod+Period { consume-or-expel-window-right; }
+        Mod+W { toggle-column-tabbed-display; }
+
+        Mod+R { switch-preset-column-width; }
+        Mod+F { maximize-column; }
+        Mod+Shift+F { expand-column-to-available-width; }
+
+        Mod+Shift+R { switch-preset-window-height; }
+        Mod+Ctrl+R { reset-window-height; }
+
+        Mod+C { center-column; }
+        Mod+Ctrl+C { center-visible-columns; }
+
+        Mod+Minus { set-column-width "-10%"; }
+        Mod+Equal { set-column-width "+10%"; }
+
+        Mod+Shift+Minus { set-window-height "-10%"; }
+        Mod+Shift+Equal { set-window-height "+10%"; }
+
+        Mod+V { toggle-window-floating; }
+
+        Print { screenshot; }
+        Alt+Print { screenshot-screen; }
+        Ctrl+Print { screenshot-window; }
+
+        Mod+Alt+Delete allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+
+        Mod+Shift+P { power-off-monitors; }
+    }
+  '';
 }

@@ -1,4 +1,6 @@
-require("conform").setup({
+local conform = require("conform")
+
+conform.setup({
 	formatters_by_ft = {
 		-- keep-sorted start block=yes
 		astro = { "prettierd", "prettier", stop_after_first = true },
@@ -18,5 +20,5 @@ require("conform").setup({
 })
 
 vim.keymap.set({ "n", "v" }, "<leader>f", function()
-	require("conform").format({ timeout_ms = 500, lsp_format = "fallback" })
+	conform.format({ timeout_ms = 500, lsp_format = "fallback" })
 end, { desc = "Format buffer or selection" })

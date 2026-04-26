@@ -1,7 +1,7 @@
 { pkgs, inputs, colors, ... }:
 
 let
-  spicePkgs = inputs.spicetify.legacyPackages.${pkgs.system};
+  spicePkgs = inputs.spicetify.legacyPackages.${pkgs.stdenv.hostPlatform.system};
   strip = hex: builtins.substring 1 (-1) hex;
 in
 {
@@ -34,15 +34,19 @@ in
     };
 
     enabledExtensions = with spicePkgs.extensions; [
+      # keep-sorted start
       adblock
+      beautifulLyrics
       hidePodcasts
       shuffle
-      beautifulLyrics
+      # keep-sorted end
     ];
 
     enabledCustomApps = with spicePkgs.apps; [
-      newReleases
+      # keep-sorted start
       lyricsPlus
+      newReleases
+      # keep-sorted end
     ];
   };
 }

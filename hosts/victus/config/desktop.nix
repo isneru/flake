@@ -1,22 +1,25 @@
-{ pkgs, ... }:
+{ pkgs, inputs, ... }:
 {
   services.displayManager.ly.enable = true;
   services.udisks2.enable = true;
 
-  programs.niri.enable = true;
+  programs.niri = {
+    enable = true;
+    useNautilus = false;
+    package = inputs.niri.packages.${pkgs.stdenv.hostPlatform.system}.niri;
+  };
   programs.dconf.enable = true;
 
   xdg.portal = {
     enable = true;
     extraPortals = [
-      pkgs.xdg-desktop-portal-gtk
       pkgs.xdg-desktop-portal-gnome
+      pkgs.xdg-desktop-portal-gtk
     ];
-    config = {
-      common = {
-        default = [ "gtk" ];
-      };
-    };
+    config.common.default = [
+      "gnome"
+      "gtk"
+    ];
   };
 
   services.pipewire = {

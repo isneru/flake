@@ -19,8 +19,15 @@
           "cpu"
           "memory"
           "battery"
+          "custom/power"
           "tray"
         ];
+
+        "custom/power" = {
+          format = "󰐥";
+          on-click = "ghostty --title='power-menu-tui' -e power-tui";
+          tooltip = false;
+        };
 
         "niri/workspaces" = {
           format = "{value}";
@@ -60,7 +67,7 @@
           format-wifi = "󰤨 {essid}";
           format-ethernet = "󱘖 {ifname}";
           format-disconnected = "󰤮 ";
-          on-click = "ghostty --title=netwmantui -e gazelle";
+          on-click = "networkmanager_dmenu";
         };
 
         "cpu" = {
@@ -105,7 +112,9 @@
       * {
         border: none;
         border-radius: 0;
-        font-family: ${builtins.concatStringsSep ", " (map (f: "\"${f}\"") ([ fonts.mono ] ++ fonts.fallbacks))};
+        font-family: ${
+          builtins.concatStringsSep ", " (map (f: "\"${f}\"") ([ fonts.mono ] ++ fonts.fallbacks))
+        };
         font-size: 13px;
       }
 
@@ -152,6 +161,13 @@
       #tray {
         border-left: 1px solid ${colors.border};
         margin-left: 8px;
+      }
+
+      #custom-power {
+        color: ${colors.red};
+        margin-left: 10px;
+        margin-right: 5px;
+        padding: 0 5px;
       }
     '';
   };

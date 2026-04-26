@@ -1,4 +1,9 @@
-{ pkgs, config, fonts, ... }:
+{
+  pkgs,
+  config,
+  fonts,
+  ...
+}:
 {
   home.pointerCursor = {
     enable = true;
@@ -17,10 +22,13 @@
   };
 
   home.packages = with pkgs; [
-    nerd-fonts.fira-code
-    nerd-fonts.jetbrains-mono
-    nerd-fonts.geist-mono
+    # keep-sorted start
     nerd-fonts.caskaydia-cove
+    nerd-fonts.fira-code
+    nerd-fonts.geist-mono
+    nerd-fonts.iosevka-term
+    nerd-fonts.jetbrains-mono
+    # keep-sorted end
   ];
 
   gtk = {

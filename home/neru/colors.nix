@@ -15,6 +15,7 @@ in
     bg = "#232136";
     bgDim = "#191724";
     bgAlt = "#2a273f";
+    bgOverlay = "#000A";
     border = "#393552";
 
     # Foregrounds (bright to dim)

@@ -1,3 +1,47 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+FLAKE_ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+README="${FLAKE_ROOT}/README.md"
+
+declare -A INPUT_DESC=(
+  [flake-parts]="Flake organization"
+  [helium]="Helium browser"
+  [home-manager]="User environment management"
+  [lanzaboote]="Secure Boot"
+  [niri]="Niri window manager"
+  [nixpkgs]="Packages and NixOS modules"
+  [sops-nix]="Secrets management"
+  [spicetify]="Spotify theming"
+)
+
+inputs_table() {
+  local metadata
+  metadata=$(nix flake metadata --json "$FLAKE_ROOT")
+
+  echo "| Input | Purpose |"
+  echo "|-------|---------|"
+
+  while IFS= read -r entry; do
+    local name node desc url
+    name=$(printf '%s' "$entry" | jq -r '.key')
+    node=$(printf '%s' "$entry" | jq -r '.value')
+    desc="${INPUT_DESC[$name]:-}"
+    [[ -z "$desc" ]] && continue
+
+    url=$(printf '%s' "$metadata" | jq -r "
+      .locks.nodes[\"$node\"].original |
+      if .type == \"github\" then \"https://github.com/\" + .owner + \"/\" + .repo
+      elif .url then .url
+      else \"\" end
+    ")
+
+    printf '| [%s](%s) | %s |\n' "\`${name}\`" "$url" "$desc"
+  done < <(printf '%s' "$metadata" | jq -c '.locks.nodes.root.inputs | to_entries | sort_by(.key)[]')
+}
+
+{
+  cat << 'EOF'
 # neru's flake
 
 NixOS configuration flake for a minimal Wayland desktop built around Niri, Ghostty, Neovim.
@@ -89,16 +133,9 @@ The following fallback fonts are installed via Nix:
 
 ### Flake inputs
 
-| Input | Purpose |
-|-------|---------|
-| [`flake-parts`](https://github.com/hercules-ci/flake-parts) | Flake organization |
-| [`helium`](https://github.com/AlvaroParker/helium-nix) | Helium browser |
-| [`home-manager`](https://github.com/nix-community/home-manager) | User environment management |
-| [`lanzaboote`](https://github.com/nix-community/lanzaboote) | Secure Boot |
-| [`niri`](https://github.com/YaLTeR/niri) | Niri window manager |
-| [`nixpkgs`](https://github.com/nixos/nixpkgs) | Packages and NixOS modules |
-| [`sops-nix`](https://github.com/Mic92/sops-nix) | Secrets management |
-| [`spicetify`](https://github.com/Gerg-L/spicetify-nix) | Spotify theming |
+EOF
+  inputs_table
+  cat << 'EOF'
 
 ### Other
 
@@ -129,3 +166,7 @@ flake/
 │       └── vesktop/       # Discord client
 └── secrets/               # Encrypted secrets (sops)
 ```
+EOF
+} >"$README"
+
+echo "README.md updated."

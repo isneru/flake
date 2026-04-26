@@ -12,10 +12,12 @@
     isNormalUser = true;
     description = "Diogo Nogueira";
     extraGroups = [
+      # keep-sorted start
+      "docker"
       "networkmanager"
       "wheel"
-      "docker"
       "wireshark"
+      # keep-sorted end
     ];
     shell = pkgs.zsh;
   };

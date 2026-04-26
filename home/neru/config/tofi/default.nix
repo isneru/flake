@@ -16,7 +16,7 @@
       font = fonts.mono;
       font-size = 18;
 
-      background-color = "#000A";
+      background-color = colors.bgOverlay;
       text-color = colors.fg;
 
       selection-color = colors.red;

@@ -6,12 +6,20 @@
     enableCompletion = true;
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
+    shellAliases = {
+      # keep-sorted start
+      pdf = "zathura";
+      v = "nvim";
+      # keep-sorted end
+    };
     oh-my-zsh = {
       enable = true;
       plugins = [
+        # keep-sorted start
+        "docker"
         "git"
         "sudo"
-        "docker"
+        # keep-sorted end
       ];
     };
   };

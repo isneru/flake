@@ -32,16 +32,18 @@
       disableMinSize = false;
       winNativeTitleBar = false;
       plugins = {
-        MessageLogger.enabled = true;
-        ShowHiddenChannels.enabled = true;
-        TypingTweaks.enabled = true;
-        WebRichPresence.enabled = true;
-        YoutubeAdblock.enabled = true;
+        # keep-sorted start
         ClearURLs.enabled = true;
         CrashHandler.enabled = true;
-        ShikiCodeblocks.enabled = true;
         FixCodeblockGap.enabled = true;
+        MessageLogger.enabled = true;
+        ShikiCodeblocks.enabled = true;
+        ShowHiddenChannels.enabled = true;
+        TypingTweaks.enabled = true;
         Unindent.enabled = true;
+        WebRichPresence.enabled = true;
+        YoutubeAdblock.enabled = true;
+        # keep-sorted end
       };
     };
   };

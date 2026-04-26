@@ -1,4 +1,9 @@
-{ pkgs, utils, colors, ... }:
+{
+  pkgs,
+  utils,
+  colors,
+  ...
+}:
 
 {
   programs.neovim = {
@@ -8,6 +13,8 @@
     vimAlias = true;
     withNodeJs = true;
     plugins = with pkgs.vimPlugins; [
+      # keep-sorted start
+      base16-nvim
       cmp-buffer
       cmp-nvim-lsp
       cmp-path
@@ -24,27 +31,41 @@
       telescope-fzf-native-nvim
       telescope-nvim
       which-key-nvim
-      base16-nvim
+      # keep-sorted end
+      (pkgs.vimUtils.buildVimPlugin {
+        name = "md-render";
+        src = pkgs.fetchFromGitHub {
+          owner = "delphinus";
+          repo = "md-render.nvim";
+          rev = "75d976d89edc4b9457447ba83201ec5805600f79";
+          hash = "sha256-Te4I0xtSjpLn7c5dLti12w/I0NT4oCUm/sEQAcyNQuU=";
+        };
+      })
     ];
     extraPackages = with pkgs; [
-      ripgrep # Required by Telescope for fast text searching
-      fd # Required by Telescope for fast file finding
-      wl-clipboard # For Wayland clipboard support (use xclip if on X11)
+      # keep-sorted start
       astro-language-server
       bash-language-server
+      clang-tools
+      curl
       emmet-language-server
+      fd # Required by Telescope for fast file finding
+      ffmpeg
+      jdt-language-server
       lua-language-server
+      mermaid-cli
       nil
       nixd
       nixfmt
       prettier
+      ripgrep # Required by Telescope for fast text searching
       rust-analyzer
       tailwindcss-language-server
-      vtsls
-      yaml-language-server
       taplo
-      clang-tools
-      jdt-language-server
+      vtsls
+      wl-clipboard # For Wayland clipboard support (use xclip if on X11)
+      yaml-language-server
+      # keep-sorted end
     ];
   };
 
