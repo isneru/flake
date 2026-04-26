@@ -46,5 +46,12 @@ in
         b = parseHex (builtins.substring 5 1 hex) * 16 + parseHex (builtins.substring 6 1 hex);
       in
         "rgb(${toString r}, ${toString g}, ${toString b})";
+    hexToRgbValues = hex:
+      let
+        r = parseHex (builtins.substring 1 1 hex) * 16 + parseHex (builtins.substring 2 1 hex);
+        g = parseHex (builtins.substring 3 1 hex) * 16 + parseHex (builtins.substring 4 1 hex);
+        b = parseHex (builtins.substring 5 1 hex) * 16 + parseHex (builtins.substring 6 1 hex);
+      in
+        "${toString r}, ${toString g}, ${toString b}";
   };
 }

@@ -10,6 +10,7 @@ vim.opt.ignorecase = true
 vim.opt.smartcase = true
 
 vim.opt.wrap = false
+vim.opt.fillchars = { eob = " " }
 vim.opt.clipboard = "unnamedplus"
 vim.opt.termguicolors = true
 

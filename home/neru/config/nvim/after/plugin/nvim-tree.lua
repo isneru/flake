@@ -26,5 +26,8 @@ require("nvim-tree").setup({
 	},
 })
 
+local c = require("neru.colors")
+vim.api.nvim_set_hl(0, "NvimTreeWinSeparator", { fg = c.border, bg = "NONE" })
+
 vim.keymap.set("n", "<C-b>", ":NvimTreeToggle<CR>", { desc = "Toggle file explorer" })
 vim.keymap.set("n", "<leader>e", ":NvimTreeFocus<CR>", { desc = "Focus file explorer" })
