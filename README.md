@@ -46,10 +46,7 @@ NixOS configuration flake for a minimal Wayland desktop built around Niri, Ghost
 | File Manager | Thunar |
 | PDF Viewer | Zathura |
 
-Colors, fonts, and theme settings are centralized:
-
-- **`colors.nix`** — color palette, shared across all apps
-- **`fonts.nix`** — Primary and fallback monospace fonts, shared across all apps
+Colors, fonts, and theme settings are centralized into a **`style.nix`** file. 
 
 ## Installation
 
@@ -68,6 +65,7 @@ Colors, fonts, and theme settings are centralized:
 4. Build and switch:
    ```sh
    cd ~/flake
+   git add -A
    just switch
    ```
 
@@ -99,10 +97,6 @@ The following fallback fonts are installed via Nix:
 | [`sops-nix`](https://github.com/Mic92/sops-nix) | Secrets management |
 | [`spicetify`](https://github.com/Gerg-L/spicetify-nix) | Spotify theming |
 
-### Other
-
-- A wallpaper at `~/Pictures/wallpapers/wallhaven_l3xk6q.jpg` (referenced by swaybg)
-
 ## Structure
 
 ```
@@ -111,20 +105,21 @@ flake/
 ├── parts/                 # Flake-parts modules (formatter, nixos)
 ├── hosts/victus/          # Host-specific config (hardware, boot, desktop)
 ├── home/neru/
-│   ├── colors.nix         # Centralized color palette
-│   ├── fonts.nix          # Centralized font config
+│   ├── style.nix          # Centralized (fonts, colors) styles config
 │   ├── theme.nix          # GTK/Qt/cursor theming
 │   ├── cli.nix            # Shell, zoxide, zathura
 │   ├── packages.nix       # System-wide packages
 │   └── config/
 │       ├── ghostty/       # Terminal
+│       ├── mako/          # Notification Daemon
 │       ├── niri/          # Window manager
-│       ├── waybar/        # Status bar
 │       ├── nvim/          # Neovim (LSP, plugins, theme)
-│       ├── tmux/          # Tmux + plugins
 │       ├── spotify/       # Spicetify
-│       ├── tofi/          # App launcher
 │       ├── starship/      # Shell prompt
-│       └── vesktop/       # Discord client
+│       ├── tmux/          # Tmux + plugins
+│       ├── tofi/          # App launcher
+│       ├── vesktop/       # Discord client
+│       ├── waybar/        # Status bar
+│       └── yazi/          # TUI file manager
 └── secrets/               # Encrypted secrets (sops)
 ```
