@@ -16,7 +16,6 @@ builder goal *args:
 
 [group('rebuild')]
 switch *args: (builder "switch" args)
-    just sync-readme
 
 [group('rebuild')]
 deploy host *args: (builder "switch" "--target-host " + host "--use-substitutes " + args)
@@ -55,10 +54,6 @@ alias fix := repair
 [group('utils')]
 repair:
   nix-store --verify --check-contents --repair
-
-[group('utils')]
-sync-readme:
-  bash {{justfile_directory()}}/home/neru/scripts/update-readme.sh
 
 [group('utils')]
 fmt:

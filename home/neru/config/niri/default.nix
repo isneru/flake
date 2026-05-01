@@ -1,4 +1,4 @@
-{ config, colors, ... }:
+{ config, style, ... }:
 {
   xdg.configFile."niri/config.kdl".text = ''
     workspace "main"
@@ -39,8 +39,8 @@
             proportion 1.0
         }
         focus-ring {
-            width 1
-            active-color "${colors.accent}"
+            width 2
+            active-color "${style.colors.red}"
         }
     }
 
@@ -52,7 +52,7 @@
 
     spawn-at-startup "vesktop" "--use-tray-icon" "--ozone-platform-hint=auto" "--enable-features=WaylandWindowDecorations"
     spawn-at-startup "waybar"
-    spawn-at-startup "swaybg" "-i" "${config.home.homeDirectory}/Pictures/wallpapers/wallhaven_l3xk6q.jpg" "-m" "fill"
+    spawn-at-startup "swaybg" "-i" "${config.home.homeDirectory}/Pictures/wallpapers/wallhaven-5ykvj9_1920x1080.png" "-m" "fill"
 
     prefer-no-csd
 
@@ -78,7 +78,7 @@
     }
 
     window-rule {
-        geometry-corner-radius 0
+        geometry-corner-radius ${toString style.radius}
         clip-to-geometry true
         draw-border-with-background false
     }

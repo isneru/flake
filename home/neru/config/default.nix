@@ -3,6 +3,7 @@
 {
   imports = [
     ./ghostty
+    ./mako
     ./niri
     ./waybar
     ./spotify
@@ -12,6 +13,7 @@
     ./nvim
     ./tofi
     ./utils.nix
+    ./yazi
 
   ];
 }

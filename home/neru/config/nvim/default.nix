@@ -1,7 +1,7 @@
 {
   pkgs,
   utils,
-  colors,
+  style,
   ...
 }:
 
@@ -19,13 +19,13 @@
       cmp-nvim-lsp
       cmp-path
       conform-nvim
-      gitsigns-nvim
+      harpoon2
       lualine-nvim
       mini-nvim
       nvim-cmp
       nvim-lspconfig
-      nvim-tree-lua
       nvim-treesitter.withAllGrammars
+      oil-nvim
       plenary-nvim
       telescope-file-browser-nvim
       telescope-fzf-native-nvim
@@ -76,10 +76,10 @@
 
   xdg.dataFile."nvim/site/lua/neru/colors.lua".text = ''
     return {
-      bg = "${colors.bg}", bgDim = "${colors.bgDim}", bgAlt = "${colors.bgAlt}", border = "${colors.border}",
-      fg = "${colors.fg}", fgDim = "${colors.fgDim}", fgMuted = "${colors.fgMuted}",
-      accent = "${colors.accent}", error = "${colors.error}", warning = "${colors.warning}", success = "${colors.success}", info = "${colors.info}",
-      red = "${colors.red}", magenta = "${colors.magenta}", orange = "${colors.orange}", cyan = "${colors.cyan}", blue = "${colors.blue}", purple = "${colors.purple}",
+      bg = "${style.colors.bg}", bgDim = "${style.colors.bgDim}", bgAlt = "${style.colors.bgAlt}", border = "${style.colors.border}",
+      fg = "${style.colors.fg}", fgDim = "${style.colors.fgDim}", fgMuted = "${style.colors.fgMuted}",
+      accent = "${style.colors.accent}", error = "${style.colors.error}", warning = "${style.colors.warning}", success = "${style.colors.success}", info = "${style.colors.info}",
+      red = "${style.colors.red}", magenta = "${style.colors.magenta}", orange = "${style.colors.orange}", cyan = "${style.colors.cyan}", blue = "${style.colors.blue}", purple = "${style.colors.purple}",
     }
   '';
 }

@@ -1,73 +1,73 @@
-{ colors, ... }:
+{ style, ... }:
 
 {
   xdg.configFile."vesktop/themes/theme.css".text = ''
     :root, .theme-dark {
       /* New layout system */
-      --app-frame-background: ${colors.bgDim};
-      --background-base-lowest: ${colors.bgDim};
-      --background-base-lower: ${colors.bgDim};
-      --background-base-low: ${colors.bg};
-      --background-surface-high: ${colors.bgAlt};
-      --background-surface-higher: ${colors.bgAlt};
-      --background-surface-highest: ${colors.bgAlt};
-      --chat-background: ${colors.bg};
-      --chat-background-default: ${colors.bgAlt};
-      --channel-background-default: ${colors.bgDim};
-      --channeltextarea-background: ${colors.bgAlt};
-      --modal-background: ${colors.bgAlt};
-      --modal-footer-background: ${colors.bgAlt};
-      --card-background-default: ${colors.bgAlt};
-      --home-background: ${colors.bgAlt};
-      --embed-background: ${colors.bgAlt};
-      --embed-background-alternate: ${colors.bg};
-      --background-secondary-alt: ${colors.bgAlt};
+      --app-frame-background: ${style.colors.bgDim};
+      --background-base-lowest: ${style.colors.bgDim};
+      --background-base-lower: ${style.colors.bgDim};
+      --background-base-low: ${style.colors.bg};
+      --background-surface-high: ${style.colors.bgAlt};
+      --background-surface-higher: ${style.colors.bgAlt};
+      --background-surface-highest: ${style.colors.bgAlt};
+      --chat-background: ${style.colors.bg};
+      --chat-background-default: ${style.colors.bgAlt};
+      --channel-background-default: ${style.colors.bgDim};
+      --channeltextarea-background: ${style.colors.bgAlt};
+      --modal-background: ${style.colors.bgAlt};
+      --modal-footer-background: ${style.colors.bgAlt};
+      --card-background-default: ${style.colors.bgAlt};
+      --home-background: ${style.colors.bgAlt};
+      --embed-background: ${style.colors.bgAlt};
+      --embed-background-alternate: ${style.colors.bg};
+      --background-secondary-alt: ${style.colors.bgAlt};
 
       /* Text */
-      --text-default: ${colors.fg};
-      --text-strong: ${colors.fg};
-      --text-subtle: ${colors.fgDim};
-      --text-muted: ${colors.fgMuted};
-      --text-link: ${colors.blue};
-      --text-feedback-positive: ${colors.success};
-      --text-feedback-warning: ${colors.warning};
-      --text-feedback-critical: ${colors.error};
-      --text-feedback-info: ${colors.cyan};
-      --channels-default: ${colors.fgDim};
-      --channel-icon: ${colors.fgMuted};
-      --channel-text-area-placeholder: ${colors.fgMuted};
-      --input-placeholder-text-default: ${colors.fgMuted};
+      --text-default: ${style.colors.fg};
+      --text-strong: ${style.colors.fg};
+      --text-subtle: ${style.colors.fgDim};
+      --text-muted: ${style.colors.fgMuted};
+      --text-link: ${style.colors.blue};
+      --text-feedback-positive: ${style.colors.success};
+      --text-feedback-warning: ${style.colors.warning};
+      --text-feedback-critical: ${style.colors.error};
+      --text-feedback-info: ${style.colors.cyan};
+      --channels-default: ${style.colors.fgDim};
+      --channel-icon: ${style.colors.fgMuted};
+      --channel-text-area-placeholder: ${style.colors.fgMuted};
+      --input-placeholder-text-default: ${style.colors.fgMuted};
 
       /* Interactive */
-      --interactive-text-default: ${colors.fgDim};
-      --interactive-text-hover: ${colors.fg};
-      --interactive-text-active: ${colors.fg};
-      --interactive-icon-default: ${colors.fgDim};
-      --interactive-icon-hover: ${colors.fg};
-      --interactive-icon-active: ${colors.fg};
-      --interactive-muted: ${colors.fgMuted};
+      --interactive-text-default: ${style.colors.fgDim};
+      --interactive-text-hover: ${style.colors.fg};
+      --interactive-text-active: ${style.colors.fg};
+      --interactive-icon-default: ${style.colors.fgDim};
+      --interactive-icon-hover: ${style.colors.fg};
+      --interactive-icon-active: ${style.colors.fg};
+      --interactive-muted: ${style.colors.fgMuted};
 
       /* Brand / accent */
-      --brand-experiment: ${colors.accent};
-      --brand-experiment-300: ${colors.accent};
-      --brand-experiment-330: ${colors.accent};
-      --brand-experiment-360: ${colors.accent};
-      --brand-experiment-400: ${colors.accent};
-      --brand-experiment-430: ${colors.purple};
-      --brand-experiment-460: ${colors.purple};
-      --brand-experiment-500: ${colors.purple};
-      --focus-primary: ${colors.accent};
+      --brand-experiment: ${style.colors.accent};
+      --brand-experiment-300: ${style.colors.accent};
+      --brand-experiment-330: ${style.colors.accent};
+      --brand-experiment-360: ${style.colors.accent};
+      --brand-experiment-400: ${style.colors.accent};
+      --brand-experiment-430: ${style.colors.purple};
+      --brand-experiment-460: ${style.colors.purple};
+      --brand-experiment-500: ${style.colors.purple};
+      --focus-primary: ${style.colors.accent};
 
       /* Scrollbar */
-      --scrollbar-thin-thumb: ${colors.border};
-      --scrollbar-auto-thumb: ${colors.border};
-      --scrollbar-auto-track: ${colors.bgDim};
+      --scrollbar-thin-thumb: ${style.colors.border};
+      --scrollbar-auto-thumb: ${style.colors.border};
+      --scrollbar-auto-track: ${style.colors.bgDim};
 
       /* Hover/selection modifiers */
-      --background-modifier-hover: rgba(${colors.hexToRgbValues colors.accent}, 0.08);
-      --background-modifier-active: rgba(${colors.hexToRgbValues colors.accent}, 0.16);
-      --background-modifier-selected: rgba(${colors.hexToRgbValues colors.accent}, 0.24);
-      --background-modifier-accent: rgba(${colors.hexToRgbValues colors.accent}, 0.12);
+      --background-modifier-hover: rgba(${style.colors.hexToRgbValues style.colors.accent}, 0.08);
+      --background-modifier-active: rgba(${style.colors.hexToRgbValues style.colors.accent}, 0.16);
+      --background-modifier-selected: rgba(${style.colors.hexToRgbValues style.colors.accent}, 0.24);
+      --background-modifier-accent: rgba(${style.colors.hexToRgbValues style.colors.accent}, 0.12);
     }
   '';
 
@@ -77,8 +77,8 @@
       discordBranch = "stable";
       firstLaunch = false;
       arRPC = "on";
-      splashColor = colors.hexToRgb colors.accent;
-      splashBackground = colors.hexToRgb colors.bgDim;
+      splashColor = style.colors.hexToRgb style.colors.accent;
+      splashBackground = style.colors.hexToRgb style.colors.bgDim;
       splashTheming = true;
       minimizeToTray = "on";
       closeToTray = "on";

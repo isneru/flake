@@ -1,4 +1,4 @@
-{ colors, fonts, ... }:
+{ style, ... }:
 {
   programs.tofi = {
     enable = true;
@@ -13,18 +13,18 @@
       result-spacing = 25;
       num-results = 5;
 
-      font = fonts.mono;
+      font = style.fonts.mono;
       font-size = 18;
 
-      background-color = colors.bgOverlay;
-      text-color = colors.fg;
+      background-color = style.colors.bgOverlay;
+      text-color = style.colors.fg;
 
-      selection-color = colors.red;
-      selection-background = colors.bg;
+      selection-color = style.colors.red;
+      selection-background = style.colors.bg;
       selection-background-padding = "5, 10";
-      selection-background-corner-radius = 0;
+      selection-background-corner-radius = style.radius;
 
-      prompt-color = colors.accent;
+      prompt-color = style.colors.accent;
     };
   };
 }

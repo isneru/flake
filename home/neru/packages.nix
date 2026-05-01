@@ -1,5 +1,26 @@
-{ pkgs, inputs, ... }:
+{ pkgs, ... }:
 
+let
+  helium =
+    let
+      pname = "helium";
+      version = "0.11.6.1";
+      src = pkgs.fetchurl {
+        url = "https://github.com/imputnet/helium-linux/releases/download/${version}/helium-${version}-x86_64.AppImage";
+        hash = "sha256-NvsSVeKr82ME8oPupU8Oyh9IbYerxAWJ5vRjvj4WyLo=";
+      };
+      contents = pkgs.appimageTools.extract { inherit pname version src; };
+    in
+    pkgs.appimageTools.wrapType2 {
+      inherit pname version src;
+      extraInstallCommands = ''
+        install -m 444 -D ${contents}/helium.desktop $out/share/applications/helium.desktop
+        substituteInPlace $out/share/applications/helium.desktop \
+          --replace 'Exec=AppRun' 'Exec=helium'
+        cp -r ${contents}/usr/share/icons $out/share
+      '';
+    };
+in
 {
   home.packages = with pkgs; [
     # keep-sorted start
@@ -15,8 +36,8 @@
     gnumake
     graphviz
     grim
+    helium
     inetutils
-    inputs.helium.packages.${pkgs.stdenv.hostPlatform.system}.default
     insomnia
     iw
     jetbrains.idea

@@ -1,4 +1,9 @@
-{ pkgs, inputs, colors, ... }:
+{
+  pkgs,
+  inputs,
+  style,
+  ...
+}:
 
 let
   spicePkgs = inputs.spicetify.legacyPackages.${pkgs.stdenv.hostPlatform.system};
@@ -12,25 +17,25 @@ in
     theme = spicePkgs.themes.sleek;
 
     customColorScheme = {
-      text = strip colors.fg;
-      subtext = strip colors.fgDim;
-      main = strip colors.bg;
-      main-elevated = strip colors.bgAlt;
-      highlight = strip colors.bgAlt;
-      highlight-elevated = strip colors.border;
-      sidebar = strip colors.bgDim;
-      player = strip colors.bg;
-      card = strip colors.bgAlt;
-      shadow = strip colors.bgDim;
-      selected-row = strip colors.border;
-      button = strip colors.accent;
-      button-active = strip colors.purple;
-      button-disabled = strip colors.fgMuted;
-      tab-active = strip colors.bgAlt;
-      notification = strip colors.info;
-      notification-error = strip colors.error;
-      equalizer = strip colors.accent;
-      misc = strip colors.fgMuted;
+      text = strip style.colors.fg;
+      subtext = strip style.colors.fgDim;
+      main = strip style.colors.bg;
+      main-elevated = strip style.colors.bgAlt;
+      highlight = strip style.colors.bgAlt;
+      highlight-elevated = strip style.colors.border;
+      sidebar = strip style.colors.bgDim;
+      player = strip style.colors.bg;
+      card = strip style.colors.bgAlt;
+      shadow = strip style.colors.bgDim;
+      selected-row = strip style.colors.border;
+      button = strip style.colors.accent;
+      button-active = strip style.colors.purple;
+      button-disabled = strip style.colors.fgMuted;
+      tab-active = strip style.colors.bgAlt;
+      notification = strip style.colors.info;
+      notification-error = strip style.colors.error;
+      equalizer = strip style.colors.accent;
+      misc = strip style.colors.fgMuted;
     };
 
     enabledExtensions = with spicePkgs.extensions; [

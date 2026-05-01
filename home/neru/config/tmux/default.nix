@@ -1,4 +1,4 @@
-{ pkgs, colors, ... }:
+{ pkgs, style, ... }:
 {
   programs.tmux = {
     enable = true;
@@ -18,6 +18,8 @@
       unbind %
       bind - split-window -v -c "#{pane_current_path}"
       bind | split-window -h -c "#{pane_current_path}"
+
+      bind y display-popup -E -w 80% -h 80% "yazi #{pane_current_path}"
 
       bind R source-file ~/.config/tmux/tmux.conf \; display-message "config reloaded"
       bind C-l send-keys C-l \; clear-history
@@ -40,9 +42,9 @@
       set -g status-right "#[fg=default]#S "
       set -g window-status-format "#I"
       set -g window-status-current-format "#I"
-      set -g window-status-style "fg=${colors.fgMuted}"
-      set -g window-status-current-style "#{?window_zoomed_flag,fg=${colors.orange},fg=${colors.purple},nobold}"
-      set -g window-status-bell-style "fg=${colors.error},nobold"
+      set -g window-status-style "fg=${style.colors.fgMuted}"
+      set -g window-status-current-style "#{?window_zoomed_flag,fg=${style.colors.orange},fg=${style.colors.purple},nobold}"
+      set -g window-status-bell-style "fg=${style.colors.error},nobold"
     '';
     plugins = with pkgs.tmuxPlugins; [
       sensible

@@ -1,7 +1,7 @@
 {
   pkgs,
   config,
-  fonts,
+  style,
   ...
 }:
 {
@@ -43,7 +43,7 @@
       package = pkgs.rose-pine-cursor;
     };
     font = {
-      name = fonts.mono;
+      name = style.fonts.mono;
       size = 11;
     };
   };

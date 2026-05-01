@@ -1,8 +1,7 @@
 { ... }:
 {
   imports = [
-    ./colors.nix
-    ./fonts.nix
+    ./style.nix
     ./config
     ./cli.nix
     ./theme.nix

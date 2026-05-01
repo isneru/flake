@@ -92,7 +92,6 @@ The following fallback fonts are installed via Nix:
 | Input | Purpose |
 |-------|---------|
 | [`flake-parts`](https://github.com/hercules-ci/flake-parts) | Flake organization |
-| [`helium`](https://github.com/AlvaroParker/helium-nix) | Helium browser |
 | [`home-manager`](https://github.com/nix-community/home-manager) | User environment management |
 | [`lanzaboote`](https://github.com/nix-community/lanzaboote) | Secure Boot |
 | [`niri`](https://github.com/YaLTeR/niri) | Niri window manager |
