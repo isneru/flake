@@ -8,11 +8,19 @@
     syntaxHighlighting.enable = true;
     shellAliases = {
       # keep-sorted start
+      cat = "bat";
+      dev = "nix develop /home/neru/flake";
+      ll = "eza -la --icons --git";
+      ls = "eza --icons --git";
       pdf = "zathura";
       # keep-sorted end
     };
     initContent = ''
       VI_MODE_SET_CURSOR=true
+
+      mkdir() {
+        command mkdir -p "$1" && cd "$1"
+      }
 
       v() {
         if [[ $1 == *:* ]]; then
@@ -32,6 +40,11 @@
         # keep-sorted end
       ];
     };
+  };
+
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;
   };
 
   programs.zoxide = {

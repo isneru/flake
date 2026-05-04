@@ -102,7 +102,7 @@ The following fallback fonts are installed via Nix:
 ```
 flake/
 ├── flake.nix              # Entrypoint and inputs
-├── parts/                 # Flake-parts modules (formatter, nixos)
+├── parts/                 # Flake-parts modules (formatter, nixos, devshells)
 ├── hosts/victus/          # Host-specific config (hardware, boot, desktop)
 ├── home/neru/
 │   ├── style.nix          # Centralized (fonts, colors) styles config

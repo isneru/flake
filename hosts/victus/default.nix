@@ -24,6 +24,7 @@
 
   networking.hostName = "victus";
   networking.networkmanager.enable = true;
+  networking.networkmanager.plugins = [ pkgs.networkmanager-openvpn ];
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
 

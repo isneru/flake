@@ -30,6 +30,7 @@
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [ "x86_64-linux" ];
       imports = [
+        ./parts/devshells.nix
         ./parts/formatter.nix
         ./parts/nixos.nix
       ];
