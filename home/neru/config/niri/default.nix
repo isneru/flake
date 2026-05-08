@@ -87,6 +87,7 @@
         match app-id="com.mitchellh.ghostty"
         background-effect {
             blur true
+            xray false
         }
     }
 

@@ -9,14 +9,14 @@ require("base16-colorscheme").setup({
 	base05 = c.fg,
 	base06 = c.fg,
 	base07 = c.fg,
-	base08 = c.magenta,
+	base08 = c.red,
 	base09 = c.orange,
-	base0A = c.red,
-	base0B = c.cyan,
-	base0C = c.red,
-	base0D = c.purple,
-	base0E = c.blue,
-	base0F = c.magenta,
+	base0A = c.warning,
+	base0B = c.success,
+	base0C = c.cyan,
+	base0D = c.blue,
+	base0E = c.purple,
+	base0F = c.red,
 })
 
 vim.api.nvim_set_hl(0, "Normal", { bg = "NONE" })

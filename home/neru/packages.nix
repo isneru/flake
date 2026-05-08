@@ -70,6 +70,7 @@ in
     zip
     # keep-sorted end
     (writeShellScriptBin "mkenv" (builtins.readFile ./scripts/mkenv.sh))
+
     (writeShellScriptBin "start-monitor" (builtins.readFile ./scripts/start-monitor.sh))
     (writeShellScriptBin "stop-monitor" (builtins.readFile ./scripts/stop-monitor.sh))
     (writeShellApplication {

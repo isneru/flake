@@ -33,31 +33,31 @@ in
 
     colors = {
       # Backgrounds (dark to light)
-      bg = "#232136";
-      bgDim = "#191724";
-      bgAlt = "#2a273f";
+      bg = "#1a1b26";
+      bgDim = "#16161e";
+      bgAlt = "#292e42";
       bgOverlay = "#000A";
-      border = "#393552";
+      border = "#3b4261";
 
       # Foregrounds (bright to dim)
-      fg = "#e0def4";
-      fgDim = "#908caa";
-      fgMuted = "#6e6a86";
+      fg = "#c0caf5";
+      fgDim = "#a9b1d6";
+      fgMuted = "#565f89";
 
       # Semantic (UI states)
-      accent = "#c4a7e7";
-      error = "#eb6f92";
-      warning = "#f6c177";
-      success = "#9ccfd8";
-      info = "#3e8fb0";
+      accent = "#7aa2f7";
+      error = "#f7768e";
+      warning = "#e0af68";
+      success = "#98c379";
+      info = "#7dcfff";
 
       # Palette (syntax highlighting + multi-colored UI)
-      red = "#ea9a97";
-      magenta = "#eb6f92";
-      orange = "#f6c177";
-      cyan = "#9ccfd8";
-      blue = "#3e8fb0";
-      purple = "#c4a7e7";
+      red = "#f7768e";
+      magenta = "#bb9af7";
+      orange = "#ff9e64";
+      cyan = "#7dcfff";
+      blue = "#7aa2f7";
+      purple = "#bb9af7";
 
       # Helpers
       hexToRgb =
