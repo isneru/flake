@@ -35,7 +35,7 @@ in
     git
     grim
     helium
-    insomnia
+    bruno
     jq
     just
     keep-sorted

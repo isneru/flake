@@ -1,6 +1,5 @@
 { pkgs, inputs, ... }:
 {
-  services.displayManager.ly.enable = true;
   services.udisks2.enable = true;
 
   programs.niri = {

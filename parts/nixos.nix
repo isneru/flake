@@ -1,8 +1,11 @@
 { inputs, ... }:
+let
+  style = import ../home/neru/style.nix;
+in
 {
   flake.nixosConfigurations.victus = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
-    specialArgs = { inherit inputs; };
+    specialArgs = { inherit inputs style; };
     modules = [
       ../hosts/victus/default.nix
       inputs.lanzaboote.nixosModules.lanzaboote
@@ -14,7 +17,7 @@
         home-manager.backupFileExtension = "bak";
         home-manager.users.neru = import ../home/neru;
         home-manager.extraSpecialArgs = {
-          inherit inputs;
+          inherit inputs style;
         };
       }
     ];

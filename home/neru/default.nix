@@ -1,7 +1,6 @@
 { ... }:
 {
   imports = [
-    ./style.nix
     ./browser.nix
     ./config
     ./cli.nix
