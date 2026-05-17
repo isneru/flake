@@ -16,23 +16,18 @@ in
           "niri/workspaces"
           "niri/window"
         ];
-        modules-center = [ "clock" ];
-        modules-right = [
+        modules-center = [
           "mpris"
+        ];
+        modules-right = [
           "pulseaudio"
           "network"
           "cpu"
           "memory"
           "battery"
-          "custom/power"
+          "clock"
           "tray"
         ];
-
-        "custom/power" = {
-          format = "󰐥";
-          on-click = "ghostty --title='power-menu-tui' -e power-tui";
-          tooltip = false;
-        };
 
         "niri/workspaces" = {
           format = "{value}";
@@ -52,7 +47,8 @@ in
 
         "clock" = {
           format = "{:%H:%M}";
-          tooltip-format = "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>";
+          format-alt = "{:%A, %d %b %Y}";
+          tooltip-format = "<tt><small>{calendar}</small></tt>";
         };
 
         "mpris" = {
@@ -189,12 +185,6 @@ in
         margin-left: 8px;
       }
 
-      #custom-power {
-        color: ${c.red};
-        margin-left: 10px;
-        margin-right: 5px;
-        padding: 0 5px;
-      }
     '';
   };
 }

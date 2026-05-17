@@ -28,6 +28,9 @@
   };
 
   security.rtkit.enable = true;
+  security.pam.services.hyprlock = { };
+
+
 
   services.power-profiles-daemon.enable = true;
   services.upower.enable = true;

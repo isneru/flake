@@ -39,8 +39,16 @@
             proportion 1.0
         }
         focus-ring {
-            width 2
+            width 1
             active-color "${style.colors.red}"
+        }
+        shadow {
+            on
+            softness 30
+            spread 5
+            offset x=0 y=5
+            color "#00000080"
+            inactive-color "#00000040"
         }
     }
 
@@ -64,14 +72,17 @@
     }
 
     window-rule {
-        match title="audiomantui"
-        open-floating true
-        default-column-width { proportion 0.6; }
-        default-window-height { proportion 0.6; }
+        match app-id="Spotify"
+        open-on-workspace "other"
     }
 
     window-rule {
-        match title="power-menu-tui"
+        match app-id="helium"
+        open-on-workspace "main"
+    }
+
+    window-rule {
+        match title="audiomantui"
         open-floating true
         default-column-width { proportion 0.6; }
         default-window-height { proportion 0.6; }
@@ -98,9 +109,10 @@
 
     binds {
         Mod+D { spawn "tofi-drun" "--drun-launch=true"; }
+        Mod+Escape { spawn "power-menu"; }
         Mod+Return { spawn "ghostty"; }
         Mod+E { spawn "thunar"; }
-        Mod+L { spawn "swaylock"; }
+        Mod+L { spawn "hyprlock"; }
 
         XF86AudioRaiseVolume allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%+"; }
         XF86AudioLowerVolume allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%-"; }

@@ -1,30 +1,7 @@
-local c = require("neru.colors")
-
 require("lualine").setup({
 	options = {
 		icons_enabled = false,
-		theme = {
-			normal = {
-				a = { fg = c.bg, bg = c.info, gui = "bold" },
-				b = { fg = c.fg, bg = c.bgAlt },
-				c = { fg = c.fgMuted, bg = "none" },
-			},
-			insert = {
-				a = { fg = c.bg, bg = c.accent, gui = "bold" },
-				b = { fg = c.fg, bg = c.bgAlt },
-				c = { fg = c.fgMuted, bg = "none" },
-			},
-			visual = {
-				a = { fg = c.bg, bg = c.error, gui = "bold" },
-				b = { fg = c.fg, bg = c.bgAlt },
-				c = { fg = c.fgMuted, bg = "none" },
-			},
-			inactive = {
-				a = { fg = c.fgMuted, bg = "none", gui = "bold" },
-				b = { fg = c.fgMuted, bg = "none" },
-				c = { fg = c.fgMuted, bg = "none" },
-			},
-		},
+		theme = "catppuccin",
 		globalstatus = true,
 		component_separators = "|",
 		section_separators = "",

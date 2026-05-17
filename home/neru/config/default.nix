@@ -11,6 +11,7 @@
     ./vesktop
     ./tmux
     ./nvim
+    ./hyprlock
     ./tofi
     ./utils.nix
     ./yazi

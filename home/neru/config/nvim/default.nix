@@ -1,7 +1,6 @@
 {
   pkgs,
   utils,
-  style,
   ...
 }:
 
@@ -14,7 +13,7 @@
     withNodeJs = true;
     plugins = with pkgs.vimPlugins; [
       # keep-sorted start
-      base16-nvim
+      catppuccin-nvim
       cmp-buffer
       cmp-nvim-lsp
       cmp-path
@@ -73,13 +72,4 @@
     source = utils.create_symlink "${utils.dotfiles}/nvim/";
     recursive = true;
   };
-
-  xdg.dataFile."nvim/site/lua/neru/colors.lua".text = ''
-    return {
-      bg = "${style.colors.bg}", bgDim = "${style.colors.bgDim}", bgAlt = "${style.colors.bgAlt}", border = "${style.colors.border}",
-      fg = "${style.colors.fg}", fgDim = "${style.colors.fgDim}", fgMuted = "${style.colors.fgMuted}",
-      accent = "${style.colors.accent}", error = "${style.colors.error}", warning = "${style.colors.warning}", success = "${style.colors.success}", info = "${style.colors.info}",
-      red = "${style.colors.red}", magenta = "${style.colors.magenta}", orange = "${style.colors.orange}", cyan = "${style.colors.cyan}", blue = "${style.colors.blue}", purple = "${style.colors.purple}",
-    }
-  '';
 }

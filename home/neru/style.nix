@@ -26,7 +26,7 @@ let
   parseHex = c: hexChars.${c};
 in
 {
-  radius = 0;
+  radius = 12;
 
   colors = {
     # Backgrounds (dark to light)

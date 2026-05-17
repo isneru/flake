@@ -24,7 +24,10 @@ in
 {
   home.packages = with pkgs; [
     # keep-sorted start
+
     bat
+    bruno
+    cmake
     curl
     deadnix
     distrobox
@@ -32,10 +35,17 @@ in
     eza
     ffmpeg
     fzf
+    gcc
+    gdb
     git
+    gnumake
+    graphviz
     grim
     helium
-    bruno
+    hyprlock
+    inetutils
+    iw
+    jetbrains.idea
     jq
     just
     keep-sorted
@@ -43,13 +53,16 @@ in
     lazygit
     librewolf
     libsForQt5.qt5ct
+    maven
     networkmanager_dmenu
     nixfmt
     nixfmt-tree
+    nmap
     nodejs
     obsidian
     pciutils
     pipx
+    plantuml
     pulsemixer
     qt6Packages.qt6ct
     shfmt
@@ -57,11 +70,14 @@ in
     stylua
     swappy
     swaybg
-    swaylock
     thunar
     thunar-archive-plugin
+    tinymist
+    typst
+    typst-live
     unzip
     vscode
+    wavemon
     wget
     wl-clipboard
     wlogout
@@ -69,8 +85,8 @@ in
     xwayland-satellite
     zip
     # keep-sorted end
+    (writeShellScriptBin "power-menu" (builtins.readFile ./scripts/power-menu.sh))
     (writeShellScriptBin "mkenv" (builtins.readFile ./scripts/mkenv.sh))
-
     (writeShellScriptBin "start-monitor" (builtins.readFile ./scripts/start-monitor.sh))
     (writeShellScriptBin "stop-monitor" (builtins.readFile ./scripts/stop-monitor.sh))
     (writeShellApplication {
@@ -84,6 +100,12 @@ in
       ];
       text = ''exec "${nix-search-tv.src}/nixpkgs.sh" "$@"'';
     })
-    (writeShellScriptBin "power-tui" (builtins.readFile ./scripts/power-tui.sh))
+    (pkgs.rstudioWrapper.override {
+      packages = with pkgs.rPackages; [
+        dplyr
+        ggplot2
+        tidyverse
+      ];
+    })
   ];
 }
