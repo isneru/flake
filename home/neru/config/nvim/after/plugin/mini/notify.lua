@@ -7,9 +7,8 @@ require("mini.notify").setup({
 		},
 	},
 })
-local c = require("neru.colors")
 vim.api.nvim_set_hl(0, "MiniNotifyNormal", { bg = "NONE" })
-vim.api.nvim_set_hl(0, "MiniNotifyBorder", { bg = "NONE", fg = c.border })
+vim.api.nvim_set_hl(0, "MiniNotifyBorder", { bg = "NONE" })
 vim.api.nvim_set_hl(0, "MiniNotifyTitle", { bg = "NONE" })
 
 -- Custom notify logic to filter out LSP/Formatter spam

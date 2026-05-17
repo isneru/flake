@@ -4,7 +4,7 @@ require("catppuccin").setup({
 	integrations = {
 		cmp = true,
 		harpoon = true,
-		lualine = true,
+		lualine = {},
 		mini = { enabled = true },
 		native_lsp = {
 			enabled = true,

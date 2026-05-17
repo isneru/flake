@@ -37,10 +37,11 @@ bind R source-file ~/.config/tmux/tmux.conf \; display-message "config reloaded"
 
       set-option -g status-position top
       set -g status-style bg=default,fg=default
-      set -g status-left " "
-      set -g status-right "#[fg=default]#S "
-      set -g window-status-format "#I"
-      set -g window-status-current-format "#I"
+      set -g status-left "#[fg=${style.colors.purple}]#S "
+      set -g status-right " "
+      set -g status-justify centre
+      set -g window-status-format "#I:#W#F"
+      set -g window-status-current-format "#I:#W#F"
       set -g window-status-style "fg=${style.colors.fgMuted}"
       set -g window-status-current-style "fg=#{?window_zoomed_flag,${style.colors.orange},${style.colors.purple}},nobold"
       set -g window-status-bell-style "fg=${style.colors.error},nobold"

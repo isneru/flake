@@ -31,7 +31,7 @@
 
     layout {
         background-color "transparent"
-        gaps 8
+        gaps 12
         default-column-width { proportion 1.0; }
         preset-column-widths {
             proportion 0.5

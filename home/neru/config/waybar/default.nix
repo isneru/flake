@@ -153,11 +153,6 @@ in
         border-bottom: 2px solid ${c.red};
       }
 
-      #clock {
-        font-weight: bold;
-        color: ${c.fg};
-      }
-
       #mpris {
         padding: 0 10px;
         color: ${c.purple};
@@ -165,7 +160,7 @@ in
       #mpris.paused  { color: ${c.fgMuted}; }
       #mpris.stopped { padding: 0; }
 
-      #pulseaudio, #network, #cpu, #memory, #battery, #tray {
+      #pulseaudio, #network, #cpu, #memory, #battery, #tray, #clock {
         padding: 0 10px;
       }
 
@@ -174,6 +169,7 @@ in
       #cpu        { color: ${c.purple}; }
       #memory     { color: ${c.magenta}; }
       #battery    { color: ${c.orange}; }
+      #clock      { color: ${c.blue}; }
 
       #battery.critical {
         background-color: ${c.error};
