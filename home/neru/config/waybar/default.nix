@@ -14,10 +14,10 @@ in
 
         modules-left = [
           "niri/workspaces"
-          "niri/window"
+          "mpris"
         ];
         modules-center = [
-          "mpris"
+          "niri/window"
         ];
         modules-right = [
           "pulseaudio"
@@ -38,7 +38,7 @@ in
           rewrite = {
             "vesktop >> (.*)" = "discord";
             "helium >> (.*)" = "helium";
-            "com.mitchellh.ghostty >> (.*)" = "terminal";
+            "com.mitchellh.ghostty >> (.*)" = "ghostty";
             "Spotify >> (.*)" = "spotify";
             "obsidian >> (.*)" = "obsidian";
             "z?.* >> (.*)" = "$1";

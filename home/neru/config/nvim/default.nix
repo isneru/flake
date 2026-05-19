@@ -22,6 +22,7 @@
       lualine-nvim
       mini-nvim
       nvim-cmp
+      nvim-highlight-colors
       nvim-lspconfig
       nvim-treesitter.withAllGrammars
       oil-nvim
