@@ -1,0 +1,49 @@
+{ ... }:
+
+{
+  programs.starship = {
+    enable = true;
+    enableZshIntegration = true;
+    settings = {
+      format = "$username$hostname$directory$character";
+      right_format = "$git_branch$git_status";
+
+      username = {
+        show_always = true;
+        style_user = "";
+        style_root = "";
+        format = "[\\[$user]()";
+      };
+
+      hostname = {
+        ssh_only = false;
+        style = "";
+        format = "[@$hostname ]()";
+      };
+
+      directory = {
+        style = "";
+        format = "[$path\\]]()";
+        truncation_length = 3;
+        truncation_symbol = "";
+      };
+
+      git_branch = {
+        symbol = "";
+        style = "";
+        format = "[ $symbol $branch ]()";
+      };
+
+      git_status = {
+        style = "";
+        format = "([$all_status$ahead_behind]())";
+        disabled = true;
+      };
+
+      character = {
+        success_symbol = "[ \\$]()";
+        error_symbol = "[ ]()";
+      };
+    };
+  };
+}
