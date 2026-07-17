@@ -1,0 +1,110 @@
+# swaync (removed) used to own org.freedesktop.Notifications; Noctalia's own
+# daemon takes over now that its palette is theme-engine-driven too.
+[notification]
+enable_daemon = true
+
+# Replaces swayidle (removed) - Noctalia's own idle manager, no separate
+# systemd service needed. The dashboard's caffeine toggle already inhibits
+# this natively (zwp_idle_inhibit_manager_v1 / logind), same as it did for
+# swayidle before. No dim-brightness step (swayidle had one at 120s) -
+# straight to screen-off, then suspend.
+[idle.behavior.screen-off]
+enabled = true
+timeout = 240
+action = "screen_off"
+
+[idle.behavior.suspend]
+enabled = true
+timeout = 540
+action = "suspend"
+# Suspend alone defaults lock_before_suspend = true, which the schema
+# auto-promotes to lock_and_suspend - explicitly false here to match the
+# prior swayidle setup, which never locked before suspending.
+lock_before_suspend = false
+
+[theme]
+mode = "dark"
+source = "custom"
+custom_palette = "noctalia-live"
+community_palette = "Catppuccin Lavender"
+
+[shell]
+font_family = "{{mono}}"
+# Global roundness multiplier for everything that isn't bar.main.radius/
+# dock.radius below (buttons, dialogs, cards, popups, control-center,
+# settings window) - those two have their own explicit, independently-
+# tuned radius fields instead and don't multiply against this, confirmed
+# via Noctalia's own source (src/ui/style.cpp).
+corner_radius_scale = {{radiusScale}}
+
+[shell.panel]
+transparency_mode = "glass"
+
+[shell.launcher]
+app_grid = true
+
+[shell.shadow]
+alpha = 0.2
+
+[bar]
+order = ["main"]
+
+[bar.main]
+radius = {{radius}}
+# 0 on a sharp/square theme (radius = 0) - a floating pill-shaped bar with
+# side margins doesn't fit that flat, edge-to-edge language; 180 otherwise,
+# matching Noctalia's own default. margin_ends (not margin_h - that was a
+# stale field name from an older doc revision, confirmed the hard way: it's
+# silently ignored as an unrecognized key rather than erroring, so the
+# first attempt at this had zero effect) is the real schema field, verified
+# directly against src/config/schema/config_schema.cpp.
+margin_ends = {{barMarginH}}
+capsule = true
+# capsule_radius deliberately left unset (automatic true-pill shape) rather
+# than tied to {{radius}} - Noctalia computes it as min(width,height)/2 when
+# unset, which is what actually gives a proper capsule/pill look regardless
+# of bar thickness. Forcing it to a small literal radius (e.g. 12, our
+# default theme's value) would turn the pills into slightly-rounded
+# rectangles instead - worse, not just "less on-theme". Square themes still
+# get square pills correctly, since 0 as a literal override *is* the
+# correct square shape either way.
+capsule_thickness = 0.7
+background_opacity = 0.85
+start = ["control-center", "launcher", "workspaces"]
+center = ["clock"]
+end = ["tray", "clipboard", "network", "bluetooth", "volume", "brightness", "battery", "session"]
+
+[control_center]
+sidebar = "full"
+sidebar_section = "full"
+width = 840
+
+[location]
+address = "Porto, Portugal"
+
+[dock]
+enabled = false
+
+[wallpaper]
+enabled = true
+directory = "~/Pictures/wallpapers"
+transition = ["disc", "fade", "honeycomb", "stripes", "wipe", "zoom"]
+
+[widget.battery]
+hide_when_full = true
+hide_when_plugged = true
+
+[widget.brightness]
+show_label = false
+
+[widget."control-center"]
+glyph = "plant-2"
+
+[widget.launcher]
+enabled = false
+
+[widget.network]
+show_label = false
+
+[widget.volume]
+show_label = false

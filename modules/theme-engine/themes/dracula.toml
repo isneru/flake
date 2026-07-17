@@ -1,0 +1,27 @@
+# dracula.theme - official palette (draculatheme.com/contribute)
+[colors]
+bg = "#282a36"
+bgDim = "#21222c"
+bgAlt = "#44475a"
+bgOverlay = "#000A"
+border = "#44475a"
+fg = "#f8f8f2"
+fgDim = "#e6e6e6"
+fgMuted = "#6272a4"
+accent = "#bd93f9"
+error = "#ff5555"
+warning = "#f1fa8c"
+success = "#50fa7b"
+info = "#8be9fd"
+red = "#ff5555"
+orange = "#ffb86c"
+cyan = "#8be9fd"
+blue = "#8be9fd"
+
+[fonts]
+mono = "CaskaydiaCove NFM"
+size = 15
+
+[misc]
+radius = 12
+dark = true

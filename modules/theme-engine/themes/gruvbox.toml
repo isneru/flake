@@ -1,0 +1,27 @@
+# gruvbox - retro groove dark palette (github.com/morhetz/gruvbox)
+[colors]
+bg = "#282828"
+bgDim = "#1d2021"
+bgAlt = "#3c3836"
+bgOverlay = "#000A"
+border = "#504945"
+fg = "#ebdbb2"
+fgDim = "#d5c4a1"
+fgMuted = "#a89984"
+accent = "#fe8019"
+error = "#fb4934"
+warning = "#fabd2f"
+success = "#b8bb26"
+info = "#83a598"
+red = "#fb4934"
+orange = "#fe8019"
+cyan = "#8ec07c"
+blue = "#83a598"
+
+[fonts]
+mono = "CaskaydiaCove NFM"
+size = 15
+
+[misc]
+radius = 12
+dark = true

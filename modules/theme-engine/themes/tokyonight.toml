@@ -1,0 +1,27 @@
+# tokyonight (night variant) - github.com/folke/tokyonight.nvim
+[colors]
+bg = "#1a1b26"
+bgDim = "#16161e"
+bgAlt = "#292e42"
+bgOverlay = "#000A"
+border = "#565f89"
+fg = "#c0caf5"
+fgDim = "#a9b1d6"
+fgMuted = "#565f89"
+accent = "#7aa2f7"
+error = "#f7768e"
+warning = "#e0af68"
+success = "#9ece6a"
+info = "#7dcfff"
+red = "#f7768e"
+orange = "#ff9e64"
+cyan = "#7dcfff"
+blue = "#7aa2f7"
+
+[fonts]
+mono = "CaskaydiaCove NFM"
+size = 15
+
+[misc]
+radius = 12
+dark = true

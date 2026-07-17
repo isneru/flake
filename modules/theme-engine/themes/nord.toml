@@ -1,0 +1,27 @@
+# nord - arctic, north-bluish palette (nordtheme.com)
+[colors]
+bg = "#2e3440"
+bgDim = "#242933"
+bgAlt = "#3b4252"
+bgOverlay = "#000A"
+border = "#434c5e"
+fg = "#d8dee9"
+fgDim = "#e5e9f0"
+fgMuted = "#4c566a"
+accent = "#88c0d0"
+error = "#bf616a"
+warning = "#ebcb8b"
+success = "#a3be8c"
+info = "#81a1c1"
+red = "#bf616a"
+orange = "#d08770"
+cyan = "#88c0d0"
+blue = "#5e81ac"
+
+[fonts]
+mono = "CaskaydiaCove NFM"
+size = 15
+
+[misc]
+radius = 12
+dark = true

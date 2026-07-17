@@ -1,0 +1,28 @@
+# vesper - near-monochrome dark theme with a peppermint/orange accent, by
+# Rauno Freiberg (github.com/raunofreiberg/vesper)
+[colors]
+bg = "#101010"
+bgDim = "#0a0a0a"
+bgAlt = "#1c1c1c"
+bgOverlay = "#000A"
+border = "#343434"
+fg = "#ffffff"
+fgDim = "#a0a0a0"
+fgMuted = "#8b8b8b"
+accent = "#ffc799"
+error = "#ff8080"
+warning = "#ffc799"
+success = "#99ffe4"
+info = "#a0a0a0"
+red = "#ff8080"
+orange = "#ff7300"
+cyan = "#99ffe4"
+blue = "#65737e"
+
+[fonts]
+mono = "IosevkaTerm Nerd Font Mono"
+size = 15
+
+[misc]
+radius = 0
+dark = true

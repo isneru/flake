@@ -1,0 +1,27 @@
+# dark mono, soft variant - heavily desaturated but keeps a faint hue per role
+[colors]
+bg = "#1a1a1a"
+bgDim = "#0d0d0d"
+bgAlt = "#2d2d2d"
+bgOverlay = "#000A"
+border = "#505050"
+fg = "#e8e8e8"
+fgDim = "#a8a8a8"
+fgMuted = "#707070"
+accent = "#c9c2d1"
+error = "#c9b3b3"
+warning = "#c9bcb3"
+success = "#a9bcac"
+info = "#a9bcc4"
+red = "#c9b3b3"
+orange = "#c9bcb3"
+cyan = "#a9bcc4"
+blue = "#a7b0bc"
+
+[fonts]
+mono = "IosevkaTerm Nerd Font Mono"
+size = 15
+
+[misc]
+radius = 0
+dark = true

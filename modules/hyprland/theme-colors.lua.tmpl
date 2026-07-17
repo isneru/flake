@@ -1,0 +1,18 @@
+-- Written by theme-set (theme-engine) on every theme apply - required from
+-- hyprland.lua. Hyprland accepts plain web-style #RRGGBB hex for colors, so
+-- theme tokens plug in directly with no derived-token work needed.
+hl.config({
+  general = {
+    ["col.active_border"] = "{{accent}}",
+    ["col.inactive_border"] = "{{border}}",
+  },
+  decoration = {
+    rounding = {{radius}},
+  },
+  -- No wallpaper daemon (driftwm's shader backgrounds were dropped in the
+  -- migration, not ported - see theme_engine.py) - this fallback solid
+  -- color is what's actually visible behind windows.
+  misc = {
+    background_color = "{{bg}}",
+  },
+})

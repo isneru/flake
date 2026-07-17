@@ -1,0 +1,26 @@
+[colors]
+bg = "#303446"
+bgDim = "#292c3c"
+bgAlt = "#414559"
+bgOverlay = "#000A"
+border = "#51576d"
+fg = "#c6d0f5"
+fgDim = "#b5bfe2"
+fgMuted = "#737994"
+accent = "#ca9ee6"
+error = "#e78284"
+warning = "#e5c890"
+success = "#a6d189"
+info = "#99d1db"
+red = "#e78284"
+orange = "#ef9f76"
+cyan = "#99d1db"
+blue = "#8caaee"
+
+[fonts]
+mono = "CaskaydiaCove NFM"
+size = 15
+
+[misc]
+radius = 12
+dark = true
