@@ -1,0 +1,5 @@
+module qs.moodle.store
+
+singleton Moodle 1.0 Moodle.qml
+singleton Style 1.0 Style.qml
+singleton Hints 1.0 Hints.qml

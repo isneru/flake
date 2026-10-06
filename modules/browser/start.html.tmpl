@@ -1,0 +1,214 @@
+<!doctype html>
+<!--
+  Rendered by theme-engine from modules/theme-engine/themes/{{theme}}.toml.
+  Do not edit: `theme-set` overwrites this on every switch. The source is
+  modules/browser/start.html.tmpl.
+
+  qutebrowser points url.start_pages and url.default_page here, resolved from
+  config.datadir so no home path is hardcoded. config.py also turns darkmode off
+  for file:// URLs, which is what stops QtWebEngine inverting these colours back.
+-->
+<html lang="en" data-theme="{{theme}}">
+<head>
+<meta charset="utf-8">
+<title>new tab</title>
+<style>
+:root {
+  --bg: {{bg}};
+  --bg-dim: {{bgDim}};
+  --bg-alt: {{bgAlt}};
+  --border: {{border}};
+  --fg: {{fg}};
+  --fg-dim: {{fgDim}};
+  --fg-muted: {{fgMuted}};
+  --accent: {{accent}};
+  --radius: {{radius}}px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "{{mono}}", ui-monospace, monospace;
+  font-size: {{size}}px;
+}
+
+main { width: min(880px, 90vw); }
+
+/* --- clock ------------------------------------------------------------- */
+
+.clock {
+  font-size: clamp(56px, 11vw, 104px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.sub {
+  margin-top: 10px;
+  color: var(--fg-muted);
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.theme-name { color: var(--accent); }
+
+/* --- search ------------------------------------------------------------ */
+
+form { margin: 34px 0 30px; }
+
+input {
+  width: 100%;
+  padding: 13px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-dim);
+  color: var(--fg);
+  font: inherit;
+  outline: none;
+}
+
+input::placeholder { color: var(--fg-muted); }
+input:focus { border-color: var(--accent); }
+
+/* --- links ------------------------------------------------------------- */
+
+.groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 26px;
+}
+
+h2 {
+  margin: 0 0 10px;
+  font-size: {{size}}px;
+  font-weight: 600;
+  color: var(--fg-muted);
+  text-transform: lowercase;
+  letter-spacing: 0.08em;
+}
+
+ul { margin: 0; padding: 0; list-style: none; }
+li + li { margin-top: 3px; }
+
+a {
+  display: block;
+  padding: 5px 9px;
+  margin-left: -9px;
+  border-radius: calc(var(--radius) - 4px);
+  color: var(--fg-dim);
+  text-decoration: none;
+}
+
+a:hover, a:focus {
+  background: var(--bg-alt);
+  color: var(--fg);
+  outline: none;
+}
+</style>
+</head>
+<body>
+<main>
+  <div class="clock" id="clock">--:--</div>
+  <div class="sub">
+    <span id="date"></span>
+    <span class="theme-name">{{theme}}</span>
+  </div>
+
+  <!-- Submits to DuckDuckGo directly rather than to qutebrowser: a page has no
+       way to reach url.searchengines. Press o for the real thing. -->
+  <form action="https://duckduckgo.com/" method="get">
+    <input name="q" type="text" autofocus autocomplete="off" spellcheck="false"
+           placeholder="search, or press o for qutebrowser's own bar">
+  </form>
+
+  <!-- Edit these in modules/browser/start.html.tmpl, then `theme-set reapply`. -->
+  <div class="groups">
+    <section>
+      <h2>nix</h2>
+      <ul>
+        <li><a href="https://search.nixos.org/packages">packages</a></li>
+        <li><a href="https://search.nixos.org/options">options</a></li>
+        <li><a href="https://home-manager-options.extranix.com/">home manager</a></li>
+        <li><a href="https://noogle.dev/">noogle</a></li>
+      </ul>
+    </section>
+    <section>
+      <h2>code</h2>
+      <ul>
+        <li><a href="https://github.com/">github</a></li>
+        <li><a href="https://wiki.archlinux.org/">arch wiki</a></li>
+        <li><a href="https://quickshell.org/docs/">quickshell</a></li>
+        <li><a href="https://wiki.hypr.land/">hyprland</a></li>
+      </ul>
+    </section>
+    <section>
+      <h2>watch</h2>
+      <ul>
+        <li><a href="https://www.youtube.com/">youtube</a></li>
+        <li><a href="https://www.youtube.com/feed/subscriptions">subscriptions</a></li>
+      </ul>
+    </section>
+    <section>
+      <h2>local</h2>
+      <ul>
+        <li><a href="qute://bindings/">keybindings</a></li>
+        <li><a href="qute://history/">history</a></li>
+        <li><a href="qute://downloads/">downloads</a></li>
+        <li><a href="qute://settings/">settings</a></li>
+      </ul>
+    </section>
+  </div>
+</main>
+
+<script>
+// theme-engine rewrites this file on every `theme-set`, but an already-open tab
+// keeps the HTML it was served. qutebrowser's :reload only acts on the current
+// or [count]th tab, so a theme-engine reload command would reload whatever tab
+// happened to be focused -- the page has to notice for itself.
+//
+// XHR rather than fetch(): Chromium blocks the fetch API on file:// URLs even
+// with content.local_content_can_access_file_urls (which is true by default and
+// is what permits this read at all). Re-reading by path also survives
+// theme_engine.py writing through tmp.replace(), which changes the inode and is
+// exactly what defeats an inode-following watcher elsewhere in this repo.
+function watchTheme() {
+  const rendered = document.documentElement.dataset.theme;
+
+  setInterval(function () {
+    const req = new XMLHttpRequest();
+    req.open("GET", location.pathname + "?t=" + Date.now());
+    req.onload = function () {
+      const found = req.responseText.match(/data-theme="([^"]*)"/);
+      if (found && found[1] !== rendered) {
+        location.reload();
+      }
+    };
+    req.onerror = function () {};
+    req.send();
+  }, 4000);
+}
+watchTheme();
+
+function tick() {
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  document.getElementById("clock").textContent =
+    pad(now.getHours()) + ":" + pad(now.getMinutes());
+  document.getElementById("date").textContent =
+    now.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
+}
+tick();
+setInterval(tick, 1000);
+</script>
+</body>
+</html>

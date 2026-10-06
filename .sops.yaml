@@ -1,0 +1,13 @@
+# Two identities, deliberately: the host key is what root decrypts with during
+# activation (so it can never carry a passphrase), the user key is what edits
+# secrets. ~/.ssh/id_ed25519 is no longer a recipient — it is an ssh key again.
+keys:
+  - &host age1nm7nmkejcvt833vd0nrh6ym3qk2gfzyk8627a7xpa7hmp2y8qpusa9h325
+  - &neru age1rgfc0csty75tqecgnfzvwh2mdg9mtp65hdpld7l3yr8qufqcxqdsanan0z
+
+creation_rules:
+  - path_regex: secrets/[^/]+\.yaml$
+    key_groups:
+      - age:
+          - *host
+          - *neru

@@ -1,0 +1,39 @@
+[colors]
+bg = "#1e1e2e"
+bgDim = "#181825"
+bgAlt = "#313244"
+border = "#45475a"
+fg = "#cdd6f4"
+fgDim = "#bac2de"
+fgMuted = "#6c7086"
+
+accent = "#cba6f7"
+error = "#f38ba8"
+warning = "#f9e2af"
+success = "#a6e3a1"
+info = "#89dceb"
+
+black = "#45475a"
+brightBlack = "#585b70"
+red = "#f38ba8"
+brightRed = "#f37799"
+green = "#a6e3a1"
+brightGreen = "#89d88b"
+yellow = "#f9e2af"
+brightYellow = "#ebd391"
+blue = "#89b4fa"
+brightBlue = "#74a8fc"
+magenta = "#f5c2e7"
+brightMagenta = "#f2aede"
+cyan = "#94e2d5"
+brightCyan = "#6bd7ca"
+white = "#a6adc8"
+brightWhite = "#bac2de"
+
+[fonts]
+mono = "GeistMono Nerd Font Mono"
+size = 18
+sizeUi = 11
+
+[ui]
+radius = 12

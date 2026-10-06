@@ -1,0 +1,196 @@
+diff -ruN -x build a/docs/wmenu.1.scd b/docs/wmenu.1.scd
+--- a/docs/wmenu.1.scd	2026-09-16 21:12:54.637185907 +0100
++++ b/docs/wmenu.1.scd	2026-09-16 21:15:50.162199725 +0100
+@@ -33,6 +33,10 @@
+ *-b*
+ 	wmenu appears at the bottom of the screen.
+ 
++*-c*
++	wmenu appears as a box centered on the screen, sized to its widest item
++	rather than spanning the full width. Overrides *-b*.
++
+ *-i*
+ 	wmenu matches menu items case insensitively.
+ 
+@@ -53,7 +57,8 @@
+ 	https://docs.gtk.org/Pango/type_func.FontDescription.from_string.html
+ 
+ *-l* _lines_
+-	wmenu lists items vertically, with the given number of lines.
++	wmenu lists items vertically, with at most the given number of lines.
++	A shorter list shrinks the menu to fit rather than padding it out.
+ 
+ *-o* _output_
+ 	wmenu is displayed on the output with the given name.
+diff -ruN -x build a/menu.c b/menu.c
+--- a/menu.c	2026-09-16 21:12:54.637383861 +0100
++++ b/menu.c	2026-09-16 21:13:10.612830579 +0100
+@@ -89,16 +89,19 @@
+ // Parse menu options from command line arguments.
+ void menu_getopts(struct menu *menu, int argc, char *argv[]) {
+ 	const char *usage =
+-		"Usage: wmenu [-biPRv] [-f font] [-l lines] [-o output] [-p prompt]\n"
++		"Usage: wmenu [-bciPRv] [-f font] [-l lines] [-o output] [-p prompt]\n"
+ 		"\t[-I directory]\n"
+ 		"\t[-N color] [-n color] [-M color] [-m color] [-S color] [-s color]\n";
+ 
+ 	int opt;
+-	while ((opt = getopt(argc, argv, "bhiPRvf:l:o:p:I:N:n:M:m:S:s:")) != -1) {
++	while ((opt = getopt(argc, argv, "bchiPRvf:l:o:p:I:N:n:M:m:S:s:")) != -1) {
+ 		switch (opt) {
+ 		case 'b':
+ 			menu->bottom = true;
+ 			break;
++		case 'c':
++			menu->centered = true;
++			break;
+ 		case 'i':
+ 			menu->strncmp = strncasecmp;
+ 			break;
+diff -ruN -x build a/menu.h b/menu.h
+--- a/menu.h	2026-09-16 21:12:54.637521205 +0100
++++ b/menu.h	2026-09-16 21:13:03.104811479 +0100
+@@ -31,6 +31,7 @@
+ struct menu {
+ 	// Whether the menu appears at the bottom of the screen
+ 	bool bottom;
++	bool centered;
+ 	// The function used to match menu items
+ 	int (*strncmp)(const char *, const char *, size_t);
+ 	// Whether the input is a password
+diff -ruN -x build a/wayland.c b/wayland.c
+--- a/wayland.c	2026-09-16 21:12:54.626088768 +0100
++++ b/wayland.c	2026-09-16 21:15:15.174037288 +0100
+@@ -28,6 +28,8 @@
+ 	struct wl_output *output;
+ 	const char *name;    // output name
+ 	int32_t scale;       // output scale
++	int32_t width;       // output width in physical pixels
++	int32_t height;      // output height in physical pixels
+ 	struct output *next; // next output
+ };
+ 
+@@ -106,6 +108,42 @@
+ 	return context->output ? context->output->scale : 1;
+ }
+ 
++// Returns the width a centered menu should ask for: wide enough for the
++// prompt and the widest item, clamped to a band of the output's own width.
++int context_content_width(struct wl_context *context) {
++	struct menu *menu = context->menu;
++	struct output *output = context->output ? context->output : context->output_list;
++
++	calc_widths(menu);
++
++	int width = menu->promptw + menu->inputw + 4 * menu->padding;
++	if (menu->lines > 0) {
++		width += menu->left_arrow + menu->right_arrow;
++	}
++
++	int scale = output && output->scale > 0 ? output->scale : 1;
++	int screen = output ? output->width / scale : 0;
++	if (screen <= 0) {
++		return width;
++	}
++
++	int min = screen * 3 / 10;
++	int max = screen * 3 / 5;
++	if (menu->preview_dir) {
++		// The preview column is a third of the box, so the rows keep their
++		// share only if the box itself grows.
++		width = width * 3 / 2;
++		max = screen * 4 / 5;
++	}
++	if (width < min) {
++		width = min;
++	}
++	if (width > max) {
++		width = max;
++	}
++	return width;
++}
++
+ // Returns the current buffer from the pool.
+ struct pool_buffer *context_get_current_buffer(struct wl_context *context) {
+ 	return context->current;
+@@ -235,6 +273,15 @@
+ 	.closed = layer_surface_closed,
+ };
+ 
++static void output_mode(void *data, struct wl_output *wl_output,
++		uint32_t flags, int32_t width, int32_t height, int32_t refresh) {
++	struct output *output = data;
++	if (flags & WL_OUTPUT_MODE_CURRENT) {
++		output->width = width;
++		output->height = height;
++	}
++}
++
+ static void output_scale(void *data, struct wl_output *wl_output, int32_t factor) {
+ 	struct output *output = data;
+ 	output->scale = factor;
+@@ -252,7 +299,7 @@
+ 
+ static const struct wl_output_listener output_listener = {
+ 	.geometry = noop,
+-	.mode = noop,
++	.mode = output_mode,
+ 	.done = noop,
+ 	.scale = output_scale,
+ 	.name = output_name,
+@@ -397,6 +444,14 @@
+ 
+ // Connect to the Wayland display and run the menu.
+ int menu_run(struct menu *menu) {
++	// -l is a maximum, not a fixed height: a list shorter than it shrinks the
++	// box to fit rather than padding it with empty rows. Items are known by now,
++	// which they are not when menu_getopts computes the initial height.
++	if (menu->lines > 0 && (size_t)menu->lines > menu->item_count) {
++		menu->lines = (int)menu->item_count;
++		menu->height = menu->line_height * (menu->lines + 1);
++	}
++
+ 	struct wl_context *context = calloc(1, sizeof(struct wl_context));
+ 	context->menu = menu;
+ 	menu->context = context;
+@@ -446,16 +501,23 @@
+ 	assert(layer_surface != NULL);
+ 	context->layer_surface = layer_surface;
+ 
+-	uint32_t anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |
+-		ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
+-	if (menu->bottom) {
+-		anchor |= ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM;
++	uint32_t anchor = 0;
++	int box_width = 0;
++
++	if (menu->centered) {
++		box_width = context_content_width(context);
+ 	} else {
+-		anchor |= ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP;
++		anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |
++			ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
++		if (menu->bottom) {
++			anchor |= ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM;
++		} else {
++			anchor |= ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP;
++		}
+ 	}
+ 
+ 	zwlr_layer_surface_v1_set_anchor(layer_surface, anchor);
+-	zwlr_layer_surface_v1_set_size(layer_surface, 0, menu->height);
++	zwlr_layer_surface_v1_set_size(layer_surface, box_width, menu->height);
+ 	zwlr_layer_surface_v1_set_exclusive_zone(layer_surface, -1);
+ 	zwlr_layer_surface_v1_set_keyboard_interactivity(layer_surface, true);
+ 	zwlr_layer_surface_v1_add_listener(layer_surface, &layer_surface_listener, context);
+diff -ruN -x build a/wayland.h b/wayland.h
+--- a/wayland.h	2026-09-16 21:12:54.626108566 +0100
++++ b/wayland.h	2026-09-16 21:13:52.032044115 +0100
+@@ -9,6 +9,7 @@
+ int menu_run(struct menu *menu);
+ 
+ int context_get_scale(struct wl_context *context);
++int context_content_width(struct wl_context *context);
+ struct pool_buffer *context_get_current_buffer(struct wl_context *context);
+ struct pool_buffer *context_get_next_buffer(struct wl_context *context, int scale);
+ struct wl_surface *context_get_surface(struct wl_context *context);

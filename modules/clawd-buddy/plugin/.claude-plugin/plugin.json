@@ -1,0 +1,5 @@
+{
+  "name": "clawd-buddy",
+  "version": "0.1.0",
+  "description": "A cozy pixel Clawd above the prompt that acts out what Claude is doing right now, with a liveness pulse so long silent turns never look stuck."
+}

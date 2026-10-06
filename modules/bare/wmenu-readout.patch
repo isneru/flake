@@ -1,0 +1,110 @@
+diff --git a/docs/wmenu.1.scd b/docs/wmenu.1.scd
+index 3080be2..6733b49 100644
+--- a/docs/wmenu.1.scd
++++ b/docs/wmenu.1.scd
+@@ -6,7 +6,7 @@ wmenu - dynamic menu for Wayland
+ 
+ # SYNOPSIS
+ 
+-*wmenu* [-biPv] \
++*wmenu* [-biPRv] \
+   [-f _font_] \
+   [-l _lines_] \
+   [-o _output_] \
+@@ -40,6 +40,11 @@ $PATH and runs the result.
+ 	wmenu will not directly display the keyboard input, but instead replace it
+ 	with asterisks.
+ 
++*-R*
++	lists items as a fixed readout rather than choices: every item is shown in
++	input order whatever is typed, none can be selected, and Return always
++	prints the typed text.
++
+ *-v*
+ 	prints version information to stdout, then exits.
+ 
+diff --git a/menu.c b/menu.c
+index 7481789..2b8dac2 100644
+--- a/menu.c
++++ b/menu.c
+@@ -89,12 +89,12 @@ static bool parse_color(const char *color, uint32_t *result) {
+ // Parse menu options from command line arguments.
+ void menu_getopts(struct menu *menu, int argc, char *argv[]) {
+ 	const char *usage =
+-		"Usage: wmenu [-biPv] [-f font] [-l lines] [-o output] [-p prompt]\n"
++		"Usage: wmenu [-biPRv] [-f font] [-l lines] [-o output] [-p prompt]\n"
+ 		"\t[-I directory]\n"
+ 		"\t[-N color] [-n color] [-M color] [-m color] [-S color] [-s color]\n";
+ 
+ 	int opt;
+-	while ((opt = getopt(argc, argv, "bhiPvf:l:o:p:I:N:n:M:m:S:s:")) != -1) {
++	while ((opt = getopt(argc, argv, "bhiPRvf:l:o:p:I:N:n:M:m:S:s:")) != -1) {
+ 		switch (opt) {
+ 		case 'b':
+ 			menu->bottom = true;
+@@ -105,6 +105,9 @@ void menu_getopts(struct menu *menu, int argc, char *argv[]) {
+ 		case 'P':
+ 			menu->passwd = true;
+ 			break;
++		case 'R':
++			menu->readout = true;
++			break;
+ 		case 'v':
+ 			puts("wmenu " VERSION);
+ 			exit(EXIT_SUCCESS);
+@@ -314,6 +317,16 @@ static void match_items(struct menu *menu) {
+ 	menu->matches_end = NULL;
+ 	menu->sel = NULL;
+ 
++	if (menu->readout) {
++		for (k = 0; k < menu->item_count; k++) {
++			append_match(&menu->items[k], &lexact, &exactend);
++		}
++		menu->matches = lexact;
++		menu->matches_end = exactend;
++		page_items(menu);
++		return;
++	}
++
+ 	size_t input_len = strlen(menu->input);
+ 
+ 	/* tokenize input by space for matching the tokens individually */
+diff --git a/menu.h b/menu.h
+index 36dbc49..aae1590 100644
+--- a/menu.h
++++ b/menu.h
+@@ -35,6 +35,8 @@ struct menu {
+ 	int (*strncmp)(const char *, const char *, size_t);
+ 	// Whether the input is a password
+ 	bool passwd;
++	// Whether items are a fixed readout rather than choices
++	bool readout;
+ 	// The font used to display the menu
+ 	char *font;
+ 	// The number of lines to list items vertically
+diff --git a/render.c b/render.c
+index f2b9c8c..4d0e0b0 100644
+--- a/render.c
++++ b/render.c
+@@ -273,14 +273,18 @@ static void render_to_cairo(struct menu *menu, cairo_t *cairo) {
+ 	render_cursor(menu, cairo);
+ 
+ 	// Render selected page
+-	if (!menu->sel) {
++	struct page *page = menu->sel ? menu->sel->page : NULL;
++	if (!page && menu->readout) {
++		page = menu->pages;
++	}
++	if (!page) {
+ 		return;
+ 	}
+ 	if (menu->lines > 0) {
+ 		render_preview(menu, cairo);
+-		render_vertical_page(menu, cairo, menu->sel->page);
++		render_vertical_page(menu, cairo, page);
+ 	} else {
+-		render_horizontal_page(menu, cairo, menu->sel->page);
++		render_horizontal_page(menu, cairo, page);
+ 	}
+ }
+ 

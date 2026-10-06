@@ -1,0 +1,10 @@
+[SddmGreeterTheme]
+Name=Notch
+Description=The notch shell's lock surface, as a greeter.
+Author=neru
+Version=1.0
+MainScript=Main.qml
+Theme-Id=notch
+QtVersion=6
+
+ConfigFile=theme.conf

@@ -1,0 +1,96 @@
+// ==UserScript==
+// @name         Site accents
+// @namespace    notch
+// @version      1.0
+// @description  Carry the current theme's accent onto GitHub, X and YouTube.
+// @match        *://github.com/*
+// @match        *://x.com/*
+// @match        *://twitter.com/*
+// @match        *://www.youtube.com/*
+// @match        *://youtube.com/*
+// @run-at       document-start
+// @grant        none
+// ==/UserScript==
+
+
+(function () {
+    "use strict";
+
+    const SHARED = `
+html {
+    scrollbar-color: {{accent}} {{bgDim}};
+}
+
+::selection {
+    background-color: {{accent}};
+    color: {{bg}};
+}
+`;
+
+    const GITHUB = `
+:root {
+    --fgColor-accent: {{accent}} !important;
+    --fgColor-link: {{accent}} !important;
+    --bgColor-accent-emphasis: {{accent}} !important;
+    --bgColor-accent-muted: {{bgAlt}} !important;
+    --borderColor-accent-emphasis: {{accent}} !important;
+    --underlineNav-borderColor-active: {{accent}} !important;
+    --focus-outlineColor: {{accent}} !important;
+}
+
+.btn-primary,
+[class*="prc-Button-ButtonBase"][data-variant="primary"] {
+    color: {{bg}} !important;
+}
+`;
+
+    const YOUTUBE = `
+.ytp-play-progress,
+.ytp-swatch-background-color,
+.ytp-scrubber-button {
+    background-color: {{accent}} !important;
+}
+
+#progress.ytd-thumbnail-overlay-resume-playback-renderer {
+    background-color: {{accent}} !important;
+}
+`;
+
+    const X = `
+a[role="link"]:not([data-testid]) {
+    color: {{accent}};
+}
+`;
+
+    const host = location.hostname;
+    let css = SHARED;
+
+    if (host.endsWith("github.com")) {
+        css += GITHUB;
+    } else if (host.endsWith("youtube.com")) {
+        css += YOUTUBE;
+    } else {
+        css += X;
+    }
+
+    const style = document.createElement("style");
+    style.textContent = css;
+
+    function attach() {
+        const parent = document.head || document.documentElement;
+        if (!parent) {
+            return false;
+        }
+        parent.appendChild(style);
+        return true;
+    }
+
+    if (!attach()) {
+        const observer = new MutationObserver(function (_records, obs) {
+            if (attach()) {
+                obs.disconnect();
+            }
+        });
+        observer.observe(document, { childList: true, subtree: true });
+    }
+})();
