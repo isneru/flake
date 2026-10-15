@@ -1,0 +1,44 @@
+[colors]
+bg = "#16120e"
+bgDim = "#120e0b"
+bgAlt = "#28221a"
+border = "#3a3126"
+fg = "#e3d6b8"
+fgDim = "#cec0a3"
+fgMuted = "#8d7d65"
+
+accent = "#d49a3a"
+error = "#dd7357"
+warning = "#e8bd6a"
+success = "#b0b878"
+info = "#a3b3c2"
+
+black = "#16120e"
+brightBlack = "#8d7d65"
+red = "#d25f42"
+brightRed = "#dd7357"
+green = "#8f9a5a"
+brightGreen = "#b0b878"
+yellow = "#d49a3a"
+brightYellow = "#e8bd6a"
+blue = "#7f93a8"
+brightBlue = "#a3b3c2"
+magenta = "#a8707a"
+brightMagenta = "#c9939a"
+cyan = "#7aa08c"
+brightCyan = "#9fc0ab"
+white = "#cfc1a3"
+brightWhite = "#f3ead3"
+
+[fonts]
+mono = "GeistMono Nerd Font Mono"
+chrome = "DepartureMono Nerd Font Mono"
+size = 18
+sizeUi = 11
+
+[ui]
+radius = 0
+
+[plates]
+plateInk = "#16120e"
+platePaper = "#5c4c39"

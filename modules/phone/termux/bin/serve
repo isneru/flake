@@ -1,0 +1,16 @@
+#!/data/data/com.termux/files/usr/bin/bash
+bin="$HOME/.local/bin"
+state="$HOME/.local/state/tailscale"
+
+case "$1" in
+  sshd)
+    (: </dev/tcp/127.0.0.1/8022) 2>/dev/null || exec sshd -D
+    ;;
+  tailscaled)
+    [ -x "$bin/tailscaled" ] || exit 0
+    ln -sf tailscaled "$bin/tailscale"
+    "$bin/tailscale" --socket="$state/sock" version --daemon >/dev/null 2>&1 && exit 0
+    mkdir -p "$state"
+    exec "$bin/tailscaled" --tun=userspace-networking --statedir="$state" --socket="$state/sock" 2>"$state/log"
+    ;;
+esac

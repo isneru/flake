@@ -1,0 +1,5 @@
+{
+  "name": "mascot",
+  "version": "0.1.0",
+  "description": "Publishes a pixel Clawd acting out what Claude is doing right now, for the desktop bar to paint."
+}

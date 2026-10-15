@@ -1,0 +1,243 @@
+--- a/menu.c
++++ b/menu.c
+@@ -62,6 +62,10 @@
+ 	free_items(menu);
+ 	cairo_destroy(menu->test_cairo);
+ 	cairo_surface_destroy(menu->test_surface);
++	if (menu->preview_image) {
++		cairo_surface_destroy(menu->preview_image);
++	}
++	free(menu->preview_name);
+ 	free(menu);
+ }
+ 
+@@ -86,10 +90,11 @@
+ void menu_getopts(struct menu *menu, int argc, char *argv[]) {
+ 	const char *usage =
+ 		"Usage: wmenu [-biPv] [-f font] [-l lines] [-o output] [-p prompt]\n"
++		"\t[-I directory]\n"
+ 		"\t[-N color] [-n color] [-M color] [-m color] [-S color] [-s color]\n";
+ 
+ 	int opt;
+-	while ((opt = getopt(argc, argv, "bhiPvf:l:o:p:N:n:M:m:S:s:")) != -1) {
++	while ((opt = getopt(argc, argv, "bhiPvf:l:o:p:I:N:n:M:m:S:s:")) != -1) {
+ 		switch (opt) {
+ 		case 'b':
+ 			menu->bottom = true;
+@@ -115,6 +120,9 @@
+ 		case 'p':
+ 			menu->prompt = optarg;
+ 			break;
++		case 'I':
++			menu->preview_dir = optarg;
++			break;
+ 		case 'N':
+ 			if (!parse_color(optarg, &menu->normalbg)) {
+ 				fprintf(stderr, "Invalid background color: %s", optarg);
+--- a/menu.h
++++ b/menu.h
+@@ -43,6 +43,8 @@
+ 	char *output_name;
+ 	// The prompt displayed to the left of the input field
+ 	char *prompt;
++	// Directory holding preview images named after each item
++	char *preview_dir;
+ 	// Normal colors
+ 	uint32_t normalbg, normalfg;
+ 	// Prompt colors
+@@ -64,6 +66,9 @@
+ 	int promptw;
+ 	int left_arrow;
+ 	int right_arrow;
++	int previeww;
++	char *preview_name;
++	cairo_surface_t *preview_image;
+ 	bool rendered;
+ 
+ 	char input[BUFSIZ];
+--- a/render.c
++++ b/render.c
+@@ -1,5 +1,9 @@
+ #define _POSIX_C_SOURCE 200809L
+ #include <cairo/cairo.h>
++#include <gdk-pixbuf/gdk-pixbuf.h>
++#include <limits.h>
++#include <stdint.h>
++#include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+ 
+@@ -74,6 +78,92 @@
+ 	return width;
+ }
+ 
++// Converts a pixbuf into a cairo image surface with premultiplied alpha.
++static cairo_surface_t *surface_from_pixbuf(GdkPixbuf *pixbuf) {
++	int w = gdk_pixbuf_get_width(pixbuf);
++	int h = gdk_pixbuf_get_height(pixbuf);
++	int channels = gdk_pixbuf_get_n_channels(pixbuf);
++	int src_stride = gdk_pixbuf_get_rowstride(pixbuf);
++	const unsigned char *src = gdk_pixbuf_get_pixels(pixbuf);
++
++	cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h);
++	if (cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS) {
++		cairo_surface_destroy(surface);
++		return NULL;
++	}
++
++	unsigned char *dst = cairo_image_surface_get_data(surface);
++	int dst_stride = cairo_image_surface_get_stride(surface);
++	for (int y = 0; y < h; y++) {
++		uint32_t *row = (uint32_t *)(dst + (ptrdiff_t)y * dst_stride);
++		const unsigned char *in = src + (ptrdiff_t)y * src_stride;
++		for (int x = 0; x < w; x++) {
++			uint32_t r = in[x * channels + 0];
++			uint32_t g = in[x * channels + 1];
++			uint32_t bl = in[x * channels + 2];
++			uint32_t a = channels == 4 ? in[x * channels + 3] : 255;
++			r = r * a / 255;
++			g = g * a / 255;
++			bl = bl * a / 255;
++			row[x] = (a << 24) | (r << 16) | (g << 8) | bl;
++		}
++	}
++	cairo_surface_mark_dirty(surface);
++	return surface;
++}
++
++// Loads the preview image for an item, caching the last one loaded.
++static void load_preview(struct menu *menu, const char *name, int box_height) {
++	if (menu->preview_name && strcmp(menu->preview_name, name) == 0) {
++		return;
++	}
++
++	free(menu->preview_name);
++	menu->preview_name = strdup(name);
++	if (menu->preview_image) {
++		cairo_surface_destroy(menu->preview_image);
++		menu->preview_image = NULL;
++	}
++
++	char path[PATH_MAX];
++	int n = snprintf(path, sizeof(path), "%s/%s", menu->preview_dir, name);
++	if (n < 0 || (size_t)n >= sizeof(path)) {
++		return;
++	}
++
++	GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file_at_scale(
++		path, menu->previeww, box_height, TRUE, NULL);
++	if (!pixbuf) {
++		return;
++	}
++	menu->preview_image = surface_from_pixbuf(pixbuf);
++	g_object_unref(pixbuf);
++}
++
++// Renders the preview image for the selected item.
++static void render_preview(struct menu *menu, cairo_t *cairo) {
++	if (menu->previeww <= 0 || !menu->sel) {
++		return;
++	}
++
++	int box_height = menu->height - menu->line_height;
++	load_preview(menu, menu->sel->text, box_height);
++	if (!menu->preview_image) {
++		return;
++	}
++
++	int iw = cairo_image_surface_get_width(menu->preview_image);
++	int ih = cairo_image_surface_get_height(menu->preview_image);
++	int x = menu->width - menu->previeww + (menu->previeww - iw) / 2;
++	int y = menu->line_height + (box_height - ih) / 2;
++
++	cairo_save(cairo);
++	cairo_set_operator(cairo, CAIRO_OPERATOR_OVER);
++	cairo_set_source_surface(cairo, menu->preview_image, x, y);
++	cairo_paint(cairo);
++	cairo_restore(cairo);
++}
++
+ // Renders the prompt message.
+ static void render_prompt(struct menu *menu, cairo_t *cairo) {
+ 	if (!menu->prompt) {
+@@ -130,7 +220,7 @@
+ 	uint32_t bg_color = menu->sel == item ? menu->selectionbg : menu->normalbg;
+ 	uint32_t fg_color = menu->sel == item ? menu->selectionfg : menu->normalfg;
+ 
+-	render_text(menu, cairo, item->text, x, y, menu->width - x,
++	render_text(menu, cairo, item->text, x, y, menu->width - x - menu->previeww,
+ 		bg_color, fg_color, menu->padding, 0);
+ 	return menu->line_height;
+ }
+@@ -164,6 +254,14 @@
+ 
+ // Renders the menu to cairo.
+ static void render_to_cairo(struct menu *menu, cairo_t *cairo) {
++	// Size the preview column, capped so the item list keeps most of the width
++	menu->previeww = 0;
++	if (menu->preview_dir && menu->lines > 0) {
++		int want = (menu->height - menu->line_height) * 16 / 9;
++		int max = menu->width / 3;
++		menu->previeww = want > max ? max : want;
++	}
++
+ 	// Render background
+ 	cairo_set_operator(cairo, CAIRO_OPERATOR_SOURCE);
+ 	cairo_set_source_u32(cairo, menu->normalbg);
+@@ -179,6 +277,7 @@
+ 		return;
+ 	}
+ 	if (menu->lines > 0) {
++		render_preview(menu, cairo);
+ 		render_vertical_page(menu, cairo, menu->sel->page);
+ 	} else {
+ 		render_horizontal_page(menu, cairo, menu->sel->page);
+--- a/meson.build
++++ b/meson.build
+@@ -22,6 +22,7 @@
+ ]), language : 'c')
+ 
+ cairo           = dependency('cairo')
++gdkpixbuf       = dependency('gdk-pixbuf-2.0')
+ pango           = dependency('pango')
+ pangocairo      = dependency('pangocairo')
+ wayland_client  = dependency('wayland-client')
+@@ -46,6 +47,7 @@
+ 	dependencies: [
+ 		cairo,
+ 		client_protos,
++		gdkpixbuf,
+ 		pango,
+ 		pangocairo,
+ 		rt,
+@@ -69,6 +71,7 @@
+ 	dependencies: [
+ 		cairo,
+ 		client_protos,
++		gdkpixbuf,
+ 		pango,
+ 		pangocairo,
+ 		rt,
+--- a/docs/wmenu.1.scd
++++ b/docs/wmenu.1.scd
+@@ -11,6 +11,7 @@
+   [-l _lines_] \
+   [-o _output_] \
+   [-p _prompt_] \
++  [-I _directory_] \
+   [-N _color_] [-n _color_] \
+   [-M _color_] [-m _color_] \
+   [-S _color_] [-s _color_]
+@@ -55,6 +56,12 @@
+ *-p* _prompt_
+ 	defines the prompt to be displayed to the left of the input field.
+ 
++*-I* _directory_
++	shows a preview image beside the item list, loaded from
++	_directory_/_item_ for the selected item. Only applies when *-l* is
++	given, since the horizontal layout has no room for it. Items whose
++	file is missing or undecodable simply show no preview.
++
+ *-N* _RRGGBB[AA]_
+ 	defines the normal background color.
+ 

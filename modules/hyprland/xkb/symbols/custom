@@ -1,0 +1,11 @@
+partial modifier_keys
+xkb_symbols "shift_numlock_capslock" {
+	virtual_modifiers NumLock;
+	key <NMLK> {
+		type[Group1] = "TWO_LEVEL",
+		virtualMods = NumLock,
+		symbols[Group1] = [ Num_Lock, VoidSymbol ],
+		actions[Group1] = [ LockMods(modifiers=NumLock), LockMods(modifiers=Lock) ]
+	};
+	modifier_map Mod2 { <NMLK> };
+};

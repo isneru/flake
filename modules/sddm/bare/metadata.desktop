@@ -1,0 +1,10 @@
+[SddmGreeterTheme]
+Name=Bare
+Description=The bare shell's lock surface, as a greeter.
+Author=neru
+Version=1.0
+MainScript=Main.qml
+Theme-Id=bare
+QtVersion=6
+
+ConfigFile=theme.conf

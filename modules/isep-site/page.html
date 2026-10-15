@@ -1,0 +1,772 @@
+{{- $cur := trimSuffix "/" (ph "http.request.orig_uri.path")}}
+{{- if not (fileExists $cur)}}{{httpError 404}}{{end}}
+{{- $here := ""}}
+{{- range rest (splitList "/" $cur)}}{{$here = print $here "/" (pathEscape .)}}{{end}}
+{{- $stat := fileStat $cur}}
+{{- $doc := dict}}
+{{- if not $stat.IsDir}}{{$doc = splitFrontMatter (readFile $cur)}}{{end}}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{if $cur}}{{html (base $cur)}} · {{end}}ISEP</title>
+    <link rel="stylesheet" href="/.site/theme.css" />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        font-size: 15px;
+      }
+      body {
+        margin: 0;
+        display: grid;
+        grid-template-columns: 19rem minmax(0, 1fr);
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--fg);
+        font: 1rem/1.65 var(--mono), ui-monospace, monospace;
+      }
+      ::selection {
+        background: var(--accent);
+        color: var(--bg);
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      aside {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow: auto;
+        padding: 1.4rem 0.75rem 2rem;
+        background: var(--side);
+        border-right: 1px solid var(--line);
+        font-size: 0.87rem;
+        line-height: 1.5;
+        scrollbar-width: thin;
+        scrollbar-color: var(--line) transparent;
+      }
+      aside > details > summary {
+        display: none;
+      }
+      .home {
+        display: block;
+        margin: 0 0.5rem 1rem;
+        color: var(--fg);
+        font: 22px/1 var(--chrome), var(--mono), monospace;
+      }
+      .home:hover {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      #filter {
+        width: calc(100% - 1rem);
+        margin: 0 0.5rem 1rem;
+        padding: 0.4rem 0.6rem;
+        border: 1px solid var(--line);
+        border-radius: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font: inherit;
+      }
+      #filter::placeholder {
+        color: var(--muted);
+      }
+      #filter:focus {
+        outline: 0;
+        border-color: var(--accent);
+      }
+      #tree ul {
+        margin: 0 0 0 1rem;
+        padding: 0 0 0 0.3rem;
+        border-left: 1px solid var(--line);
+        list-style: none;
+      }
+      #tree > ul {
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+      #tree summary,
+      #tree a {
+        display: block;
+        padding: 0.1rem 0.5rem;
+        border-left: 2px solid transparent;
+        color: var(--soft);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: pointer;
+      }
+      #tree summary {
+        list-style: none;
+      }
+      #tree summary::-webkit-details-marker {
+        display: none;
+      }
+      #tree summary::before {
+        content: "\f07b";
+        margin-right: 1ch;
+        color: var(--muted);
+      }
+      #tree details[open] > summary::before {
+        content: "\f07c";
+        color: var(--accent);
+      }
+      #tree a {
+        color: var(--muted);
+      }
+      #tree summary:hover,
+      #tree a:hover {
+        background: var(--raise);
+        color: var(--fg);
+        text-decoration: none;
+      }
+      #tree a[aria-current] {
+        border-left-color: var(--accent);
+        background: var(--raise);
+        color: var(--fg);
+      }
+      main {
+        width: 100%;
+        max-width: calc(78ch + 6rem);
+        margin: 0 auto;
+        padding: 2.5rem 3rem 5rem;
+      }
+      .top {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.9rem;
+        border-bottom: 1px solid var(--line);
+      }
+      .path {
+        margin: 0;
+        min-width: 0;
+        overflow-wrap: anywhere;
+        font: 0.87rem/1.5 var(--mono), monospace;
+      }
+      h1.path {
+        font: 22px/1.35 var(--chrome), var(--mono), monospace;
+      }
+      .path a {
+        color: var(--muted);
+      }
+      .path a:last-child {
+        color: var(--fg);
+      }
+      .path a:hover {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .path span {
+        margin: 0 0.5ch;
+        color: var(--line);
+      }
+      .save {
+        flex-shrink: 0;
+        padding: 0.2rem 0.7rem;
+        border: 1px solid var(--line);
+        color: var(--soft);
+        font-size: 0.87rem;
+      }
+      .save::before,
+      .get::before {
+        content: "\f019";
+      }
+      .save::before {
+        margin-right: 1ch;
+      }
+      .save:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .list li {
+        display: flex;
+        align-items: baseline;
+        gap: 1.5rem;
+        border-bottom: 1px solid var(--line);
+      }
+      .list li:hover {
+        background: var(--side);
+      }
+      .name {
+        flex: 1;
+        min-width: 0;
+        padding: 0.4rem 0.5rem;
+        color: var(--fg);
+        overflow-wrap: anywhere;
+      }
+      .name:hover {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .name::before {
+        content: "\f15b";
+        margin-right: 1.5ch;
+        color: var(--muted);
+      }
+      .name[href$="/"]::before {
+        content: "\f07b";
+        color: var(--accent);
+      }
+      .name:is([href$=".md" i], [href$=".txt" i], [href$=".rtf" i])::before {
+        content: "\f15c";
+      }
+      .name[href$=".pdf" i]::before {
+        content: "\f1c1";
+      }
+      .name:is([href$=".doc" i], [href$=".docx" i], [href$=".odt" i])::before {
+        content: "\f1c2";
+      }
+      .name:is([href$=".xls" i], [href$=".xlsx" i], [href$=".xlsm" i], [href$=".csv" i])::before {
+        content: "\f1c3";
+      }
+      .name:is([href$=".ppt" i], [href$=".pptx" i])::before {
+        content: "\f1c4";
+      }
+      .name:is([href$=".png" i], [href$=".jpg" i], [href$=".jpeg" i], [href$=".gif" i], [href$=".svg" i], [href$=".webp" i], [href$=".ico" i])::before {
+        content: "\f1c5";
+      }
+      .name:is([href$=".zip" i], [href$=".xz" i], [href$=".gz" i], [href$=".tar" i], [href$=".7z" i], [href$=".rar" i])::before {
+        content: "\f1c6";
+      }
+      .name:is([href$=".mp3" i], [href$=".ogg" i], [href$=".m4a" i], [href$=".wav" i])::before {
+        content: "\f1c7";
+      }
+      .name:is([href$=".mp4" i], [href$=".mkv" i], [href$=".webm" i])::before {
+        content: "\f1c8";
+      }
+      .name:is([href$=".html" i], [href$=".js" i], [href$=".ts" i], [href$=".sh" i], [href$=".sql" i], [href$=".json" i], [href$=".xml" i], [href$=".py" i], [href$=".java" i], [href$=".c" i])::before {
+        content: "\f1c9";
+      }
+      .size {
+        flex-shrink: 0;
+        color: var(--muted);
+        font-size: 0.87rem;
+      }
+      .get {
+        flex-shrink: 0;
+        padding: 0.4rem 0.8rem;
+        color: var(--muted);
+      }
+      .get:hover {
+        background: var(--accent);
+        color: var(--bg);
+        text-decoration: none;
+      }
+      .empty {
+        color: var(--muted);
+      }
+      article {
+        overflow-wrap: break-word;
+      }
+      article > :first-child {
+        margin-top: 0;
+      }
+      article :is(h1, h2, h3, h4) {
+        margin: 2.2em 0 0.6em;
+        line-height: 1.3;
+      }
+      article :is(h1, h2) {
+        font-family: var(--chrome), var(--mono), monospace;
+        font-weight: 400;
+      }
+      article h1 {
+        font-size: 33px;
+      }
+      article h2 {
+        font-size: 22px;
+      }
+      article :is(h3, h4) {
+        font-size: 1rem;
+      }
+      article :is(h1, h2, h3)::before {
+        color: var(--accent);
+      }
+      article h1::before {
+        content: "# ";
+      }
+      article h2::before {
+        content: "## ";
+      }
+      article h3::before {
+        content: "### ";
+      }
+      article a {
+        text-decoration: underline;
+        text-decoration-color: var(--line);
+        text-underline-offset: 0.2em;
+      }
+      article a:hover {
+        text-decoration-color: currentColor;
+      }
+      article img {
+        max-width: 100%;
+      }
+      article img,
+      pre.mermaid svg {
+        cursor: zoom-in;
+      }
+      article table {
+        display: block;
+        overflow-x: auto;
+        border-collapse: collapse;
+      }
+      article th,
+      article td {
+        padding: 0.3rem 0.7rem;
+        border: 1px solid var(--line);
+        vertical-align: top;
+      }
+      article th {
+        background: var(--raise);
+        text-align: left;
+      }
+      article blockquote {
+        margin: 1.2rem 0;
+        padding: 0.6rem 1rem;
+        border-left: 2px solid var(--accent);
+        background: var(--side);
+        color: var(--soft);
+      }
+      article blockquote > :first-child {
+        margin-top: 0;
+      }
+      article blockquote > :last-child {
+        margin-bottom: 0;
+      }
+      article hr {
+        margin: 2rem 0;
+        border: 0;
+        border-top: 1px dashed var(--line);
+      }
+      article li::marker {
+        color: var(--muted);
+      }
+      article input[type="checkbox"] {
+        accent-color: var(--accent);
+      }
+      code {
+        font: inherit;
+      }
+      :not(pre) > code {
+        padding: 0.1rem 0.35rem;
+        background: var(--raise);
+      }
+      pre {
+        overflow-x: auto;
+        padding: 0.9rem 1.1rem;
+        border: 1px solid var(--line);
+        background: var(--side);
+        font-size: 0.93rem;
+        line-height: 1.55;
+        scrollbar-width: thin;
+        scrollbar-color: var(--line) transparent;
+      }
+      pre.mermaid {
+        background: none;
+        text-align: center;
+      }
+      .hljs-keyword,
+      .hljs-selector-tag {
+        color: var(--keyword);
+      }
+      .hljs-string,
+      .hljs-regexp {
+        color: var(--string);
+      }
+      .hljs-number,
+      .hljs-literal,
+      .hljs-symbol {
+        color: var(--number);
+      }
+      .hljs-title,
+      .hljs-built_in,
+      .hljs-section {
+        color: var(--func);
+      }
+      .hljs-type,
+      .hljs-title.class_,
+      .hljs-name,
+      .hljs-attr,
+      .hljs-attribute {
+        color: var(--type);
+      }
+      .hljs-comment,
+      .hljs-quote {
+        color: var(--muted);
+        font-style: italic;
+      }
+      #src {
+        white-space: pre-wrap;
+      }
+      #zoom {
+        width: 100vw;
+        height: 100vh;
+        max-width: none;
+        max-height: none;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--fg);
+        cursor: grab;
+        touch-action: none;
+        user-select: none;
+      }
+      #zoom[open] {
+        display: grid;
+        place-items: center;
+      }
+      #zoom:active {
+        cursor: grabbing;
+      }
+      #stage > * {
+        display: block;
+        max-width: 92vw;
+        max-height: 84vh;
+        pointer-events: none;
+      }
+      #stage > svg {
+        width: 92vw;
+        height: 84vh;
+      }
+      #zoom menu {
+        position: fixed;
+        bottom: 1.2rem;
+        left: 50%;
+        display: flex;
+        margin: 0;
+        padding: 0;
+        translate: -50%;
+        border: 1px solid var(--line);
+        background: var(--side);
+        cursor: default;
+      }
+      #zoom button {
+        padding: 0.35rem 0.9rem;
+        border: 0;
+        border-right: 1px solid var(--line);
+        border-radius: 0;
+        background: none;
+        color: var(--soft);
+        font: inherit;
+        cursor: pointer;
+      }
+      #zoom button:last-child {
+        border-right: 0;
+      }
+      #zoom button:hover {
+        background: var(--accent);
+        color: var(--bg);
+      }
+      @media (max-width: 50rem) {
+        body {
+          display: block;
+        }
+        aside {
+          position: static;
+          height: auto;
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+        aside > details > summary {
+          display: block;
+          margin: 0 0.5rem;
+          color: var(--muted);
+          cursor: pointer;
+        }
+        aside > details[open] > summary {
+          margin-bottom: 0.75rem;
+        }
+        main {
+          padding: 1.5rem 1rem 3rem;
+        }
+        .list li {
+          gap: 0.6rem;
+        }
+      }
+    </style>
+    {{- if not $stat.IsDir}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous" />
+    <script defer src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js" integrity="sha384-wLhprpjsmjc/XYIcF+LpMxd8yS1gss6jhevOp6F6zhiIoFK6AmHtm4bGKtehTani" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/markdown-it-footnote@4.0.0/dist/markdown-it-footnote.min.js" integrity="sha384-7mE/Iobn0ulfWG/11wQHPJLIV11r3mVxTdSnuNIL71f/DM1wFjtMREh+nxliUVdY" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/markdown-it-task-lists@2.1.1/dist/markdown-it-task-lists.min.js" integrity="sha384-FKY5Inm02LmR+QgGl8g9DxuTQ+UuOo3tWGSVd7ZmWSPl9DyYsmi7kE3tTjC3ZEow" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/markdown-it-texmath@1.0.0/texmath.min.js" integrity="sha384-IJTt8+6hpcfxunTzDwSuS8o8lsOFjDwoUddKsTvs+x8oa9muA1PbBBcXaz8D6yR0" crossorigin="anonymous"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js" integrity="sha384-RH2xi4eIQ/gjtbs9fUXM68sLSi99C7ZWBRX1vDrVv6GQXRibxXLbwO2NGZB74MbU" crossorigin="anonymous"></script>
+    {{- end}}
+  </head>
+  <body>
+    <aside>
+      <a class="home" href="/">ISEP</a>
+      <details id="side" open>
+        <summary>Files</summary>
+        <input id="filter" type="search" placeholder="Filter files  /" autocomplete="off" />
+        <nav id="tree">{{template "tree" (dict "dir" "" "href" "" "cur" $cur)}}</nav>
+      </details>
+    </aside>
+    <main>
+      <header class="top">
+        {{- if $stat.IsDir}}
+        <h1 class="path">{{template "path" $cur}}</h1>
+        {{- else}}
+        <nav class="path">{{template "path" $cur}}</nav>
+        <a class="save" href="{{html $here}}?download">Download</a>
+        {{- end}}
+      </header>
+      {{- if $stat.IsDir}}
+      {{- $names := sortAlpha (listFiles $cur)}}
+      {{- $shown := 0}}
+      <ul class="list">
+        {{- range $names}}
+        {{- if or (hasPrefix "." .) (eq . "node_modules")}}{{continue}}{{end}}
+        {{- if and (not $cur) (not (fileExists (print "/" . "/materials")))}}{{continue}}{{end}}
+        {{- if (fileStat (print $cur "/" .)).IsDir}}
+        {{- $shown = add $shown 1}}
+        <li><a class="name" href="{{html (print $here "/" (pathEscape .))}}/">{{html .}}</a></li>
+        {{- end}}
+        {{- end}}
+        {{- range $names}}
+        {{- if or (hasPrefix "." .) (eq . "node_modules")}}{{continue}}{{end}}
+        {{- if not $cur}}{{continue}}{{end}}
+        {{- $file := fileStat (print $cur "/" .)}}
+        {{- if not $file.IsDir}}
+        {{- $shown = add $shown 1}}
+        {{- $href := html (print $here "/" (pathEscape .))}}
+        <li>
+          <a class="name" href="{{$href}}">{{html .}}</a><span class="size">{{humanize "size" (toString $file.Size)}}</span><a class="get" href="{{$href}}?download" title="Download" aria-label="Download {{html .}}"></a>
+        </li>
+        {{- end}}
+        {{- end}}
+      </ul>
+      {{- if not $shown}}
+      <p class="empty">This folder is empty.</p>
+      {{- end}}
+      {{- else}}
+      <article><pre id="src">{{html $doc.Body}}</pre></article>
+      <dialog id="zoom" aria-label="Zoomed view">
+        <div id="stage"></div>
+        <menu>
+          <button type="button" data-zoom="0.8" aria-label="Zoom out">-</button>
+          <button type="button" data-zoom="1.25" aria-label="Zoom in">+</button>
+          <button type="button" data-zoom="0">Reset</button>
+          <button type="button" data-zoom="close">Close</button>
+        </menu>
+      </dialog>
+      {{- end}}
+    </main>
+    <script>
+      const side = document.getElementById("side")
+      if (matchMedia("(max-width: 50rem)").matches) side.open = false
+      const filter = document.getElementById("filter")
+      const tree = document.getElementById("tree")
+      const items = [...tree.querySelectorAll("li")].reverse()
+      const folders = [...tree.querySelectorAll("details")]
+      const initial = folders.map((d) => d.open)
+      addEventListener("keydown", (e) => {
+        if (e.key !== "/" || e.target.matches("input, textarea")) return
+        e.preventDefault()
+        side.open = true
+        filter.focus()
+      })
+      filter.addEventListener("input", () => {
+        const q = filter.value.trim().toLowerCase()
+        for (const li of items) li.hidden = false
+        if (!q) {
+          folders.forEach((d, i) => (d.open = initial[i]))
+          return
+        }
+        for (const li of items) {
+          const label = li.querySelector(":scope > a, :scope > details > summary")
+          const own = label.textContent.toLowerCase().includes(q)
+          const folder = li.querySelector(":scope > details")
+          const inner = folder?.querySelector(":scope > ul > li:not([hidden])")
+          if (folder) folder.open = Boolean(inner)
+          li.hidden = !own && !inner
+          if (own && folder) for (const child of li.querySelectorAll("li")) child.hidden = false
+        }
+      })
+    </script>
+    {{- if not $stat.IsDir}}
+    <script type="module">
+      const src = document.getElementById("src")
+      const md = markdownit({
+        html: false,
+        linkify: true,
+        breaks: true,
+        highlight: (code, lang) =>
+          hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang, ignoreIllegals: true }).value : "",
+      })
+        .use(texmath, { engine: katex, delimiters: "dollars", katexOptions: { throwOnError: false } })
+        .use(markdownitFootnote)
+        .use(markdownitTaskLists)
+      src.parentElement.innerHTML = md.render(src.textContent)
+      const diagrams = document.querySelectorAll("code.language-mermaid")
+      if (diagrams.length) {
+        for (const code of diagrams) {
+          const pre = document.createElement("pre")
+          pre.className = "mermaid"
+          pre.textContent = code.textContent
+          code.closest("pre").replaceWith(pre)
+        }
+        const { default: mermaid } = await import(
+          "https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.esm.min.mjs"
+        )
+        const css = getComputedStyle(document.documentElement)
+        const v = (name) => css.getPropertyValue(name).trim()
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: "base",
+          themeVariables: {
+            darkMode: v("color-scheme") === "dark",
+            fontFamily: `${v("--mono")}, monospace`,
+            background: v("--bg"),
+            primaryColor: v("--raise"),
+            primaryTextColor: v("--fg"),
+            primaryBorderColor: v("--muted"),
+            secondaryColor: v("--side"),
+            tertiaryColor: v("--side"),
+            lineColor: v("--muted"),
+            textColor: v("--fg"),
+          },
+        })
+        await document.fonts.ready
+        await mermaid.run({ querySelector: "pre.mermaid", suppressErrors: true })
+      }
+
+      const zoom = document.getElementById("zoom")
+      const stage = document.getElementById("stage")
+      const touches = new Map()
+      let scale = 1
+      let x = 0
+      let y = 0
+      let moved = false
+      const draw = () => (stage.style.transform = `translate(${x}px, ${y}px) scale(${scale})`)
+      const zoomAt = (factor, px, py) => {
+        const next = Math.min(Math.max(scale * factor, 0.5), 16)
+        const cx = px - innerWidth / 2
+        const cy = py - innerHeight / 2
+        x = cx - ((cx - x) * next) / scale
+        y = cy - ((cy - y) * next) / scale
+        scale = next
+        draw()
+      }
+      const reset = () => {
+        scale = 1
+        x = y = 0
+        draw()
+      }
+      const show = (node) => {
+        const copy = node.cloneNode(true)
+        copy.removeAttribute("style")
+        copy.removeAttribute("tabindex")
+        stage.replaceChildren(copy)
+        reset()
+        zoom.showModal()
+      }
+      for (const node of document.querySelectorAll("article img, pre.mermaid svg")) {
+        node.tabIndex = 0
+        node.addEventListener("click", () => show(node))
+        node.addEventListener("keydown", (e) => e.key === "Enter" && show(node))
+      }
+      zoom.addEventListener("wheel", (e) => {
+        e.preventDefault()
+        zoomAt(Math.exp(-e.deltaY * 0.002), e.clientX, e.clientY)
+      })
+      zoom.addEventListener("pointerdown", (e) => {
+        if (e.target.closest("menu")) return
+        zoom.setPointerCapture(e.pointerId)
+        touches.set(e.pointerId, e)
+        moved = e.target !== zoom
+      })
+      zoom.addEventListener("pointermove", (e) => {
+        const last = touches.get(e.pointerId)
+        if (!last) return
+        if (touches.size === 2) {
+          const [other] = [...touches.values()].filter((t) => t.pointerId !== e.pointerId)
+          const before = Math.hypot(last.clientX - other.clientX, last.clientY - other.clientY)
+          const after = Math.hypot(e.clientX - other.clientX, e.clientY - other.clientY)
+          zoomAt(after / before, (e.clientX + other.clientX) / 2, (e.clientY + other.clientY) / 2)
+        } else {
+          x += e.clientX - last.clientX
+          y += e.clientY - last.clientY
+          draw()
+        }
+        moved = true
+        touches.set(e.pointerId, e)
+      })
+      for (const type of ["pointerup", "pointercancel"]) {
+        zoom.addEventListener(type, (e) => {
+          const held = touches.delete(e.pointerId)
+          if (held && !moved && type === "pointerup") zoom.close()
+        })
+      }
+      zoom.addEventListener("dblclick", (e) => e.target.closest("menu") || reset())
+      zoom.addEventListener("keydown", (e) => {
+        if (e.key === "+" || e.key === "=") zoomAt(1.25, innerWidth / 2, innerHeight / 2)
+        if (e.key === "-") zoomAt(0.8, innerWidth / 2, innerHeight / 2)
+        if (e.key === "0") reset()
+      })
+      zoom.querySelector("menu").addEventListener("click", (e) => {
+        const action = e.target.dataset.zoom
+        if (action === "close") zoom.close()
+        else if (action === "0") reset()
+        else if (action) zoomAt(Number(action), innerWidth / 2, innerHeight / 2)
+      })
+    </script>
+    {{- end}}
+  </body>
+</html>
+{{- define "path"}}<a href="/">isep</a>
+{{- $acc := ""}}
+{{- range rest (splitList "/" .)}}
+{{- $acc = print $acc "/" (pathEscape .)}}<span>/</span><a href="{{html $acc}}">{{html .}}</a>
+{{- end}}
+{{- end}}
+{{- define "tree"}}
+{{- $names := sortAlpha (listFiles .dir)}}
+<ul>
+  {{- range $names}}
+  {{- if or (hasPrefix "." .) (eq . "node_modules")}}{{continue}}{{end}}
+  {{- $path := print $.dir "/" .}}
+  {{- if and (not $.dir) (not (fileExists (print $path "/materials")))}}{{continue}}{{end}}
+  {{- if (fileStat $path).IsDir}}
+  <li>
+    <details{{if hasPrefix (print $path "/") (print $.cur "/")}} open{{end}}>
+      <summary>{{html .}}</summary>
+      {{- template "tree" (dict "dir" $path "href" (print $.href "/" (pathEscape .)) "cur" $.cur)}}
+    </details>
+  </li>
+  {{- end}}
+  {{- end}}
+  {{- range $names}}
+  {{- if or (hasPrefix "." .) (eq . "node_modules")}}{{continue}}{{end}}
+  {{- if not $.dir}}{{continue}}{{end}}
+  {{- $path := print $.dir "/" .}}
+  {{- if not (fileStat $path).IsDir}}
+  <li><a href="{{html (print $.href "/" (pathEscape .))}}"{{if eq $path $.cur}} aria-current="page"{{end}}>{{html .}}</a></li>
+  {{- end}}
+  {{- end}}
+</ul>
+{{- end}}

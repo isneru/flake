@@ -1,0 +1,35 @@
+{ pkgs, ... }:
+{
+  imports = [
+    ./hardware.nix
+    ./hp-wmi.nix
+  ];
+
+  users.users.neru = {
+    isNormalUser = true;
+    description = "Diogo Nogueira";
+    extraGroups = [
+      # keep-sorted start
+      "networkmanager"
+      "wheel"
+      # keep-sorted end
+    ];
+    shell = pkgs.zsh;
+  };
+
+  networking.hostName = "victus";
+
+  time.timeZone = "Europe/Lisbon";
+  services.xserver.xkb.layout = "pt";
+
+  boot.initrd.kernelModules = [ "i915" ];
+  boot.blacklistedKernelModules = [ "nouveau" ];
+  boot.kernelParams = [ "i915.enable_fbc=0" ];
+
+  hardware.nvidia.prime = {
+    intelBusId = "PCI:0:2:0";
+    nvidiaBusId = "PCI:1:0:0";
+  };
+
+  system.stateVersion = "25.11";
+}

@@ -1,0 +1,94 @@
+diff --git a/docs/wmenu.1.scd b/docs/wmenu.1.scd
+index f835e4c..af2089f 100644
+--- a/docs/wmenu.1.scd
++++ b/docs/wmenu.1.scd
+@@ -6,7 +6,7 @@ wmenu - dynamic menu for Wayland
+ 
+ # SYNOPSIS
+ 
+-*wmenu* [-biPRv] \
++*wmenu* [-AbiPRv] \
+   [-f _font_] \
+   [-l _lines_] \
+   [-o _output_] \
+@@ -30,6 +30,11 @@ $PATH and runs the result.
+ 
+ # OPTIONS
+ 
++*-A*
++	Shift+Return prints the selected item instead of the typed text and exits
++	with status 10, so a caller can tell it from Return. With nothing selected
++	it prints the typed text as usual.
++
+ *-b*
+ 	wmenu appears at the bottom of the screen.
+ 
+diff --git a/menu.c b/menu.c
+index 92ef1b8..ad94b1b 100644
+--- a/menu.c
++++ b/menu.c
+@@ -89,13 +89,16 @@ static bool parse_color(const char *color, uint32_t *result) {
+ // Parse menu options from command line arguments.
+ void menu_getopts(struct menu *menu, int argc, char *argv[]) {
+ 	const char *usage =
+-		"Usage: wmenu [-bciPRv] [-f font] [-l lines] [-o output] [-p prompt]\n"
++		"Usage: wmenu [-AbciPRv] [-f font] [-l lines] [-o output] [-p prompt]\n"
+ 		"\t[-I directory]\n"
+ 		"\t[-N color] [-n color] [-M color] [-m color] [-S color] [-s color]\n";
+ 
+ 	int opt;
+-	while ((opt = getopt(argc, argv, "bchiPRvf:l:o:p:I:N:n:M:m:S:s:")) != -1) {
++	while ((opt = getopt(argc, argv, "AbchiPRvf:l:o:p:I:N:n:M:m:S:s:")) != -1) {
+ 		switch (opt) {
++		case 'A':
++			menu->alt_return = true;
++			break;
+ 		case 'b':
+ 			menu->bottom = true;
+ 			break;
+@@ -609,7 +612,10 @@ void menu_keypress(struct menu *menu, enum wl_keyboard_key_state key_state,
+ 	switch (sym) {
+ 	case XKB_KEY_Return:
+ 	case XKB_KEY_KP_Enter:
+-		if (shift) {
++		if (shift && menu->alt_return && menu->sel) {
++			menu->alt_chosen = true;
++			menu->callback(menu, menu->sel->text, true);
++		} else if (shift) {
+ 			menu->callback(menu, menu->input, true);
+ 		} else {
+ 			char *text = menu->sel ? menu->sel->text : menu->input;
+diff --git a/menu.h b/menu.h
+index aa14a71..6cb3e8c 100644
+--- a/menu.h
++++ b/menu.h
+@@ -38,6 +38,8 @@ struct menu {
+ 	bool passwd;
+ 	// Whether items are a fixed readout rather than choices
+ 	bool readout;
++	// Whether Shift+Return prints the selection and exits with status 10
++	bool alt_return;
+ 	// The font used to display the menu
+ 	char *font;
+ 	// The number of lines to list items vertically
+@@ -87,6 +89,7 @@ struct menu {
+ 	menu_callback callback;
+ 	bool exit;
+ 	bool failure;
++	bool alt_chosen;
+ };
+ 
+ struct menu *menu_create(menu_callback callback);
+diff --git a/wayland.c b/wayland.c
+index e5393ea..c706347 100644
+--- a/wayland.c
++++ b/wayland.c
+@@ -568,5 +568,8 @@ int menu_run(struct menu *menu) {
+ 	if (menu->failure) {
+ 		return EXIT_FAILURE;
+ 	}
++	if (menu->alt_chosen) {
++		return 10;
++	}
+ 	return EXIT_SUCCESS;
+ }

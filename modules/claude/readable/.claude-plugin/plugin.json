@@ -1,0 +1,29 @@
+{
+  "name": "readable",
+  "version": "0.1.0",
+  "description": "Glow-style rendering of replies, with centered LaTeX math and Mermaid/PlantUML diagrams drawn as images",
+  "author": {
+    "name": "Diogo"
+  },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "cellWidthPx": {
+      "type": "number",
+      "title": "Cell width (px)",
+      "description": "Width of one terminal cell in pixels; sets the aspect of images",
+      "default": 10
+    },
+    "cellHeightPx": {
+      "type": "number",
+      "title": "Cell height (px)",
+      "description": "Height of one terminal cell in pixels; sets the aspect of images",
+      "default": 21
+    },
+    "mathColor": {
+      "type": "string",
+      "title": "Math color",
+      "description": "Color of rendered formulas",
+      "default": "#e4e4e4"
+    }
+  }
+}

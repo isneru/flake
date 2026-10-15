@@ -1,0 +1,8 @@
+#!/data/data/com.termux/files/usr/bin/sh
+case "$SSH_ORIGINAL_COMMAND" in
+  theme) am broadcast -n dev.neru.bare/.ThemeReceiver --es theme "$(cat)" >/dev/null && echo ok ;;
+  termux) mkdir -p "$HOME/.termux" && cat >"$HOME/.termux/colors.properties" && termux-reload-settings && echo ok ;;
+  apk) f="$HOME/.cache/bare.apk" && mkdir -p "${f%/*}" && cat >"$f" && termux-open --content-type application/vnd.android.package-archive "$f" && echo ok ;;
+  font) mkdir -p "$HOME/.termux" && cat >"$HOME/.termux/font.ttf" && termux-reload-settings && echo ok ;;
+  *) f="$HOME/.wallpaper.jpg"; cat >"$f" && termux-wallpaper -f "$f" && termux-wallpaper -l -f "$f" ;;
+esac

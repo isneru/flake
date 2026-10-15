@@ -1,0 +1,4 @@
+! option = symbols
+  custom:shift_numlock_capslock = +custom(shift_numlock_capslock)
+
+! include %S/evdev

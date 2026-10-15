@@ -1,0 +1,4 @@
+module qs.whatsapp.store
+
+singleton Chats 1.0 Chats.qml
+singleton Style 1.0 Style.qml

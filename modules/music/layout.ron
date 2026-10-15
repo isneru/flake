@@ -1,0 +1,63 @@
+    layout: Split(
+        direction: Vertical,
+        panes: [
+            (
+                size: "4",
+                pane: Split(
+                    direction: Horizontal,
+                    panes: [
+                        (
+                            size: "35",
+                            borders: "LEFT | TOP | BOTTOM",
+                            border_symbols: Inherited(parent: Plain, bottom_left: "├"),
+                            pane: Component("header_left")
+                        ),
+                        (
+                            size: "100%",
+                            borders: "ALL",
+                            border_symbols: Inherited(parent: Plain, top_left: "┬", top_right: "┬", bottom_left: "┴", bottom_right: "┴"),
+                            pane: Component("header_center")
+                        ),
+                        (
+                            size: "35",
+                            borders: "RIGHT | TOP | BOTTOM",
+                            border_symbols: Inherited(parent: Plain, bottom_right: "┤"),
+                            pane: Component("header_right")
+                        ),
+                    ]
+                )
+            ),
+            (
+                pane: Pane(Tabs),
+                borders: "RIGHT | LEFT | BOTTOM",
+                border_symbols: Plain,
+                size: "2",
+            ),
+            (
+                pane: Pane(TabContent),
+                size: "100%",
+            ),
+            (
+                size: "3",
+                pane: Split(
+                    direction: Horizontal,
+                    panes: [
+                        (
+                            size: "12",
+                            borders: "ALL",
+                            border_symbols: Inherited(parent: Plain, top_right: "┬", bottom_right: "┴"),
+                            pane: Component("input_mode")
+                        ),
+                        (
+                            size: "100%",
+                            borders: "TOP | BOTTOM | RIGHT",
+                            border_symbols: Plain,
+                            border_title: [(kind: Text(" ")), (kind: Property(Status(QueueLength()))), (kind: Text(" songs / ")), (kind: Property(Status(QueueTimeTotal()))), (kind: Text(" total time "))],
+                            border_title_alignment: Right,
+                            pane: Component("progress_bar"),
+                        ),
+                    ]
+                ),
+            ),
+        ],
+    ),

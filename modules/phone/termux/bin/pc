@@ -1,0 +1,148 @@
+#!/data/data/com.termux/files/usr/bin/bash
+set -o pipefail
+
+bin="$HOME/.local/bin"
+state="$HOME/.local/state/tailscale"
+
+try() { timeout 1 bash -c "</dev/tcp/$1/22" 2>/dev/null; }
+
+ts() { "$bin/tailscale" --socket="$state/sock" "$@"; }
+
+nets() {
+  if [ -n "$1" ]; then
+    echo "${1%.*}"
+  else
+    /system/bin/ip -4 -o addr show 2>/dev/null | awk '$2 ~ /^(rndis|usb|ncm)/ { sub(/\.[0-9]+\/.*/, "", $4); print $4 }'
+  fi
+}
+
+tether() {
+  local cache="$HOME/.cache/pc-host" host net
+  host=$(cat "$cache" 2>/dev/null || true)
+  if [ -z "$host" ] || ! try "$host"; then
+    host=
+    for net in $(nets "$1"); do
+      host=$(for i in $(seq 1 254); do (try "$net.$i" && echo "$net.$i") & done; wait)
+      host=$(printf '%s\n' "$host" | head -n1)
+      [ -z "$host" ] || break
+    done
+  fi
+  [ -n "$host" ] || return 1
+  mkdir -p "${cache%/*}"
+  echo "$host" >"$cache"
+  echo "$host"
+}
+
+tailnet() {
+  [ -x "$bin/tailscaled" ] || return 1
+  ln -sf tailscaled "$bin/tailscale"
+  if ! ts status >/dev/null 2>&1; then
+    mkdir -p "$state"
+    "$bin/tailscaled" --tun=userspace-networking --statedir="$state" --socket="$state/sock" 2>"$state/log" &
+  fi
+  for _ in $(seq 1 40); do
+    ts status >/dev/null 2>&1 && return 0
+    sleep 0.5
+  done
+  return 1
+}
+
+pull() {
+  local fresh want
+  fresh=$(mktemp -d)
+  if ssh "${via[@]}" pc 'echo "$(readlink -f .local/share/phone/tailscaled)"; tar -C flake/modules/phone/termux -cf - bin' 2>/dev/null |
+    { read -r want && echo "$want" >"$fresh/want" && tar -xf - -C "$fresh"; } 2>/dev/null; then
+    want=$(cat "$fresh/want")
+    if [ -n "$want" ] && [ "$want" != "$(cat "$HOME/.cache/pc-tailscaled" 2>/dev/null)" ] &&
+      ssh "${via[@]}" pc "cat $want" >"$bin/tailscaled.new" 2>/dev/null; then
+      chmod +x "$bin/tailscaled.new"
+      mv "$bin/tailscaled.new" "$bin/tailscaled"
+      echo "$want" >"$HOME/.cache/pc-tailscaled"
+    fi
+    cp -a "$fresh/bin/." "$bin/"
+    rm -rf "$fresh"
+    return 0
+  fi
+  rm -rf "$fresh"
+  return 1
+}
+
+walls() {
+  local fresh f size=0 have=() list=() batch=()
+  for f in "$@"; do
+    [[ $f =~ ^[A-Za-z0-9._+-]+$ ]] && have+=("$f")
+  done
+  fresh=$(mktemp -d)
+  if ssh "${via[@]}" -o BatchMode=yes pc "phone-walls list ${have[*]}" | tar -xf - -C "$fresh"; then
+    list=(--es list "$(cat "$fresh/list")")
+    [ ! -s "$fresh/current" ] || list+=(--es current "$(cat "$fresh/current")")
+    am broadcast -n dev.neru.bare/.WallReceiver "${list[@]}" >/dev/null 2>&1
+    for f in "$fresh"/t/*; do
+      [ -f "$f" ] || continue
+      batch+=(--es "t:${f##*/}" "$(base64 -w0 "$f")")
+      size=$((size + $(stat -c %s "$f")))
+      if [ "$size" -gt 110000 ]; then
+        am broadcast -n dev.neru.bare/.WallReceiver "${batch[@]}" >/dev/null 2>&1
+        batch=()
+        size=0
+      fi
+    done
+    [ "${#batch[@]}" -eq 0 ] || am broadcast -n dev.neru.bare/.WallReceiver "${batch[@]}" >/dev/null 2>&1
+  else
+    am broadcast -n dev.neru.bare/.WallReceiver --es status "pc unreachable" >/dev/null 2>&1
+  fi
+  rm -rf "$fresh"
+}
+
+main() {
+  local host route
+  if [ -z "$2" ] && pgrep -f '^ssh .*tmux new -A -s phone$' >/dev/null; then
+    echo "pc: already connected"
+    exit 0
+  fi
+  mkdir -p "$bin"
+  if host=$(tether "$1"); then
+    via=(-o HostName="$host")
+    route=tether
+  elif tailnet; then
+    via=(-o ProxyCommand="$bin/tailscale --socket=$state/sock nc victus 22")
+    route=tailnet
+  else
+    [ "$2" != walls ] || am broadcast -n dev.neru.bare/.WallReceiver --es status "pc not found" >/dev/null 2>&1
+    echo "pc not found: no USB tether, and tailscale did not connect ($state/log)"
+    read -r _
+    exit 1
+  fi
+
+  case $2 in
+  theme)
+    [[ $3 =~ ^[a-z0-9-]+$ ]] || exit 1
+    exec ssh "${via[@]}" -o BatchMode=yes pc \
+      "env \$(systemctl --user show-environment | grep -E '^(WAYLAND_DISPLAY|HYPRLAND_INSTANCE_SIGNATURE|DISPLAY)=') theme-set $3"
+    ;;
+  wall)
+    [[ $3 =~ ^[A-Za-z0-9._+-]+$ ]] || exit 1
+    exec ssh "${via[@]}" -o BatchMode=yes pc "phone-walls set $3"
+    ;;
+  walls)
+    shift 2
+    walls "$@"
+    exit 0
+    ;;
+  esac
+
+  if [ "$2" != pulled ] && pull; then
+    exec bash "$bin/pc" "$1" pulled
+  fi
+
+  exec 3> >(
+    trap '' HUP
+    read -r _
+    am broadcast -n dev.neru.bare/.SessionReceiver >/dev/null 2>&1
+  )
+  ssh -t "${via[@]}" -o PermitLocalCommand=yes \
+    -o LocalCommand="am broadcast -n dev.neru.bare/.SessionReceiver --es route $route >/dev/null 2>&1 &" \
+    pc 'tmux new -A -s phone' || true
+}
+
+main "$@"
