@@ -155,6 +155,13 @@
           mount() { command mount "$@" | bat -p -l conf; }
           ps()    { command ps    "$@" | bat -p -l conf; }
 
+          v() {
+            if (( $# == 0 )); then cdi && nvim .
+            elif [[ -f $1 ]]; then nvim "$@"
+            else cd "$@" && nvim .
+            fi
+          }
+
           _title_set() {
             [[ -n $TMUX || $TERM == (dumb|linux|screen*) ]] && return
             print -rn -- $'\e]2;'"''${1//[[:cntrl:]]/}"$'\a'

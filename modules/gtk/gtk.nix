@@ -35,7 +35,7 @@
             COLORS = "${config.xdg.dataHome}/theme-engine/gtk3-colors.css";
             THEMES = "${config.xdg.dataHome}/themes";
           };
-          text = builtins.readFile ./theme-flip.sh;
+          text = builtins.readFile ../../scripts/gtk/theme-flip.sh;
         })
       ];
 

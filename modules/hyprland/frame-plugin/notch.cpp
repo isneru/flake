@@ -5,6 +5,7 @@
 #include <format>
 
 #include <hyprland/src/Compositor.hpp>
+#include <hyprland/src/config/ConfigValue.hpp>
 #include <hyprland/src/desktop/state/FocusState.hpp>
 #include <hyprland/src/desktop/view/Window.hpp>
 #include <hyprland/src/managers/fullscreen/FullscreenController.hpp>
@@ -24,11 +25,16 @@ static CHyprColor color(const SP<Config::Values::CColorValue>& value, float a) {
     return c;
 }
 
-static void outline(const CBox& box, double t, const CHyprColor& c) {
-    g_pHyprOpenGL->renderRect({box.x, box.y, box.w, t}, c, {});
-    g_pHyprOpenGL->renderRect({box.x, box.y + box.h - t, box.w, t}, c, {});
-    g_pHyprOpenGL->renderRect({box.x, box.y + t, t, box.h - 2 * t}, c, {});
-    g_pHyprOpenGL->renderRect({box.x + box.w - t, box.y + t, t, box.h - 2 * t}, c, {});
+static bool blurEnabled() {
+    static const auto ENABLED = CConfigValue<Config::BOOL>("decoration:blur:enabled");
+    return *ENABLED;
+}
+
+static void outline(const CBox& box, double t, const CHyprColor& c, CHyprOpenGLImpl::SRectRenderData data = {}) {
+    g_pHyprOpenGL->renderRect({box.x, box.y, box.w, t}, c, data);
+    g_pHyprOpenGL->renderRect({box.x, box.y + box.h - t, box.w, t}, c, data);
+    g_pHyprOpenGL->renderRect({box.x, box.y + t, t, box.h - 2 * t}, c, data);
+    g_pHyprOpenGL->renderRect({box.x + box.w - t, box.y + t, t, box.h - 2 * t}, c, data);
 }
 
 CNotch::CNotch(PHLWINDOW window) : IHyprWindowDecoration(window), m_window(window) {}
@@ -78,6 +84,15 @@ CBox CNotch::frameBox() {
     return m_assigned.copy().translate(g_pDecorationPositioner->getEdgeDefinedPoint(EDGES, window)).translate(window->m_floatingOffset + offset);
 }
 
+bool CNotch::glass() {
+    const auto window = m_window.lock();
+    return window && blurEnabled() && !window->m_ruleApplicator->noBlur().valueOrDefault() && CHyprColor{static_cast<uint64_t>(config.bg->value())}.a < 1;
+}
+
+CBox CNotch::reach() {
+    return frameBox().expand(config.fontSize->value());
+}
+
 void CNotch::damageEntire() {
     if (validMapped(m_window))
         g_pHyprRenderer->damageBox(frameBox().expand(config.fontSize->value()));
@@ -106,12 +121,16 @@ void CNotch::drawPass(PHLMONITOR monitor, float a) {
     const bool focused    = Desktop::focusState()->window() == window;
     const auto inkSetting = focused ? config.active : config.rule;
     const auto ink        = color(inkSetting, a);
-    const auto paper      = color(config.bg, a);
+    const bool glass      = this->glass();
+    auto       paper      = color(config.bg, a);
+    if (!glass)
+        paper.a = a;
     const auto band       = std::round(BAND * scale);
     const auto line       = std::max(1.0, std::round(scale));
 
     g_pHyprOpenGL->scissor(nullptr);
-    outline(box, band, paper);
+    const CHyprOpenGLImpl::SRectRenderData fill = {.blur = glass, .blurA = a};
+    outline(box, band, paper, fill);
     outline(box, line, ink);
     if (focused)
         outline(box.copy().expand(line - band), line, ink);
@@ -133,8 +152,50 @@ void CNotch::drawPass(PHLMONITOR monitor, float a) {
 
     const auto size  = m_title->m_size;
     CBox       notch = {box.x + inset, box.y + std::round(band / 2 - size.y / 2), size.x + 2 * pad, size.y};
-    g_pHyprOpenGL->renderRect(notch, paper, {});
+    g_pHyprOpenGL->renderRect(notch, paper, fill);
+    const double above = box.y + line - notch.y;
+    const double below = focused ? box.y + band - line : notch.y;
+    g_pHyprOpenGL->renderRect({notch.x, notch.y, notch.w, line}, ink, {});
+    g_pHyprOpenGL->renderRect({notch.x, notch.y + notch.h - line, notch.w, line}, ink, {});
+    for (const double x : {notch.x, notch.x + notch.w - line}) {
+        g_pHyprOpenGL->renderRect({x, notch.y, line, above}, ink, {});
+        g_pHyprOpenGL->renderRect({x, below, line, notch.y + notch.h - below}, ink, {});
+    }
     g_pHyprOpenGL->renderTexture(m_title, {notch.x + pad, notch.y, size.x, size.y}, {.a = a});
+}
+
+CNotchReach::CNotchReach(PHLWINDOW window) : IHyprWindowDecoration(window) {}
+
+SDecorationPositioningInfo CNotchReach::getPositioningInfo() {
+    SDecorationPositioningInfo info;
+    info.policy         = DECORATION_POSITION_ABSOLUTE;
+    info.edges          = DECORATION_EDGE_TOP;
+    info.desiredExtents = {{0.0, BAND / 2 + static_cast<double>(config.fontSize->value())}, {0.0, 0.0}};
+    return info;
+}
+
+void CNotchReach::onPositioningReply(const SDecorationPositioningReply&) {}
+
+void CNotchReach::draw(PHLMONITOR, float const&) {}
+
+eDecorationType CNotchReach::getDecorationType() {
+    return DECORATION_CUSTOM;
+}
+
+void CNotchReach::updateWindow(PHLWINDOW) {}
+
+void CNotchReach::damageEntire() {}
+
+uint64_t CNotchReach::getDecorationFlags() {
+    return DECORATION_NON_SOLID;
+}
+
+eDecorationLayer CNotchReach::getDecorationLayer() {
+    return DECORATION_LAYER_BOTTOM;
+}
+
+std::string CNotchReach::getDisplayName() {
+    return "athanor-reach";
 }
 
 CNotchPass::CNotchPass(CNotch* notch, float a) : m_notch(notch), m_a(a) {}
@@ -145,7 +206,11 @@ std::vector<UP<IPassElement>> CNotchPass::draw() {
 }
 
 bool CNotchPass::needsLiveBlur() {
-    return false;
+    return m_notch->glass();
+}
+
+std::optional<CBox> CNotchPass::boundingBox() {
+    return m_notch->reach().translate(-g_pHyprRenderer->m_renderData.pMonitor->m_position);
 }
 
 bool CNotchPass::needsPrecomputeBlur() {

@@ -276,7 +276,7 @@ Singleton {
         const a = Bluetooth.defaultAdapter;
         if (!a)
             return "";
-        const list = [["power", a.enabled ? "turn bluetooth off" : "turn bluetooth on"]];
+        const list = [["power", root.box(a.enabled) + "powered"]];
         if (a.enabled) {
             list.push(["scan", a.discovering ? "stop scanning" : "scan for devices"]);
             list.push(["visible", root.box(a.discoverable) + "visible to other devices"]);

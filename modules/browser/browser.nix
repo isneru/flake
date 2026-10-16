@@ -4,7 +4,7 @@ let
     pkgs: name: runtimeInputs:
     pkgs.writeShellApplication {
       inherit name runtimeInputs;
-      text = builtins.readFile (./userscripts + "/${name}.sh");
+      text = builtins.readFile (../../scripts/browser/userscripts + "/${name}.sh");
     };
 in
 {
@@ -77,7 +77,7 @@ in
       qute-reload = pkgs.writeShellApplication {
         name = "qute-reload";
         runtimeInputs = [ pkgs.coreutils ];
-        text = builtins.readFile ./qute-reload.sh;
+        text = builtins.readFile ../../scripts/browser/qute-reload.sh;
       };
 
       qute-ytdl = mkUserscript pkgs "qute-ytdl" (

@@ -35,7 +35,7 @@
             jq
             swayimg
           ];
-          text = builtins.readFile ./imgview.sh;
+          text = builtins.readFile ../../scripts/files/imgview.sh;
         })
       ]
       ++ (with pkgs; [
@@ -53,7 +53,7 @@
       xdg.configFile."yazi/theme.toml".source =
         pkgs.runCommand "yazi-theme.toml" { nativeBuildInputs = [ pkgs.python3 ]; }
           ''
-            python3 ${./yazi-theme.py} \
+            python3 ${../../scripts/files/yazi-theme.py} \
               ${pkgs.yazi-unwrapped.srcs.code_src}/yazi-config/preset/theme-dark.toml > $out
           '';
 

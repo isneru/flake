@@ -13,7 +13,7 @@
           pkgs.openssl
           pkgs.python3
         ];
-        text = ''exec python3 ${./gcal.py} "$@"'';
+        text = ''exec python3 ${../../scripts/calendar/gcal.py} "$@"'';
       };
       watch = pkgs.writeShellApplication {
         name = "gcal-watch";
@@ -21,7 +21,7 @@
           gcal
           pkgs.inotify-tools
         ];
-        text = builtins.readFile ./watch.sh;
+        text = builtins.readFile ../../scripts/calendar/watch.sh;
       };
     in
     {
@@ -30,7 +30,7 @@
       xdg.configFile = {
         "bare/pick/deadlines.sh".source = pkgs.writeTextFile {
           name = "deadlines.sh";
-          text = builtins.readFile ./deadlines.sh;
+          text = builtins.readFile ../../scripts/calendar/deadlines.sh;
           checkPhase = "${lib.getExe pkgs.shellcheck} -s bash -e SC2154 $target";
         };
         "hypr/extra.lua".text =

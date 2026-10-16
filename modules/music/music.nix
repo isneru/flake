@@ -28,7 +28,7 @@
           text = ''
             : "''${MUSIC_DIR:=${musicDir}}"
           ''
-          + builtins.readFile ./sync-playlist.sh;
+          + builtins.readFile ../../scripts/music/sync-playlist.sh;
         })
       ];
 

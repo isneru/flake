@@ -14,7 +14,7 @@
           pkgs.xdg-desktop-portal-hyprland
           # keep-sorted end
         ];
-        text = builtins.readFile ./share-picker.sh;
+        text = builtins.readFile ../../scripts/screencast/share-picker.sh;
       };
     in
     {

@@ -24,7 +24,6 @@
 
   boot.initrd.kernelModules = [ "i915" ];
   boot.blacklistedKernelModules = [ "nouveau" ];
-  boot.kernelParams = [ "i915.enable_fbc=0" ];
 
   hardware.nvidia.prime = {
     intelBusId = "PCI:0:2:0";

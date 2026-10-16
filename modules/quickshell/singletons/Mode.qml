@@ -21,6 +21,7 @@ Singleton {
     signal popRequested(string kind)
 
     property bool cheatsheet: false
+    property bool overview: false
 
     function current() {
         return soft ? "soft" : "flat";

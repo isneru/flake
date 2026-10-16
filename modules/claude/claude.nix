@@ -34,7 +34,7 @@
             ))
             typst
           ];
-          text = builtins.readFile ./render.sh;
+          text = builtins.readFile ../../scripts/claude/render.sh;
         })
       ];
     };

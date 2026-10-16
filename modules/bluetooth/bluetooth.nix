@@ -28,7 +28,7 @@
           python
           # keep-sorted end
         ];
-        text = ''exec python3 ${./bt_agent.py} "$@"'';
+        text = ''exec python3 ${../../scripts/bluetooth/bt_agent.py} "$@"'';
       };
     in
     {

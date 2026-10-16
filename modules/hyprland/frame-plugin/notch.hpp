@@ -40,6 +40,8 @@ class CNotch : public IHyprWindowDecoration {
     std::string                getDisplayName() override;
 
     void                       drawPass(PHLMONITOR, float a);
+    CBox                       reach();
+    bool                       glass();
 
   private:
     CBox                 frameBox();
@@ -51,12 +53,28 @@ class CNotch : public IHyprWindowDecoration {
     std::string          m_titleKey;
 };
 
+class CNotchReach : public IHyprWindowDecoration {
+  public:
+    explicit CNotchReach(PHLWINDOW);
+
+    SDecorationPositioningInfo getPositioningInfo() override;
+    void                       onPositioningReply(const SDecorationPositioningReply& reply) override;
+    void                       draw(PHLMONITOR, float const& a) override;
+    eDecorationType            getDecorationType() override;
+    void                       updateWindow(PHLWINDOW) override;
+    void                       damageEntire() override;
+    uint64_t                   getDecorationFlags() override;
+    eDecorationLayer           getDecorationLayer() override;
+    std::string                getDisplayName() override;
+};
+
 class CNotchPass : public IPassElement {
   public:
     CNotchPass(CNotch* notch, float a);
 
     std::vector<UP<IPassElement>> draw() override;
     bool                          needsLiveBlur() override;
+    std::optional<CBox>           boundingBox() override;
     bool                          needsPrecomputeBlur() override;
     const char*                   passName() override;
     ePassElementType              type() override;

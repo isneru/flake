@@ -160,12 +160,12 @@ send() {
       return 0
       ;;
     "") prompt=send ;;
-    *) prompt="send ($state)" ;;
+    *) prompt="send [$state]" ;;
     esac
     rows=""
     [ -n "$state" ] && rows+=$'to\tsend to a device\n'
     rows+=$'file\tadd a file\nclipboard\tadd the clipboard\nshelf\tadd the shelf\ntext\twrite a message\n'
-    [ -n "$state" ] && rows+=$'clear\tclear\n'
+    [ -n "$state" ] && rows+=$'clear\tclear everything\n'
     sel=$(choose "${rows%$'\n'}" "$prompt" "$LIST") || return 0
     case $sel in
     to)
@@ -372,7 +372,7 @@ bt_menu() {
     *)
       acts=$(ipc btActions "$key")
       [ -n "$acts" ] || continue
-      act=$(choose "$acts" "$(label_of "$rows" "$key")" "$LIST") || continue
+      act=$(choose "$acts" "$(label_of "$rows" "$key" | sed 's/^\[[ x]\] //')" "$LIST") || continue
       ipc btAct "$key" "$act" >/dev/null
       sleep 1
       ;;
@@ -382,10 +382,11 @@ bt_menu() {
 }
 
 audio_level() {
-  local sel
-  sel=$(printf '%s\n' 'toggle mute' 100% 75% 50% 25% | menu "$2" "$LIST") || return 0
+  local sel mark='[ ]'
+  [[ $2 == *" muted" ]] && mark='[x]'
+  sel=$(printf '%s\n' "$mark muted" 100% 75% 50% 25% | menu "$2" "$LIST") || return 0
   case $sel in
-  "toggle mute") ipc audioMute "$1" >/dev/null ;;
+  "[x] muted" | "[ ] muted") ipc audioMute "$1" >/dev/null ;;
   *)
     sel=${sel//[!0-9]/}
     [ -n "$sel" ] && ipc audioLevel "$1" "$sel" >/dev/null
@@ -425,7 +426,7 @@ calendar_menu() {
       [ -n "$acts" ] || continue
       act=$(choose "$acts" "$(label_of "$rows" "$key")" "$LIST") || continue
       case $act in
-      delete) [ "$(printf 'no\nyes\n' | menu "delete it?" "$LIST")" = yes ] && ipc calAct "$key" delete >/dev/null ;;
+      delete) [ "$(printf 'no\nyes\n' | menu "delete the event?" "$LIST")" = yes ] && ipc calAct "$key" delete >/dev/null ;;
       *)
         ipc calAct "$key" "$act" >/dev/null
         return 0
@@ -486,7 +487,7 @@ weather_menu() {
     ;;
   forget) ipc weatherAct forget >/dev/null ;;
   place)
-    q=$(printf '' | menu "search a city" 0) || return 0
+    q=$(printf '' | menu city 0) || return 0
     [ -n "$q" ] || return 0
     ipc weatherSearch "$q" >/dev/null
     while [ "$n" -lt 40 ] && [ "$(ipc weatherSearching)" = yes ]; do
@@ -609,7 +610,7 @@ power_rows() {
       printf 'profile:%s\t%s\n' "$p" "$label"
     done
   fi
-  printf '%s\n' $'battery\tbattery details' $'lock\tlock' $'suspend\tsuspend' $'logout\tlogout' $'reboot\treboot' \
+  printf '%s\n' $'battery\tshow battery details' $'lock\tlock' $'suspend\tsuspend' $'logout\tlogout' $'reboot\treboot' \
     $'windows\treboot into windows' $'uefi\treboot into uefi' $'poweroff\tpoweroff'
 }
 
@@ -624,7 +625,7 @@ wifi_rows() {
   nmcli -t -f IN-USE,SIGNAL,SECURITY,SSID device wifi list --rescan "$1" 2>/dev/null |
     awk -F: 'NF>=4 && $4!="" && !seen[$4]++ {
       s=$4; for (i = 5; i <= NF; i++) s = s ":" $i; gsub(/\\:/, ":", s);
-      printf "%s\t%s %3s%%  %s%s\n", s, ($1 == "*" ? "*" : " "), $2, s, ($3 == "" ? "  (open)" : "") }' |
+      printf "%s\t%s %3s%% %s%s\n", s, ($1 == "*" ? "[x]" : "[ ]"), $2, s, ($3 == "" ? " (open)" : "") }' |
     LC_ALL=C sort -t"	" -k2,2r
 }
 
@@ -717,11 +718,40 @@ wall)
       'gdk-pixbuf-thumbnailer -s 640 "$1/$3" "$2/.$3.tmp" && mv -f "$2/.$3.tmp" "$2/$3" || rm -f "$2/.$3.tmp"' \
       _ "$dir" "$cache" {}
   fi
-  sel=$(printf '%s\n%s\n' "$names" "$plate_names" | menu wallpaper 10 -I "$cache") || exit 0
-  case $sel in
-  plates/*) theme-set wallpaper "$plates/${sel#plates/}" ;;
-  ?*) theme-set wallpaper "$dir/$sel" ;;
-  esac
+  state="$HOME/.local/state/quickshell"
+  recolor=on
+  [ "$(cat "$state/wallpaper-recolor" 2>/dev/null)" = 0 ] && recolor=off
+  while :; do
+    mark=' '
+    [ "$recolor" = on ] && mark=x
+    sel=$(printf '[%s] recolor\n%s\n%s\n' "$mark" "$names" "$plate_names" | menu wallpaper 10 -I "$cache") || exit 0
+    case $sel in
+    "") exit 0 ;;
+    "[x] recolor") recolor=off ;;
+    "[ ] recolor") recolor=on ;;
+    esac
+    flag=()
+    [ "$recolor" = off ] && flag=(--no-recolor)
+    case $sel in
+    "[x] recolor" | "[ ] recolor")
+      src=$(cat "$state/wallpaper-source" 2>/dev/null) || src=
+      if [ -n "$src" ]; then
+        theme-set wallpaper "$src" "${flag[@]}"
+      else
+        mkdir -p "$state"
+        if [ "$recolor" = on ]; then echo 1; else echo 0; fi >"$state/wallpaper-recolor"
+      fi
+      ;;
+    plates/*)
+      theme-set wallpaper "$plates/${sel#plates/}" "${flag[@]}"
+      exit 0
+      ;;
+    *)
+      theme-set wallpaper "$dir/$sel" "${flag[@]}"
+      exit 0
+      ;;
+    esac
+  done
   ;;
 wifi)
   wdev=$(nmcli -t -f TYPE,DEVICE device status 2>/dev/null |
@@ -738,9 +768,9 @@ wifi)
   done
   [ -n "$sel" ] || exit 0
   if [ "$sel" = "$current" ]; then
-    case $(printf 'disconnect\nforget\n' | menu "$sel" "$LIST") in
+    case $(printf 'disconnect\nforget this network\n' | menu "\"$sel\"" "$LIST") in
     disconnect) nmcli connection down id "$sel" ;;
-    forget) nmcli connection delete id "$sel" ;;
+    "forget this network") nmcli connection delete id "$sel" ;;
     esac
   elif nmcli -t -f NAME connection show 2>/dev/null | sed 's/\\:/:/g' | grep -qxF "$sel"; then
     nmcli connection up id "$sel"
@@ -749,7 +779,7 @@ wifi)
       if (t == s) { print $1; exit } }' | grep -qx ''; then
     nmcli device wifi connect "$sel"
   else
-    pw=$(printf '' | menu "$sel password" 0 -P) || exit 0
+    pw=$(printf '' | menu "\"$sel\" password" 0 -P) || exit 0
     [ -n "$pw" ] || exit 0
     nmcli device wifi connect "$sel" password "$pw"
   fi
@@ -767,7 +797,7 @@ audio) audio_menu ;;
 calendar) calendar_menu ;;
 notes) exec note ;;
 record)
-  mode=$(choose $'none\tno audio\nsystem\tsystem audio\nmic\tmicrophone\nboth\tsystem + microphone' record "$LIST") || exit 0
+  mode=$(choose $'none\tno audio\nsystem\tsystem audio\nmic\tmicrophone\nboth\tsystem audio and microphone' record "$LIST") || exit 0
   [ -n "$mode" ] && exec record "$mode"
   ;;
 shelf) shelf ;;

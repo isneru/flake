@@ -27,11 +27,13 @@ ShellRoot {
     Share {}
     Send {}
     Cheatsheet {}
+    Overview {}
 
     IpcHandler {
         target: "bare"
         function pop(kind: string): void { Mode.popRequested(kind); }
         function keys(): void { Mode.cheatsheet = !Mode.cheatsheet; }
+        function overview(): void { Mode.overview = !Mode.overview; }
         function close(): void {
             BareState.close();
             Mode.popRequested("");

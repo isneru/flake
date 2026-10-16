@@ -1,6 +1,6 @@
 conf="${XDG_CONFIG_HOME:-$HOME/.config}/wmenu/colors.env"
 look="${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/look"
-export WMENU_ALPHA=e0
+export WMENU_ALPHA=bf
 [ "$(cat "$look" 2>/dev/null)" = soft ] && WMENU_ALPHA=ff
 WMENU_ARGS=()
 if [ -r "$conf" ]; then

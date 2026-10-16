@@ -187,9 +187,9 @@ def load_theme(name: str) -> dict[str, str]:
 def _weighted_hue_and_saturation(hsv_image) -> tuple[float, float]:
     sample = hsv_image.copy()
     sample.thumbnail((150, 150))
-    h_data = sample.getchannel("H").getdata()
-    s_data = sample.getchannel("S").getdata()
-    v_data = sample.getchannel("V").getdata()
+    h_data = sample.getchannel("H").get_flattened_data()
+    s_data = sample.getchannel("S").get_flattened_data()
+    v_data = sample.getchannel("V").get_flattened_data()
     sin_sum = cos_sum = sat_sum = weight_sum = 0.0
     for h, s, v in zip(h_data, s_data, v_data):
         weight = (s / 255) * (v / 255)
@@ -226,7 +226,7 @@ def recolor_wallpaper(theme_name: str, base: Path, accent_hex: str) -> Path | No
     if not base.is_file():
         warn(f"wallpaper: {base} does not exist")
         return None
-    dest = RECOLOR_CACHE_DIR / f"{theme_name}{base.suffix}"
+    dest = RECOLOR_CACHE_DIR / f"{theme_name}{base.suffix or '.png'}"
     stamp = dest.with_name(dest.name + ".src")
     key = f"{base}\n{base.stat().st_mtime_ns}\n{accent_hex}\n"
     if dest.is_file() and read_or_empty(stamp) == key:

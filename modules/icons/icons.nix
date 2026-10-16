@@ -8,14 +8,14 @@
       colors = "${config.xdg.dataHome}/theme-engine/icons.json";
 
       manifest = pkgs.runCommand "papirus-folders.json" { nativeBuildInputs = [ pkgs.python3 ]; } ''
-        python3 ${./recolor.py} manifest --root ${root} --theme ${theme} > $out
+        python3 ${../../scripts/icons/recolor.py} manifest --root ${root} --theme ${theme} > $out
       '';
 
       icons-recolor = pkgs.writeShellApplication {
         name = "icons-recolor";
         runtimeInputs = [ pkgs.python3 ];
         text = ''
-          exec python3 ${./recolor.py} build \
+          exec python3 ${../../scripts/icons/recolor.py} build \
             --root ${root} \
             --theme ${theme} \
             --light-theme Papirus-Light \

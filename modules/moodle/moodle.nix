@@ -26,7 +26,7 @@
           quickshell
           # keep-sorted end
         ];
-        text = builtins.readFile ./moodle-app.sh;
+        text = builtins.readFile ../../scripts/moodle/moodle-app.sh;
       };
     in
     {

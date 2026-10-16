@@ -7,7 +7,7 @@ mkdir -p "$state" "$conf"
 printf '%s' "$look" >"$state/look"
 
 if [ "$look" = flat ]; then
-  printf 'background_opacity 0.88\n' >"$conf/look.conf"
+  printf 'background_opacity 0.75\n' >"$conf/look.conf"
 else
   printf 'background_opacity 1.0\n' >"$conf/look.conf"
 fi

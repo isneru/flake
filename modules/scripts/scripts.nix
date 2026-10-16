@@ -10,7 +10,9 @@ let
         satty
         wayfreeze
       ];
-      text = builtins.readFile ./freeze.sh + builtins.readFile ./screenshot.sh;
+      text =
+        builtins.readFile ../../scripts/scripts/freeze.sh
+        + builtins.readFile ../../scripts/scripts/screenshot.sh;
     };
     ocr = pkgs.writeShellApplication {
       name = "ocr";
@@ -22,7 +24,8 @@ let
         libnotify
         wayfreeze
       ];
-      text = builtins.readFile ./freeze.sh + builtins.readFile ./ocr.sh;
+      text =
+        builtins.readFile ../../scripts/scripts/freeze.sh + builtins.readFile ../../scripts/scripts/ocr.sh;
     };
     qrscan = pkgs.writeShellApplication {
       name = "qrscan";
@@ -33,7 +36,9 @@ let
         zbar
         wayfreeze
       ];
-      text = builtins.readFile ./freeze.sh + builtins.readFile ./qrscan.sh;
+      text =
+        builtins.readFile ../../scripts/scripts/freeze.sh
+        + builtins.readFile ../../scripts/scripts/qrscan.sh;
     };
     record = pkgs.writeShellApplication {
       name = "record";
@@ -45,7 +50,7 @@ let
         procps
         wireplumber
       ];
-      text = builtins.readFile ./record.sh;
+      text = builtins.readFile ../../scripts/scripts/record.sh;
     };
     colorpicker = pkgs.writeShellApplication {
       name = "colorpicker";
@@ -53,7 +58,7 @@ let
         hyprpicker
         libnotify
       ];
-      text = builtins.readFile ./colorpicker.sh;
+      text = builtins.readFile ../../scripts/scripts/colorpicker.sh;
     };
     ns = pkgs.writeShellApplication {
       name = "ns";

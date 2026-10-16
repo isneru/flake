@@ -31,7 +31,7 @@
           pkgs.wl-clipboard
           # keep-sorted end
         ];
-        text = builtins.readFile ./whatsapp-paste.sh;
+        text = builtins.readFile ../../scripts/whatsapp/whatsapp-paste.sh;
       };
 
       app = pkgs.writeShellApplication {
@@ -44,7 +44,7 @@
           # keep-sorted end
         ];
         runtimeEnv.QT_PLUGIN_PATH = "${pkgs.qt6.qtimageformats}/lib/qt-6/plugins";
-        text = builtins.readFile ./whatsapp-app.sh;
+        text = builtins.readFile ../../scripts/whatsapp/whatsapp-app.sh;
       };
     in
     {

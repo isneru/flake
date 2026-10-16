@@ -32,17 +32,8 @@
       '';
 
       render = pkgs.writeShellScript "render-template" ''
-                theme="$1" template="$2" target="$3"
-                mkdir -p "$(dirname "$target")"
-                XDG_CONFIG_HOME=${previewConfigHome} PYTHONDONTWRITEBYTECODE=1 ${pkgs.python3}/bin/python3 - "$theme" "$template" "$target" <<'PY'
-        import sys
-        sys.path.insert(0, "${../theme-engine}")
-        import theme_engine
-        theme, template, target = sys.argv[1:4]
-        tokens = theme_engine.load_theme(theme)
-        rendered = theme_engine.render(open(template).read(), tokens)
-        open(target, "w").write(rendered)
-        PY
+        XDG_CONFIG_HOME=${previewConfigHome} PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=${../theme-engine} \
+          exec ${pkgs.python3}/bin/python3 ${../../scripts/flake/render-template.py} "$@"
       '';
 
       argParser = ''

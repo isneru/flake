@@ -13,7 +13,7 @@ let
         pkgs.procps
         # keep-sorted end
       ];
-      text = builtins.readFile ./askpass.sh;
+      text = builtins.readFile ../../scripts/auth/askpass.sh;
     };
 in
 {

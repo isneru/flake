@@ -68,8 +68,12 @@ anchor = [0.50, 0.50]
 gamma = 1.4
 contrast = "4x50%"
 
-[lock]
+[[level]]
 name = "Satan's despair (Paradise Lost, 1866)"
 file = "satans-despair.jpg"
 source = "https://commons.wikimedia.org/wiki/File:Gustave_Dore_Satan%27s_Despair.jpg"
-contrast = "3x45%"
+inset = [0.0, 0.0, 0.0, 0.03]
+focus = [0.47, 0.40]
+anchor = [0.50, 0.45]
+gamma = 1.4
+contrast = "4x50%"

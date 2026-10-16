@@ -4,10 +4,11 @@ import os
 import shutil
 import subprocess
 import time
-import tomllib
 import zipfile
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+
+import tomllib
 
 CANVAS = 256
 ROLES = {"#00FF00": "fill", "#0000FF": "outline", "#FF0000": "fill"}

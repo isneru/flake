@@ -58,7 +58,7 @@
         (pkgs.writeShellApplication {
           name = "gamerun";
           runtimeInputs = with pkgs; [ gamemode ];
-          text = builtins.readFile ./gamerun.sh;
+          text = builtins.readFile ../../scripts/gaming/gamerun.sh;
         })
       ]
       ++ (with pkgs; [

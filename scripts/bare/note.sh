@@ -30,21 +30,31 @@ fi
 book=$(slug "$book")
 [ -n "$book" ] || exit 0
 
-topic=$(bare-menu -p "$book topic: " -l 0 </dev/null) || exit 0
-name=$(slug "$topic")
-[ -n "$name" ] || exit 0
-
 if [ -z "$home" ]; then
   for g in "${groups[@]}"; do
     [ -d "$notes/$g/$book" ] && home="$notes/$g/$book" && break
   done
 fi
 if [ -n "$home" ]; then
-  dir="$home/notes/$(date +%F)"
+  root="$home/notes"
 else
   home="$notes/$book"
-  dir="$home/$(date +%F)"
+  root="$home"
 fi
+
+existing=$(find -L "$root" -type f -name '*.md' ! -path '*/.*' -printf '%T@\t%P\n' 2>/dev/null | sort -rn | cut -f2 | sed 's/\.md$//' || true)
+if [ -n "$existing" ]; then
+  topic=$(printf '%s\n' "$existing" | bare-menu -c -p "$book topic: " -l 20) || exit 0
+else
+  topic=$(bare-menu -p "$book topic: " -l 0 </dev/null) || exit 0
+fi
+if [ -n "$topic" ] && [ -f "$root/$topic.md" ]; then
+  exec kitty --directory "$home" -e nvim + "$root/$topic.md"
+fi
+name=$(slug "$topic")
+[ -n "$name" ] || exit 0
+
+dir="$root/$(date +%F)"
 file="$dir/$name.md"
 mkdir -p "$dir"
 [ -e "$file" ] || printf '# %s\n\n' "$(printf '%s' "$topic" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')" >"$file"

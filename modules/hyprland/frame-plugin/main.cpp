@@ -7,6 +7,7 @@
 #include <hyprland/src/desktop/view/Window.hpp>
 #include <hyprland/src/event/EventBus.hpp>
 #include <hyprland/src/render/Renderer.hpp>
+#include <hyprland/src/render/decorations/DecorationPositioner.hpp>
 
 APICALL EXPORT std::string PLUGIN_API_VERSION() {
     return HYPRLAND_API_VERSION;
@@ -20,8 +21,10 @@ static CNotch* notchOf(PHLWINDOW window) {
 }
 
 static void frame(PHLWINDOW window) {
-    if (!window->m_X11DoesntWantBorders && !notchOf(window))
+    if (!window->m_X11DoesntWantBorders && !notchOf(window)) {
         HyprlandAPI::addWindowDecoration(PHANDLE, window, makeUnique<CNotch>(window));
+        HyprlandAPI::addWindowDecoration(PHANDLE, window, makeUnique<CNotchReach>(window));
+    }
 }
 
 static void redrawAll() {
@@ -56,7 +59,12 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     });
     static auto onActive     = events.window.active.listen([](PHLWINDOW, Desktop::eFocusReason) { redrawAll(); });
     static auto onFullscreen = events.window.fullscreen.listen([](PHLWINDOW) { redrawAll(); });
-    static auto onReload     = events.config.reloaded.listen([] { redrawAll(); });
+    static auto onReload     = events.config.reloaded.listen([] {
+        for (auto& window : Desktop::windowState()->windows())
+            if (notchOf(window))
+                g_pDecorationPositioner->forceRecalcFor(window);
+        redrawAll();
+    });
 
     for (auto& window : Desktop::windowState()->windows())
         if (window->m_isMapped && !window->isHidden())

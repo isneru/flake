@@ -66,6 +66,8 @@ modules/                                       # one directory per aspect: <name
   vesktop/                                     # remaining homeManager-only aspects
   utils/                                       # exposes `utils` module arg
                                                # (dotfiles path + symlink helper)
+scripts/                                       # every shell and Python script, as
+                                               # scripts/<name>/, read by modules/<name>/
 ```
 
 ## The shell
@@ -115,7 +117,8 @@ Driven by keybinds or over IPC:
 | `SUPER+V` / `SUPER+SHIFT+V` | clipboard / files shelf         |
 | `SUPER+A`                   | wallpaper                       |
 | `SUPER+SHIFT+T`             | timer                           |
-| `SUPER+M` / `SUPER+O`       | media controls / windows        |
+| `SUPER+M` / `SUPER+TAB`     | media controls / windows        |
+| `SUPER+O`                   | overview of every workspace     |
 | `SUPER+Escape`              | power and profiles              |
 | `SUPER+T`                   | tray                            |
 | `SUPER+?`                   | keybinding cheatsheet           |
@@ -162,9 +165,10 @@ somewhere else, rename those and delete the parts that only make sense here.
    git clone https://github.com/isneru/flake /mnt/home/<user>/flake
    cd /mnt/home/<user>/flake
    ```
-3. Delete what is personal to this machine's owner - each is one directory:
+3. Delete what is personal to this machine's owner - each is one directory, plus its
+   scripts under `scripts/`:
    ```sh
-   git rm -r modules/{calendar,isep-site,phone,moodle,java,mic,wireguard} modules/packages/personal.nix modules/packages/*-monitor.sh
+   git rm -r modules/{calendar,isep-site,phone,moodle,java,mic,wireguard} modules/packages/personal.nix scripts/{calendar,phone,moodle,mic,packages}
    ```
    and, unless you set them up, `modules/secureboot` (needs `sbctl create-keys` and the
    keys enrolled in firmware) and `modules/gaming` (needs NVIDIA hybrid graphics).
@@ -187,7 +191,7 @@ somewhere else, rename those and delete the parts that only make sense here.
    internal names - leave them.
 5. Replace the hardware file, and edit `hosts/<host>/default.nix`: timezone, keyboard
    layout, and drop what belongs to this laptop (the `hardware.nvidia.prime` bus IDs,
-   `i915` and its `enable_fbc=0`, the `nouveau` blacklist):
+   the `i915` initrd module, the `nouveau` blacklist):
    ```sh
    nixos-generate-config --root /mnt --show-hardware-config > hosts/<host>/hardware.nix
    ```

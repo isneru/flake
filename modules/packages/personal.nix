@@ -29,7 +29,7 @@
             iw
             # keep-sorted end
           ];
-          text = builtins.readFile ./${name}.sh;
+          text = builtins.readFile ../../scripts/packages/${name}.sh;
         };
     in
     {

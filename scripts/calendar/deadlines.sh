@@ -68,7 +68,7 @@ deadlines_menu() {
   local rows key
   while :; do
     rows=$(deadline_rows)
-    key=$(choose $'new\tnew deadline'"${rows:+$'\n'$rows}" deadlines "$LIST") || return 0
+    key=$(choose $'new\tadd a deadline'"${rows:+$'\n'$rows}" deadlines "$LIST") || return 0
     case $key in
     new) new_deadline ;;
     *) deadline_item "$key" "$(label_of "$rows" "$key")" ;;

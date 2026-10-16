@@ -234,7 +234,7 @@ Scope {
         id: bar
 
         screen: root.modelData
-        color: Mode.alpha(Theme.bgDim, 0.88)
+        color: Mode.alpha(Theme.bgDim, 0.75)
         implicitHeight: Mode.barHeight
 
         anchors.bottom: true

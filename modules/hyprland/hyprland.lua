@@ -237,14 +237,15 @@ bind(MOD, "SPACE", hl.dsp.exec_cmd("bare-pick run"), { desc = "Launcher, or sear
 bind(nil, "XF86Calculator", hl.dsp.exec_cmd("bare-pick calc"), { desc = "Calculator", keys = "CALC" })
 bind(MOD, "V", hl.dsp.exec_cmd("bare-pick clip"), { desc = "Clipboard history" })
 bind(MOD, "A", hl.dsp.exec_cmd("bare-pick wall"), { desc = "Wallpaper" })
-bind(MOD, "O", hl.dsp.exec_cmd("bare-pick windows"), { desc = "Windows" })
+bind(MOD, "TAB", hl.dsp.exec_cmd("bare-pick windows"), { desc = "Windows" })
+bind(MOD, "O", hl.dsp.exec_cmd("quickshell ipc call bare overview"), { desc = "Overview of every workspace" })
 bind(MOD, "ESCAPE", hl.dsp.exec_cmd("bare-pick power"), { desc = "Power menu" })
 bind(MOD, "M", hl.dsp.exec_cmd("bare-pick media"), { desc = "Media controls" })
 bind({ MOD, "SHIFT" }, "V", hl.dsp.exec_cmd("bare-pick shelf"), { desc = "Files shelf" })
 bind({ MOD, "SHIFT" }, "S", hl.dsp.exec_cmd("bare-pick send"), { desc = "Send with LocalSend" })
 bind({ MOD, "SHIFT" }, "T", hl.dsp.exec_cmd("bare-pick timer"), { desc = "Timer" })
 bind({ MOD, "SHIFT" }, "O", hl.dsp.exec_cmd("bare-pick repos"), { desc = "Open a repository" })
-bind(MOD, "N", hl.dsp.exec_cmd("note"), { desc = "New note" })
+bind(MOD, "N", hl.dsp.exec_cmd("note"), { desc = "Notes" })
 bind(MOD, "T", hl.dsp.exec_cmd("bare-pick tray"), { desc = "Tray" })
 bind(
 	{ MOD, "SHIFT" },

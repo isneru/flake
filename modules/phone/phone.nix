@@ -2,6 +2,13 @@
 {
   flake.modules.nixos.phone =
     { config, pkgs, ... }:
+    let
+      sync-up = pkgs.writeShellApplication {
+        name = "phone-sync-up";
+        runtimeInputs = [ config.systemd.package ];
+        text = builtins.readFile ../../scripts/phone/phone-sync-up.sh;
+      };
+    in
     {
       nixpkgs.config.android_sdk.accept_license = true;
 
@@ -26,10 +33,7 @@
 
       networking.networkmanager.dispatcherScripts = [
         {
-          source = pkgs.writeShellScript "phone-sync-up" ''
-            [ "$2" = up ] || exit 0
-            ${config.systemd.package}/bin/systemctl --user -M neru@ start --no-block phone-sync.service || true
-          '';
+          source = "${sync-up}/bin/phone-sync-up";
         }
       ];
     };
@@ -122,8 +126,8 @@
           dex=${stickersDex}/classes.dex
           known_hosts=${./known_hosts}
         ''
-        + builtins.readFile ./phone-ssh.sh
-        + builtins.readFile ./phone-stickers.sh;
+        + builtins.readFile ../../scripts/phone/phone-ssh.sh
+        + builtins.readFile ../../scripts/phone/phone-stickers.sh;
       };
       tailscaled =
         pkgs.runCommand "tailscaled-android-${pkgs.tailscale.version}"
@@ -156,8 +160,8 @@
           apk=${launcher}
           known_hosts=${./known_hosts}
         ''
-        + builtins.readFile ./phone-ssh.sh
-        + builtins.readFile ./phone-install.sh;
+        + builtins.readFile ../../scripts/phone/phone-ssh.sh
+        + builtins.readFile ../../scripts/phone/phone-install.sh;
       };
       walls = pkgs.writeShellApplication {
         name = "phone-walls";
@@ -165,7 +169,7 @@
           (pkgs.python3.withPackages (ps: [ ps.pillow ]))
           pkgs.systemd
         ];
-        text = ''exec python3 ${./phone-walls.py} "$@"'';
+        text = ''exec python3 ${../../scripts/phone/phone-walls.py} "$@"'';
       };
       sync = pkgs.writeShellApplication {
         name = "phone-sync";
@@ -183,8 +187,8 @@
         text = ''
           known_hosts=${./known_hosts}
         ''
-        + builtins.readFile ./phone-ssh.sh
-        + builtins.readFile ./phone-sync.sh;
+        + builtins.readFile ../../scripts/phone/phone-ssh.sh
+        + builtins.readFile ../../scripts/phone/phone-sync.sh;
       };
     in
     {

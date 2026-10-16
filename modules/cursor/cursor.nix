@@ -18,7 +18,7 @@
           # keep-sorted end
         ];
         text = ''
-          exec python3 ${./recolor.py} \
+          exec python3 ${../../scripts/cursor/recolor.py} \
             --svgs ${bibata}/svg/modern \
             --config ${bibata}/configs/normal/x.build.toml \
             --colors ${colors} \
