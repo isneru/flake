@@ -115,7 +115,7 @@
           termguicolors = true;
           updatetime = 200;
           title = true;
-          titlestring = "%t";
+          titlestring = "%{%get(b:, 'scratch') ? 'scratch' : '%t'%}";
         };
 
         extraFiles = builtins.listToAttrs (
@@ -126,11 +126,13 @@
             })
             [
               # keep-sorted start
+              "bar"
               "buffers"
               "colors"
               "init"
               "lsp"
               "numbers"
+              "scratch"
               "statusline"
               "tree"
               "ui"
@@ -601,6 +603,7 @@
                 left_pad = 2;
                 right_pad = 2;
                 inline_pad = 1;
+                highlight_border = false;
               };
               html.tag =
                 let

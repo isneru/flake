@@ -20,7 +20,9 @@ Scope {
     readonly property var focused: Hyprland.activeToplevel
     readonly property string title: root.activeHere ? Menu.short(focused?.wayland?.appId ?? "") : ""
     readonly property bool qute: root.activeHere && Qute.running && focused?.wayland?.appId === Qute.appId
-    readonly property bool yazi: root.activeHere && Yazi.running
+    readonly property bool nvim: root.activeHere && Nvim.running
+    readonly property bool nvimStatus: root.nvim && Nvim.row === null
+    readonly property bool yazi: root.activeHere && Yazi.running && !root.nvim
     readonly property string monName: root.mon?.name ?? ""
     property string special: root.mon?.lastIpcObject?.specialWorkspace?.name ?? ""
 
@@ -234,7 +236,7 @@ Scope {
         id: bar
 
         screen: root.modelData
-        color: Mode.alpha(Theme.bgDim, 0.75)
+        color: Mode.alpha(Theme.bgDim, 0.80)
         implicitHeight: Mode.barHeight
 
         anchors.bottom: true
@@ -268,6 +270,13 @@ Scope {
             }
         }
 
+        TextMetrics {
+            id: barCell
+            font.family: Theme.themeMono
+            font.pixelSize: Mode.barFont
+            text: "0"
+        }
+
         Row {
             id: left
             anchors.left: parent.left
@@ -290,7 +299,7 @@ Scope {
             Seg {
                 text: root.title ? root.title.slice(0, 72) : ""
                 fg: Theme.fgDim
-                visible: root.title !== "" && !root.qute && !root.yazi
+                visible: root.title !== "" && !root.qute && !root.yazi && !root.nvim
                 onClicked: root.pick("windows")
             }
 
@@ -435,6 +444,66 @@ Scope {
                 text: `[${Yazi.state.percent !== undefined ? Yazi.state.percent + "%, " : ""}${Yazi.tasks} left]`
                 fg: (Yazi.state.failed ?? 0) > 0 ? Theme.ansiRed : Theme.accent
                 onClicked: Yazi.send("tasks:show")
+            }
+
+            Seg {
+                visible: root.nvimStatus
+                richText: true
+                text: `<b>${Nvim.mode}</b>`
+                fg: Nvim.modeColor
+                interactive: Nvim.mode !== "NORMAL"
+                onClicked: Nvim.send("<C-\\><C-n>")
+            }
+
+            Seg {
+                visible: root.nvimStatus && (Nvim.state.branch ?? "") !== ""
+                text: Nvim.state.branch ?? ""
+                fg: Nvim.modeColor
+                interactive: false
+            }
+
+            Seg {
+                visible: root.nvimStatus
+                text: Nvim.state.diagnostics ?? ""
+                fg: Nvim.modeColor
+                buttons: Qt.LeftButton | Qt.RightButton
+                onClicked: button => Nvim.send(`<Cmd>lua vim.diagnostic.jump({ count = ${button === Qt.RightButton ? -1 : 1}, float = true })<CR>`)
+            }
+
+            Seg {
+                visible: root.nvimStatus && (Nvim.state.search ?? "") !== ""
+                text: Nvim.state.search ?? ""
+                fg: Theme.fgDim
+                buttons: Qt.LeftButton | Qt.RightButton
+                onClicked: button => Nvim.send(button === Qt.RightButton ? "<C-\\><C-n>N" : "<C-\\><C-n>n")
+            }
+
+            Seg {
+                visible: root.nvimStatus
+                minChars: 11 + String(Nvim.state.lines ?? 0).length
+                text: Nvim.state.position ?? ""
+                fg: Theme.fgDim
+                onClicked: Nvim.send("<C-\\><C-n>:")
+            }
+
+            Repeater {
+                model: ["indent", "encoding", "eol", "language", "formatter"]
+                Seg {
+                    required property string modelData
+                    visible: root.nvimStatus && (Nvim.state[modelData] ?? "") !== ""
+                    text: Nvim.state[modelData] ?? ""
+                    fg: Theme.fgDim
+                    interactive: false
+                }
+            }
+
+            Seg {
+                id: nvimRow
+                visible: root.nvim && Nvim.row !== null
+                html: true
+                text: Nvim.rich(Math.max(8, Math.floor((bar.width - status.width - 16 - nvimRow.x - nvimRow.pad * 2) / barCell.advanceWidth)))
+                interactive: Nvim.row?.cursor === null
+                onClicked: Nvim.click()
             }
         }
 

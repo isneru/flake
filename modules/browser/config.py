@@ -88,7 +88,7 @@ config.bind("T", "hint links tab")
 config.bind("pt", "open -t -- {clipboard}")
 config.bind("st", "config-cycle tabs.show always never")
 config.bind("ss", "config-cycle statusbar.show always never")
-config.bind("sd", "config-cycle colors.webpage.darkmode.enabled")
+config.bind("sd", "darkmode-site")
 
 config.bind("cy", "hint links yank")
 
@@ -125,7 +125,7 @@ config.bind(";m", "hint links userscript qute-mpv")
 config.bind("<Ctrl-g>", "spawn --userscript qute-clone")
 
 
-for _generated in ("theme.py", "downloads.py", "statusbar.py"):
+for _generated in ("theme.py", "downloads.py", "statusbar.py", "darkmode.py"):
     if (config.configdir / _generated).exists():
         config.source(_generated)
 

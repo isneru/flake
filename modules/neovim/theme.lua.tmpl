@@ -41,14 +41,21 @@ local function mix(a, b, t)
   return out
 end
 
+local function nudge(hex)
+  local b = tonumber(hex:sub(6, 7), 16)
+  return hex:sub(1, 5) .. string.format("%02x", b < 255 and b + 1 or b - 1)
+end
+
 local selection = mix(c.bg, c.accent, 0.3)
+local float = nudge(c.bgDim)
+local floatAlt = nudge(c.bgAlt)
 
 local groups = {
   Normal = { fg = c.fg, bg = "NONE" },
   NormalNC = { fg = c.fg, bg = "NONE" },
-  NormalFloat = { fg = c.fg, bg = c.bgDim },
-  FloatBorder = { fg = c.border, bg = c.bgDim },
-  FloatTitle = { fg = c.accent, bg = c.bgDim, bold = true },
+  NormalFloat = { fg = c.fg, bg = float },
+  FloatBorder = { fg = c.border, bg = float },
+  FloatTitle = { fg = c.accent, bg = float, bold = true },
   ColorColumn = { bg = c.bgAlt },
   Conceal = { fg = c.fgMuted },
   Cursor = { fg = c.bg, bg = c.fg },
@@ -91,11 +98,11 @@ local groups = {
   TabLineSel = { fg = c.fg, bg = "NONE", bold = true },
   WinBar = { fg = c.fgDim, bg = "NONE" },
   WinBarNC = { fg = c.fgMuted, bg = "NONE" },
-  Pmenu = { fg = c.fg, bg = c.bgDim },
+  Pmenu = { fg = c.fg, bg = float },
   PmenuSel = { fg = c.bg, bg = c.accent, bold = true },
-  PmenuKind = { fg = c.brightCyan, bg = c.bgDim },
-  PmenuExtra = { fg = c.fgMuted, bg = c.bgDim },
-  PmenuSbar = { bg = c.bgDim },
+  PmenuKind = { fg = c.brightCyan, bg = float },
+  PmenuExtra = { fg = c.fgMuted, bg = float },
+  PmenuSbar = { bg = float },
   PmenuThumb = { bg = c.border },
   WildMenu = { fg = c.bg, bg = c.accent },
 
@@ -264,15 +271,15 @@ local groups = {
   GitSignsDelete = { fg = c.error },
   GitSignsCurrentLineBlame = { fg = c.fgMuted, italic = true },
 
-  TelescopeNormal = { fg = c.fg, bg = c.bgDim },
-  TelescopeBorder = { fg = c.border, bg = c.bgDim },
+  TelescopeNormal = { fg = c.fg, bg = float },
+  TelescopeBorder = { fg = c.border, bg = float },
   TelescopeTitle = { fg = c.bg, bg = c.accent, bold = true },
-  TelescopePromptNormal = { fg = c.fg, bg = c.bgAlt },
-  TelescopePromptBorder = { fg = c.bgAlt, bg = c.bgAlt },
+  TelescopePromptNormal = { fg = c.fg, bg = floatAlt },
+  TelescopePromptBorder = { fg = floatAlt, bg = floatAlt },
   TelescopePromptTitle = { fg = c.bg, bg = c.accent, bold = true },
   TelescopePromptPrefix = { fg = c.accent },
-  TelescopeSelection = { bg = c.bgAlt, bold = true },
-  TelescopeSelectionCaret = { fg = c.accent, bg = c.bgAlt },
+  TelescopeSelection = { bg = floatAlt, bold = true },
+  TelescopeSelectionCaret = { fg = c.accent, bg = floatAlt },
   TelescopeMatching = { fg = c.accent, bold = true },
   TelescopeResultsComment = { fg = c.fgMuted },
 
@@ -294,8 +301,8 @@ local groups = {
   NeoTreeTabActive = { fg = c.fg, bg = "NONE", bold = true },
   NeoTreeTabInactive = { fg = c.fgMuted, bg = "NONE" },
 
-  BlinkCmpMenu = { fg = c.fg, bg = c.bgDim },
-  BlinkCmpMenuBorder = { fg = c.border, bg = c.bgDim },
+  BlinkCmpMenu = { fg = c.fg, bg = float },
+  BlinkCmpMenuBorder = { fg = c.border, bg = float },
   BlinkCmpMenuSelection = { fg = c.bg, bg = c.accent, bold = true },
   BlinkCmpLabel = { fg = c.fg },
   BlinkCmpLabelMatch = { fg = c.accent, bold = true },
@@ -329,11 +336,11 @@ local groups = {
   BlinkCmpKindFile = { fg = c.fgDim },
   BlinkCmpKindFolder = { fg = c.fgDim },
   BlinkCmpKindReference = { fg = c.fgDim },
-  BlinkCmpDoc = { fg = c.fg, bg = c.bgDim },
-  BlinkCmpDocBorder = { fg = c.border, bg = c.bgDim },
-  BlinkCmpDocSeparator = { fg = c.border, bg = c.bgDim },
-  BlinkCmpSignatureHelp = { fg = c.fg, bg = c.bgDim },
-  BlinkCmpSignatureHelpBorder = { fg = c.border, bg = c.bgDim },
+  BlinkCmpDoc = { fg = c.fg, bg = float },
+  BlinkCmpDocBorder = { fg = c.border, bg = float },
+  BlinkCmpDocSeparator = { fg = c.border, bg = float },
+  BlinkCmpSignatureHelp = { fg = c.fg, bg = float },
+  BlinkCmpSignatureHelpBorder = { fg = c.border, bg = float },
   BlinkCmpGhostText = { fg = c.fgMuted, italic = true },
 
   TroubleNormal = { fg = c.fg, bg = "NONE" },
@@ -345,8 +352,8 @@ local groups = {
   WhichKeyGroup = { fg = c.brightBlue },
   WhichKeyDesc = { fg = c.fg },
   WhichKeySeparator = { fg = c.fgMuted },
-  WhichKeyFloat = { bg = c.bgDim },
-  WhichKeyBorder = { fg = c.border, bg = c.bgDim },
+  WhichKeyFloat = { bg = float },
+  WhichKeyBorder = { fg = c.border, bg = float },
 
   NeogitDiffAdd = { fg = c.success, bg = c.bgDim },
   NeogitDiffDelete = { fg = c.error, bg = c.bgDim },

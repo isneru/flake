@@ -56,6 +56,7 @@
           @climbing vars_regexp {http.request.uri.path} /\.\.(/|$)
           @outside {
             not path /
+            not path /lab /lab/*
             not file /{http.request.uri.path.0}/materials/
           }
           @file {

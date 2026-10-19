@@ -40,7 +40,7 @@
         hide_window_decorations = "yes";
         initial_window_width = "120c";
         initial_window_height = "30c";
-        window_padding_width = "9 0 0 0";
+        window_padding_width = "0 0 0 0";
         allow_remote_control = "socket-only";
         listen_on = "unix:/tmp/kitty-{kitty_pid}";
       };
@@ -55,6 +55,7 @@
       font_size {{sizePt}}
 
       background {{bg}}
+      transparent_background_colors {{bgDim}} {{bgAlt}}
       foreground {{fg}}
       cursor {{accent}}
       cursor_text_color {{bg}}

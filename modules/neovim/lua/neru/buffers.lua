@@ -1,12 +1,16 @@
 local M = {}
 
+local function editor(buf)
+	return vim.bo[buf].buftype == "" or vim.b[buf].scratch == true
+end
+
 local function listed(buf, current)
 	return buf ~= current and vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buflisted
 end
 
 function M.close()
 	local cur = vim.api.nvim_get_current_buf()
-	if vim.bo[cur].buftype ~= "" or not vim.bo[cur].buflisted then
+	if not editor(cur) or not vim.bo[cur].buflisted then
 		return
 	end
 	local alt = vim.fn.bufnr("#")
@@ -46,7 +50,7 @@ end
 
 function M.split()
 	local cur = vim.api.nvim_get_current_buf()
-	if vim.bo[cur].buftype ~= "" then
+	if not editor(cur) then
 		return
 	end
 	local win = vim.api.nvim_get_current_win()

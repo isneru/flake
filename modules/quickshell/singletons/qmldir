@@ -23,6 +23,7 @@ singleton Sensors 1.0 Sensors.qml
 singleton Qr 1.0 Qr.qml
 singleton Qute 1.0 Qute.qml
 singleton Yazi 1.0 Yazi.qml
+singleton Nvim 1.0 Nvim.qml
 singleton Screencast 1.0 Screencast.qml
 singleton Shelf 1.0 Shelf.qml
 singleton Tray 1.0 Tray.qml

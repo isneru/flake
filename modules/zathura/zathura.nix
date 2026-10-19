@@ -67,7 +67,7 @@
       theme-engine.apps.zathura-look = {
         target = "~/.config/zathura/looks/flat";
         template = ''
-          set default-bg "rgba({{bgRgb}}, 0.75)"
+          set default-bg "rgba({{bgRgb}}, 0.80)"
         '';
       };
 

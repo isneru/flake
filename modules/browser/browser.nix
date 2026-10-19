@@ -130,6 +130,8 @@ in
         utils.create_symlink "${utils.dotfiles}/browser/downloads.py";
       xdg.configFile."qutebrowser/statusbar.py".source =
         utils.create_symlink "${utils.dotfiles}/browser/statusbar.py";
+      xdg.configFile."qutebrowser/darkmode.py".source =
+        utils.create_symlink "${utils.dotfiles}/browser/darkmode.py";
       xdg.configFile."qutebrowser/reload.py".source =
         utils.create_symlink "${utils.dotfiles}/browser/reload.py";
 

@@ -11,13 +11,14 @@ Rectangle {
     property int minChars: 0
     property bool tight: false
     property bool richText: false
+    property bool html: false
     property color fill: "transparent"
     property bool packIcons: false
     signal clicked(int button)
 
     readonly property int pad: tight ? Math.round(cell.advanceWidth / 3) : 8
     readonly property var iconRun: /(?:[\uE000-\uF8FF]|[\uDB80-\uDBBF][\uDC00-\uDFFF])+/g
-    readonly property bool hasIcon: !richText && /[\uE000-\uF8FF\uDB80-\uDBBF]/.test(text)
+    readonly property bool hasIcon: !richText && !html && /[\uE000-\uF8FF\uDB80-\uDBBF]/.test(text)
     readonly property real trim: packIcons ? Mode.barIcon / 4 - Mode.barFont / 20 : 0
     readonly property string iconText: hasIcon ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/ /g, "&nbsp;")
         .replace(/[^;\s\uE000-\uF8FF\uDC00-\uDFFF](?=[\uE000-\uF8FF\uDB80-\uDBBF])/g, c => spaced(c, -trim))
@@ -56,7 +57,7 @@ Rectangle {
         color: root.fg
         font.family: Theme.themeMono
         font.pixelSize: Mode.barFont
-        textFormat: root.hasIcon ? Text.RichText : root.richText ? Text.StyledText : Text.PlainText
+        textFormat: root.hasIcon || root.html ? Text.RichText : root.richText ? Text.StyledText : Text.PlainText
         renderType: Text.NativeRendering
     }
 

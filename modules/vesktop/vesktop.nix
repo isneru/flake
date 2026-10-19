@@ -133,6 +133,7 @@
             BypassDnD.enabled = true;
             ClearURLs.enabled = true;
             CrashHandler.enabled = true;
+            FakeNitro.enabled = true;
             FixCodeblockGap.enabled = true;
             MarkdownPreview.enabled = true;
             MessageLogger.enabled = true;
@@ -141,6 +142,7 @@
             ShowHiddenChannels.enabled = true;
             TypingTweaks.enabled = true;
             Unindent.enabled = true;
+            WebScreenShareFixes.enabled = true;
             WindowTitle.enabled = true;
             YoutubeAdblock.enabled = true;
             # keep-sorted end

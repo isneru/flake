@@ -28,7 +28,7 @@ Singleton {
     readonly property color onAccent: Theme.bg
 
     property bool soft: false
-    readonly property color sidebar: Theme.alpha(Theme.bgDim, soft ? 1 : 0.75)
+    readonly property color sidebar: Theme.alpha(Theme.bgDim, soft ? 1 : 0.80)
 
     FileView {
         path: `${Quickshell.env("XDG_STATE_HOME") || Quickshell.env("HOME") + "/.local/state"}/quickshell/look`
