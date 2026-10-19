@@ -1,0 +1,274 @@
+{{- $cur := trimSuffix "/" (ph "http.request.orig_uri.path")}}
+{{- if not (fileExists $cur)}}{{httpError 404}}{{end}}
+{{- $here := ""}}
+{{- range rest (splitList "/" $cur)}}{{$here = print $here "/" (pathEscape .)}}{{end}}
+{{- $label := "Aulas de Java"}}
+{{- if $cur}}{{$label = base $cur}}{{if hasPrefix "aula" $label}}{{$label = print "Aula " (trimPrefix "aula" $label)}}{{end}}{{end}}
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="color-scheme" content="light dark">
+    <title>{{html $label}}</title>
+    <style>
+      :root {
+        --bg: #f4f7fb;
+        --card: #ffffff;
+        --ink: #14213d;
+        --muted: #5b6b85;
+        --line: #dbe3ee;
+        --accent: #0b7fd6;
+        --accent-ink: #ffffff;
+        --ok: #1f9d55;
+        --code-bg: #f1f5fa;
+        --shadow: 0 1px 2px rgb(20 33 61 / 6%), 0 4px 14px rgb(20 33 61 / 6%);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0f1724;
+          --card: #172234;
+          --ink: #e8eef8;
+          --muted: #9fb0c8;
+          --line: #263449;
+          --accent: #3aa0f0;
+          --accent-ink: #06121f;
+          --ok: #39c47a;
+          --code-bg: #0c1420;
+          --shadow: none;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 18px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      main { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
+      header { margin-bottom: 28px; }
+      .back {
+        display: inline-block;
+        margin-bottom: 12px;
+        color: var(--accent);
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .back:hover { text-decoration: underline; }
+      h1 { margin: 0; font-size: 2.2rem; line-height: 1.2; }
+      .sub { margin: 6px 0 0; color: var(--muted); }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 16px;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+      }
+      .grid a {
+        display: block;
+        padding: 22px 20px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+        color: inherit;
+        text-decoration: none;
+      }
+      .grid a:hover { border-color: var(--accent); }
+      .grid strong { display: block; font-size: 1.4rem; }
+      .grid .count { color: var(--muted); font-size: 0.95rem; }
+      .grid li.latest a { border: 2px solid var(--accent); }
+      .tag {
+        display: inline-block;
+        margin-bottom: 6px;
+        padding: 2px 10px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: var(--accent-ink);
+        font-size: 0.8rem;
+        font-weight: 700;
+      }
+      .help {
+        margin: 0 0 24px;
+        padding: 18px 22px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-left: 5px solid var(--accent);
+        border-radius: 14px;
+      }
+      .help h2 { margin: 0 0 8px; font-size: 1.1rem; }
+      .help ol { margin: 0; padding-left: 22px; }
+      .help li + li { margin-top: 4px; }
+      kbd {
+        padding: 1px 7px;
+        border: 1px solid var(--line);
+        border-bottom-width: 3px;
+        border-radius: 6px;
+        background: var(--code-bg);
+        font: 0.85em ui-monospace, "Cascadia Mono", Consolas, monospace;
+      }
+      .files { display: grid; gap: 16px; padding: 0; margin: 0; list-style: none; }
+      .file {
+        padding: 20px 22px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+      }
+      .row { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: center; justify-content: space-between; }
+      .file h2 { margin: 0; font-size: 1.35rem; word-break: break-all; }
+      .class { margin: 2px 0 0; color: var(--muted); font-size: 0.95rem; }
+      .class code { color: var(--ink); font-weight: 700; font-size: 1.05rem; }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 22px;
+        border: 0;
+        border-radius: 12px;
+        background: var(--accent);
+        color: var(--accent-ink);
+        font: inherit;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .btn:hover { filter: brightness(1.08); }
+      .btn.done { background: var(--ok); }
+      details { margin-top: 14px; }
+      summary { color: var(--accent); font-weight: 600; cursor: pointer; }
+      pre {
+        margin: 10px 0 0;
+        padding: 16px;
+        overflow-x: auto;
+        background: var(--code-bg);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        font: 15px/1.5 ui-monospace, "Cascadia Mono", Consolas, monospace;
+        tab-size: 4;
+      }
+      .empty { color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <main>
+      {{- if not $cur}}
+      <header>
+        <h1>Aulas de Java</h1>
+        <p class="sub">Escolhe a aula de hoje.</p>
+      </header>
+      {{- $names := reverse (sortAlpha (listFiles "/"))}}
+      {{- $first := true}}
+      {{- $shown := 0}}
+      <ul class="grid">
+        {{- range $names}}
+        {{- if hasPrefix "." .}}{{continue}}{{end}}
+        {{- if not (fileStat (print "/" .)).IsDir}}{{continue}}{{end}}
+        {{- $shown = add $shown 1}}
+        {{- $name := .}}
+        {{- if hasPrefix "aula" .}}{{$name = print "Aula " (trimPrefix "aula" .)}}{{end}}
+        {{- $count := 0}}
+        {{- range listFiles (print "/" .)}}{{if not (hasPrefix "." .)}}{{$count = add $count 1}}{{end}}{{end}}
+        <li{{if $first}} class="latest"{{end}}>
+          <a href="/{{html (pathEscape .)}}/">
+            {{- if $first}}<span class="tag">Mais recente</span>{{end}}
+            <strong>{{html $name}}</strong>
+            <span class="count">{{$count}} {{if eq $count 1}}ficheiro{{else}}ficheiros{{end}}</span>
+          </a>
+        </li>
+        {{- $first = false}}
+        {{- end}}
+      </ul>
+      {{- if not $shown}}
+      <p class="empty">Ainda não há aulas aqui.</p>
+      {{- end}}
+      {{- else}}
+      <header>
+        <a class="back" href="/">← Todas as aulas</a>
+        <h1>{{html $label}}</h1>
+      </header>
+      {{- $names := sortAlpha (listFiles $cur)}}
+      {{- $java := false}}
+      {{- range $names}}{{if hasSuffix ".java" .}}{{$java = true}}{{end}}{{end}}
+      {{- if $java}}
+      <section class="help">
+        <h2>Como usar</h2>
+        <ol>
+          <li>Carrega em <strong>Copiar código</strong>.</li>
+          <li>No IntelliJ, botão direito em <strong>src</strong> → <strong>New</strong> → <strong>Java Class</strong>.</li>
+          <li>Escreve o <strong>nome da classe</strong> que aparece no cartão e carrega em <kbd>Enter</kbd>.</li>
+          <li>Apaga o que lá está (<kbd>Ctrl</kbd> + <kbd>A</kbd>) e cola (<kbd>Ctrl</kbd> + <kbd>V</kbd>).</li>
+          <li>Corre com <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F10</kbd>.</li>
+        </ol>
+      </section>
+      {{- end}}
+      {{- $shown := 0}}
+      <ul class="files">
+        {{- range $i, $n := $names}}
+        {{- if hasPrefix "." $n}}{{continue}}{{end}}
+        {{- $path := print $cur "/" $n}}
+        {{- $href := html (print $here "/" (pathEscape $n))}}
+        {{- $shown = add $shown 1}}
+        {{- if (fileStat $path).IsDir}}
+        <li class="file">
+          <div class="row">
+            <h2>{{html $n}}</h2>
+            <a class="btn" href="{{$href}}/">Abrir pasta</a>
+          </div>
+        </li>
+        {{- else if hasSuffix ".java" $n}}
+        <li class="file">
+          <div class="row">
+            <div>
+              <h2>{{html $n}}</h2>
+              <p class="class">Nome da classe: <code>{{html (trimSuffix ".java" $n)}}</code></p>
+            </div>
+            <button class="btn copy" type="button" data-target="code-{{$i}}">Copiar código</button>
+          </div>
+          <details>
+            <summary>Ver o código</summary>
+            <pre id="code-{{$i}}">{{html (readFile $path)}}</pre>
+          </details>
+        </li>
+        {{- else}}
+        <li class="file">
+          <div class="row">
+            <h2>{{html $n}}</h2>
+            <a class="btn" href="{{$href}}" target="_blank" rel="noopener">Abrir</a>
+          </div>
+        </li>
+        {{- end}}
+        {{- end}}
+      </ul>
+      {{- if not $shown}}
+      <p class="empty">Esta aula ainda não tem ficheiros.</p>
+      {{- end}}
+      {{- end}}
+    </main>
+    <script>
+      document.addEventListener("click", async (event) => {
+        const button = event.target.closest("button.copy");
+        if (!button) return;
+        const code = document.getElementById(button.dataset.target).textContent;
+        try {
+          await navigator.clipboard.writeText(code);
+        } catch {
+          const area = document.createElement("textarea");
+          area.value = code;
+          document.body.append(area);
+          area.select();
+          document.execCommand("copy");
+          area.remove();
+        }
+        button.classList.add("done");
+        button.textContent = "Copiado! Agora cola no IntelliJ";
+        setTimeout(() => {
+          button.classList.remove("done");
+          button.textContent = "Copiar código";
+        }, 2500);
+      });
+    </script>
+  </body>
+</html>

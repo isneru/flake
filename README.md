@@ -168,7 +168,7 @@ somewhere else, rename those and delete the parts that only make sense here.
 3. Delete what is personal to this machine's owner - each is one directory, plus its
    scripts under `scripts/`:
    ```sh
-   git rm -r modules/{calendar,isep-site,phone,moodle,java,mic,wireguard} modules/packages/personal.nix scripts/{calendar,phone,moodle,mic,packages}
+   git rm -r modules/{calendar,isep-site,sharkcoders-site,phone,moodle,java,mic,wireguard} modules/packages/personal.nix scripts/{calendar,phone,moodle,mic,packages}
    ```
    and, unless you set them up, `modules/secureboot` (needs `sbctl create-keys` and the
    keys enrolled in firmware) and `modules/gaming` (needs NVIDIA hybrid graphics).
