@@ -142,6 +142,7 @@
             ShowHiddenChannels.enabled = true;
             TypingTweaks.enabled = true;
             Unindent.enabled = true;
+            VimNav.enabled = true;
             WebScreenShareFixes.enabled = true;
             WindowTitle.enabled = true;
             YoutubeAdblock.enabled = true;

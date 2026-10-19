@@ -14,8 +14,12 @@
       <action android:name="android.intent.action.MAIN" />
       <category android:name="android.intent.category.LAUNCHER" />
     </intent>
+    <intent>
+      <action android:name="android.media.browse.MediaBrowserService" />
+    </intent>
   </queries>
   <application
+      android:enableOnBackInvokedCallback="true"
       android:label="bare"
       android:theme="@android:style/Theme.DeviceDefault.Wallpaper.NoTitleBar">
     <activity

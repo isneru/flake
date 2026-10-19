@@ -47,9 +47,17 @@
       palettes = pkgs.writeText "themes.json" (
         builtins.toJSON (
           lib.sort (a: b: a.name < b.name) (
-            map (file: (lib.importTOML file).colors // { name = lib.removeSuffix ".toml" (baseNameOf file); }) (
-              lib.filesystem.listFilesRecursive ../theme-engine/themes
-            )
+            map (
+              file:
+              let
+                theme = lib.importTOML file;
+              in
+              theme.colors
+              // {
+                name = lib.removeSuffix ".toml" (baseNameOf file);
+                font = lib.replaceStrings [ " " ] [ "" ] (theme.fonts.chrome or theme.fonts.mono);
+              }
+            ) (lib.filesystem.listFilesRecursive ../theme-engine/themes)
           )
         )
       );
@@ -84,6 +92,7 @@
             cp ${./termux/bin/pc} assets/pc
             cp ${./termux/bin/serve} assets/serve
             cp ${palettes} assets/themes.json
+            cp ${pkgs.lucide}/share/fonts/truetype/Lucide.ttf assets/icons.ttf
             for family in "''${families[@]}"; do
               name=''${family// /}
               cp "$(find "''${fonts[@]}" -name "$name-Regular.*" -print -quit)" "assets/fonts/$name.ttf"

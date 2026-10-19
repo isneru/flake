@@ -297,11 +297,11 @@
     "vesktop-plugins": {
       "flake": false,
       "locked": {
-        "lastModified": 1791546873,
-        "narHash": "sha256-SM65W8gEpfCsmizj8QLDniPTZaKz+n534GUeG3ENAn8=",
+        "lastModified": 1792416087,
+        "narHash": "sha256-C1H+IK3FkXN87CmpnECj0WOPdTxOgZwNujGOvBlsC4Y=",
         "owner": "isneru",
         "repo": "vesktop-custom-plugins",
-        "rev": "72255faa5a2aa617faf4733c01332e9749dc97f6",
+        "rev": "fb8cbec7667b10f93ce271570c10223cbb62aae8",
         "type": "github"
       },
       "original": {

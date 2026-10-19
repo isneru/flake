@@ -1,11 +1,14 @@
 package dev.neru.bare
 
 import android.Manifest
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
+import android.animation.StateListAnimator
+import android.animation.ValueAnimator
 import android.app.Activity
 import android.app.ActivityManager
 import android.content.BroadcastReceiver
 import android.content.ComponentName
-import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -15,15 +18,15 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Paint
+import android.graphics.Insets
 import android.graphics.PorterDuff
-import android.graphics.RectF
 import android.graphics.Typeface
 import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
+import android.media.AudioManager
 import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
@@ -32,28 +35,27 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.BatteryManager
-import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.StatFs
 import android.os.SystemClock
-import android.provider.CalendarContract
+import android.provider.AlarmClock
 import android.provider.Settings
 import android.text.Editable
 import android.text.InputType
-import android.text.TextPaint
 import android.text.SpannableStringBuilder
 import android.text.TextUtils
 import android.text.TextWatcher
 import android.text.format.DateFormat
 import android.text.style.ForegroundColorSpan
-import android.view.GestureDetector
 import android.util.Base64
 import android.util.TypedValue
-import android.view.HapticFeedbackConstants
+import android.view.GestureDetector
 import android.view.Gravity
+import android.view.HapticFeedbackConstants
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -61,6 +63,7 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.view.animation.DecelerateInterpolator
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.BaseAdapter
@@ -72,6 +75,8 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextClock
 import android.widget.TextView
+import android.window.BackEvent
+import android.window.OnBackAnimationCallback
 import android.window.OnBackInvokedDispatcher
 import org.json.JSONArray
 import org.json.JSONObject
@@ -79,35 +84,26 @@ import java.io.File
 import java.net.Inet4Address
 import java.net.NetworkInterface
 import java.net.URL
-import java.time.DayOfWeek
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-import java.time.format.TextStyle
-import java.util.Locale
 import kotlin.math.abs
-import kotlin.math.ceil
+import kotlin.math.roundToInt
 
 const val PREFS = "theme"
 private const val STATE = "state"
 private const val GRID = 48
-private const val PAUSE = "\u258c\u258c"
 const val TERMUX = "com.termux"
-private const val PLACE = "porto"
+const val PLACE = "porto"
 private const val FORECAST =
-    "https://api.open-meteo.com/v1/forecast?latitude=41.15&longitude=-8.61&timezone=auto&forecast_days=3" +
-        "&current=temperature_2m,apparent_temperature,weather_code&daily=temperature_2m_max,temperature_2m_min"
-private const val GB = 1073741824.0
-private val SWATCHES = listOf("red", "green", "yellow", "blue", "magenta", "cyan")
+    "https://api.open-meteo.com/v1/forecast?latitude=41.15&longitude=-8.61&timezone=auto&forecast_days=7&forecast_hours=24" +
+        "&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day" +
+        "&hourly=temperature_2m,weather_code,precipitation_probability,is_day" +
+        "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max"
+const val GB = 1073741824.0
+val SWATCHES = listOf("red", "green", "yellow", "blue", "magenta", "cyan")
 private val COLORS = listOf("bgDim", "bgAlt", "border", "fg", "fgDim", "fgMuted", "accent", "error", "success") + SWATCHES
 private val HEX = Regex("#[0-9a-fA-F]{6}")
-private const val WALLS = "walls"
+const val WALLS = "walls"
 private val ID = Regex("[A-Za-z0-9._+-]+")
-private val LECTURE = Regex("^(PL|TP|T) - (\\S+) - (.+)$")
-private val HEAD = DateTimeFormatter.ofPattern("EEE d")
-private val SHORT = DateTimeFormatter.ofPattern("d MMM")
 
 class ThemeReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -154,216 +150,87 @@ class WallReceiver : BroadcastReceiver() {
     }
 }
 
+class Screen(val key: String, val view: View, val update: () -> Unit = {}, val swipe: ((Int) -> Unit)? = null, val beat: () -> Unit = {})
+
 class Home : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
     private class App(val label: String, val component: ComponentName, val pixels: Bitmap) {
         val id: String = component.flattenToString()
     }
 
-    private class Event(val id: Long, val begin: Long, val end: Long, val title: String, val place: String, val note: String, val allDay: Boolean) {
-        var lane = 0
-        var lanes = 1
-    }
-
-    private inner class Week : View(this@Home) {
-        private val zone = ZoneId.systemDefault()
-        private var monday = LocalDate.now()
-        private var timed = List(7) { listOf<Event>() }
-        private var whole = List(7) { listOf<Event>() }
-        var count = 5
-            private set
-        private var first = 8
-        private var last = 19
-        private val hits = mutableListOf<Pair<RectF, Event>>()
-        private val paint = TextPaint(Paint.ANTI_ALIAS_FLAG)
-        private val taps = GestureDetector(
-            this@Home,
-            object : GestureDetector.SimpleOnGestureListener() {
-                override fun onDown(e: MotionEvent) = true
-
-                override fun onSingleTapUp(e: MotionEvent): Boolean {
-                    hits.lastOrNull { it.first.contains(e.x, e.y) }?.let { visit(it.second) }
-                    return true
-                }
-            },
-        )
-
-        override fun onTouchEvent(event: MotionEvent) = taps.onTouchEvent(event)
-
-        fun show(start: LocalDate, events: List<Event>) {
-            monday = start
-            val days = List(7) { start.plusDays(it.toLong()) }
-            fun utc(ms: Long) = Instant.ofEpochMilli(ms).atZone(ZoneOffset.UTC).toLocalDate()
-            timed = days.map { day -> events.filter { !it.allDay && Instant.ofEpochMilli(it.begin).atZone(zone).toLocalDate() == day }.also(::lanes) }
-            whole = days.map { day -> events.filter { it.allDay && utc(it.begin) <= day && day < maxOf(utc(it.end), utc(it.begin).plusDays(1)) } }
-            count = if ((5..6).any { timed[it].isNotEmpty() || whole[it].isNotEmpty() }) 7 else 5
-            val shown = (0 until count).flatMap { i -> timed[i].map { hours(it.begin, days[i]) to hours(it.end, days[i]) } }
-            first = minOf(8, shown.minOfOrNull { it.first.toInt() } ?: 8)
-            last = maxOf(19, shown.maxOfOrNull { ceil(it.second).toInt() } ?: 19)
-            invalidate()
-        }
-
-        private fun hours(ms: Long, day: LocalDate): Float {
-            val at = Instant.ofEpochMilli(ms).atZone(zone)
-            return when {
-                at.toLocalDate() > day -> 24f
-                at.toLocalDate() < day -> 0f
-                else -> at.hour + at.minute / 60f
-            }
-        }
-
-        private fun lanes(list: List<Event>) {
-            var group = mutableListOf<Event>()
-            var end = 0L
-            fun close() = group.forEach { it.lanes = group.maxOf { g -> g.lane } + 1 }
-            for (event in list.sortedBy { it.begin }) {
-                if (event.begin >= end) {
-                    close()
-                    group = mutableListOf()
-                }
-                val taken = group.filter { it.end > event.begin }.map { it.lane }
-                event.lane = generateSequence(0) { it + 1 }.first { it !in taken }
-                group += event
-                end = maxOf(end, event.end)
-            }
-            close()
-        }
-
-        private fun lines(event: Event): List<Pair<String, String>> {
-            val span = "${DateFormat.format("HH:mm", event.begin)}\u2013${DateFormat.format("HH:mm", event.end)}"
-            val lecture = LECTURE.find(event.title) ?: return listOf(event.title to "fg", event.place to "fgDim", span to "fgMuted")
-            val (kind, code, room) = lecture.destructured
-            val where = listOf(event.place.ifBlank { room }, event.note.lineSequence().first().trim()).filter(String::isNotBlank)
-            return listOf("$code \u00b7 $kind" to "fg", where.joinToString(" \u00b7 ") to "fgDim", span to "fgMuted")
-        }
-
-        private fun block(canvas: Canvas, box: RectF, event: Event, text: List<Pair<String, String>>, now: Long) {
-            val over = event.end <= now
-            val tint = color(if (over) "fgMuted" else if (event.begin <= now) "success" else "accent")
-            val fade = if (over) 0x99 else 0xff
-            paint.color = tint and 0xffffff or (0x2e * fade / 0xff shl 24)
-            canvas.drawRect(box, paint)
-            paint.color = tint and 0xffffff or (fade shl 24)
-            canvas.drawRect(box.left, box.top, box.left + dp(3), box.bottom, paint)
-            canvas.save()
-            canvas.clipRect(box)
-            var y = box.top + dp(3)
-            for ((i, line) in text.filter { it.first.isNotBlank() }.withIndex()) {
-                paint.textSize = sp(if (i == 2) 9f else 10f)
-                paint.isFakeBoldText = i == 0
-                val height = paint.descent() - paint.ascent()
-                if (i > 0 && y + height > box.bottom) break
-                paint.color = color(line.second) and 0xffffff or (fade shl 24)
-                val fit = TextUtils.ellipsize(line.first, paint, box.width() - dp(9), TextUtils.TruncateAt.END)
-                canvas.drawText(fit.toString(), box.left + dp(6), y - paint.ascent(), paint)
-                y += height
-            }
-            paint.isFakeBoldText = false
-            canvas.restore()
-            hits += box to event
-        }
-
-        override fun onDraw(canvas: Canvas) {
-            hits.clear()
-            val now = System.currentTimeMillis()
-            val today = LocalDate.now()
-            val gutter = dp(36).toFloat()
-            val header = dp(24).toFloat()
-            val stacked = (0 until count).maxOf { whole[it].size }
-            val top = header + stacked * dp(18) + if (stacked > 0) dp(4) else 0
-            val column = (width - gutter) / count
-            val hour = (height - top - dp(8)) / (last - first)
-            paint.typeface = face
-            paint.textAlign = Paint.Align.LEFT
-            paint.textSize = sp(10f)
-            for (h in first..last) {
-                val y = top + (h - first) * hour
-                paint.color = fill("border", 0x99)
-                canvas.drawRect(gutter, y, width.toFloat(), y + 1, paint)
-                paint.color = color("fgMuted")
-                canvas.drawText("%02d:00".format(h), 0f, y - (paint.ascent() + paint.descent()) / 2, paint)
-            }
-            for (i in 0 until count) {
-                val day = monday.plusDays(i.toLong())
-                val x = gutter + i * column
-                val current = day == today
-                if (current) {
-                    paint.color = fill("accent", 0x0d)
-                    canvas.drawRect(x, header, x + column, height.toFloat(), paint)
-                }
-                paint.textSize = sp(11f)
-                paint.textAlign = Paint.Align.CENTER
-                paint.isFakeBoldText = current
-                paint.color = color(if (current) "accent" else "fgMuted")
-                canvas.drawText(day.format(HEAD).lowercase(), x + column / 2, header / 2 - (paint.ascent() + paint.descent()) / 2, paint)
-                paint.textAlign = Paint.Align.LEFT
-                paint.isFakeBoldText = false
-                whole[i].forEachIndexed { k, event ->
-                    val y = header + k * dp(18)
-                    block(canvas, RectF(x + dp(2), y, x + column - dp(2), y + dp(16)), event, listOf(event.title to "fg"), now)
-                }
-                for (event in timed[i]) {
-                    val lane = (column - dp(4)) / event.lanes
-                    val left = x + dp(2) + event.lane * lane
-                    val y = top + (hours(event.begin, day) - first) * hour + dp(1)
-                    val tall = maxOf(dp(18).toFloat(), (hours(event.end, day) - hours(event.begin, day)) * hour - dp(2))
-                    val right = left + lane - if (event.lane < event.lanes - 1) dp(2) else 0
-                    block(canvas, RectF(left, y, right, y + tall), event, lines(event), now)
-                }
-                val at = hours(now, day)
-                if (current && at >= first && at <= last) {
-                    val y = top + (at - first) * hour
-                    paint.color = color("error")
-                    canvas.drawRect(x, y, x + column, y + dp(2), paint)
-                }
-            }
-        }
-    }
+    class Stats(val memory: Long, val memoryTotal: Long, val disk: Long, val diskTotal: Long, val battery: Int, val charging: Boolean)
 
     private lateinit var prefs: SharedPreferences
     private lateinit var state: SharedPreferences
+    lateinit var walls: SharedPreferences
     private lateinit var gestures: GestureDetector
+    private lateinit var root: FrameLayout
     private lateinit var home: LinearLayout
     private lateinit var pins: FrameLayout
     private var carrying = false
-    private var play = ">"
     private lateinit var sheet: FrameLayout
     private lateinit var options: LinearLayout
-    private lateinit var calendar: LinearLayout
-    private lateinit var planner: Week
-    private lateinit var dates: TextView
-    private lateinit var jump: TextView
-    private var shift = 0
-    private lateinit var weather: TextView
-    private lateinit var agenda: TextView
-    private lateinit var media: TextView
-    private lateinit var toggle: TextView
-    private lateinit var pc: TextView
-    private lateinit var scheme: TextView
-    private lateinit var wall: TextView
-    private lateinit var walls: SharedPreferences
-    private var picking = false
-    private val thumbs = HashMap<String, Pair<Long, Bitmap?>>()
-    private val shelved = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
-        wall.text = wallText()
-        if (picking && sheet.visibility == View.VISIBLE) gallery()
-    }
-    private var switching: String? = null
-    private var switchedAt = 0L
     private lateinit var drawer: LinearLayout
     private lateinit var grid: GridView
     private lateinit var query: EditText
-    private lateinit var fetch: TextView
+    private lateinit var sky: ImageView
+    private lateinit var degrees: TextView
+    private lateinit var spread: TextView
+    private lateinit var power: ImageView
+    private lateinit var meters: List<Pair<FrameLayout, TextView>>
+    private lateinit var agenda: LinearLayout
+    private lateinit var cover: ImageView
+    private lateinit var note: ImageView
+    private lateinit var track: TextView
+    private lateinit var artist: TextView
+    private lateinit var toggle: ImageView
+    private lateinit var keys: List<ImageView>
+    private lateinit var progress: FrameLayout
+    private lateinit var terminal: ImageView
+    private lateinit var link: FrameLayout
+    private lateinit var way: TextView
+    private lateinit var preview: ImageView
+    private lateinit var picture: ImageView
+    private lateinit var scheme: TextView
+    private lateinit var chips: LinearLayout
+    val stack = mutableListOf<Screen>()
+    private var bars = Insets.NONE
+    var controller: MediaController? = null
+        private set
+    var day: LocalDate = LocalDate.now()
+    var shift = 0
+    var tab = 0
+    var fetching = false
+        private set
+    private var switching: String? = null
+    private var switchedAt = 0L
+    private val thumbs = HashMap<String, Pair<Long, Bitmap?>>()
+    private val fonts = HashMap<String, Typeface>()
+    private val shelved = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+        wallTile()
+        stack.lastOrNull()?.takeIf { it.key == "appearance" }?.update?.invoke()
+    }
     private val handler = Handler(Looper.getMainLooper())
+    private val ease = DecelerateInterpolator(2f)
     private var apps = listOf<App>()
     private var shown = listOf<App>()
     private var colors = mapOf<String, Int>()
-    private var name = ""
-    private var face = Typeface.MONOSPACE
+    var name = ""
+        private set
+    var face: Typeface = Typeface.MONOSPACE
+        private set
+    private val symbols by lazy { Typeface.createFromAsset(assets, "icons.ttf") }
 
-    private val tick = object : Runnable {
+    private val minute = object : Runnable {
         override fun run() {
             refresh()
             handler.postDelayed(this, 60_000)
+        }
+    }
+
+    private val second = object : Runnable {
+        override fun run() {
+            beat()
+            if (playing()) handler.postDelayed(this, 1000)
         }
     }
 
@@ -378,6 +245,7 @@ class Home : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
             val cell = old as? LinearLayout ?: LinearLayout(this@Home).apply {
                 orientation = LinearLayout.VERTICAL
                 gravity = Gravity.CENTER_HORIZONTAL
+                stateListAnimator = bounce(0.9f)
                 addView(icon(), dp(44), dp(44))
                 addView(
                     text(11f, "fgDim").apply {
@@ -403,18 +271,22 @@ class Home : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
             this,
             object : GestureDetector.SimpleOnGestureListener() {
                 override fun onFling(from: MotionEvent?, to: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
-                    if (calendar.visibility == View.VISIBLE && from != null && abs(to.x - from.x) > dp(80) && abs(velocityX) > abs(velocityY)) {
-                        page(if (to.x < from.x) shift + 1 else shift - 1)
+                    if (from == null || carrying || sheet.visibility == View.VISIBLE) return false
+                    val dx = to.x - from.x
+                    val dy = to.y - from.y
+                    val top = stack.lastOrNull()
+                    if (top != null) {
+                        val swipe = top.swipe ?: return false
+                        if (abs(dx) < dp(80) || abs(velocityX) < abs(velocityY)) return false
+                        swipe(if (dx < 0) 1 else -1)
                         return true
                     }
-                    val moved = to.y - (from ?: return false).y
-                    if (abs(moved) < dp(80) || abs(velocityY) < abs(velocityX)) return false
-                    if (carrying || sheet.visibility == View.VISIBLE || calendar.visibility == View.VISIBLE) return false
+                    if (abs(dy) < dp(80) || abs(velocityY) < abs(velocityX)) return false
                     val open = drawer.visibility == View.VISIBLE
                     when {
-                        moved < 0 && !open -> open()
-                        moved > 0 && open && !grid.canScrollVertically(-1) -> reset()
-                        moved > 0 && !open -> shade()
+                        dy < 0 && !open -> open()
+                        dy > 0 && open && !grid.canScrollVertically(-1) -> close()
+                        dy > 0 && !open -> shade()
                         else -> return false
                     }
                     return true
@@ -422,9 +294,16 @@ class Home : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
             },
         )
         window.setDecorFitsSystemWindows(false)
-        onBackInvokedDispatcher.registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT) {
-            if (sheet.visibility == View.VISIBLE) sheet.visibility = View.GONE else reset()
-        }
+        onBackInvokedDispatcher.registerOnBackInvokedCallback(
+            OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+            object : OnBackAnimationCallback {
+                override fun onBackProgressed(event: BackEvent) = lean(event.progress)
+
+                override fun onBackCancelled() = lean(0f, true)
+
+                override fun onBackInvoked() = back()
+            },
+        )
         prefs.registerOnSharedPreferenceChangeListener(this)
         walls.registerOnSharedPreferenceChangeListener(shelved)
         build()
@@ -433,9 +312,10 @@ class Home : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
     override fun onStart() {
         super.onStart()
         Listener.changed = ::live
-        handler.post(tick)
+        handler.post(minute)
         reload()
         serve()
+        if (stack.isEmpty()) rise(home)
     }
 
     private fun reload() {
@@ -455,18 +335,23 @@ class Home : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
         return super.dispatchTouchEvent(event)
     }
 
-    override fun onRequestPermissionsResult(code: Int, permissions: Array<String>, results: IntArray) = refresh()
+    override fun onRequestPermissionsResult(code: Int, permissions: Array<String>, results: IntArray) {
+        refresh()
+        if (code == 1 && results.firstOrNull() == PackageManager.PERMISSION_GRANTED) go("agenda")
+    }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        reset()
+        land()
     }
 
     override fun onStop() {
         super.onStop()
         Listener.changed = null
-        handler.removeCallbacks(tick)
-        reset()
+        handler.removeCallbacks(minute)
+        handler.removeCallbacks(second)
+        close(false)
+        hide(false)
     }
 
     override fun onDestroy() {
@@ -480,18 +365,27 @@ class Home : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
         reload()
     }
 
-    private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
+    fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
 
-    private fun sp(value: Float) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, value, resources.displayMetrics)
+    fun sp(value: Float) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, value, resources.displayMetrics)
 
-    private fun color(key: String) = colors.getValue(key)
+    fun color(key: String) = colors.getValue(key)
 
-    private fun fill(key: String, alpha: Int) = color(key) and 0xffffff or (alpha shl 24)
+    fun fill(key: String, alpha: Int) = color(key) and 0xffffff or (alpha shl 24)
 
-    private fun text(size: Float, key: String) = TextView(this).apply {
+    fun font(family: String): Typeface =
+        fonts.getOrPut(family) { runCatching { Typeface.createFromAsset(assets, "fonts/$family.ttf") }.getOrDefault(Typeface.MONOSPACE) }
+
+    fun text(size: Float, key: String, value: CharSequence = "") = TextView(this).apply {
         textSize = size
         typeface = face
         setTextColor(color(key))
+        text = value
+    }
+
+    fun line(size: Float, key: String, value: CharSequence = "") = text(size, key, value).apply {
+        maxLines = 1
+        ellipsize = TextUtils.TruncateAt.END
     }
 
     private fun clock(format: String, size: Float, key: String) = TextClock(this).apply {
@@ -502,34 +396,160 @@ class Home : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
         setTextColor(color(key))
     }
 
-    private fun native(vararg options: String): String {
-        val paint = Paint().apply {
-            typeface = face
-            textSize = 100f
-        }
-        return options.firstOrNull { paint.measureText(it) == paint.measureText("M") } ?: options.last()
+    fun span(vararg parts: Pair<String, String>): CharSequence {
+        val out = SpannableStringBuilder()
+        for ((value, key) in parts) out.append(value, ForegroundColorSpan(color(key)), 0)
+        return out
     }
 
-    private fun frame() = GradientDrawable().apply {
+    fun frame() = GradientDrawable().apply {
         setColor(fill("bgDim", 0xe0))
         setStroke(dp(2), color("border"))
     }
 
-    private fun tile(vararg children: View) = LinearLayout(this).apply {
+    fun tile(vararg children: View) = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
         background = frame()
         setPadding(dp(14), dp(12), dp(14), dp(12))
         children.forEach(::addView)
     }
 
-    private fun block(size: Float, key: String) = text(size, key).apply { setHorizontallyScrolling(true) }
+    private fun quick(badge: View, title: View, detail: View) =
+        tile(strip(badge, column(title, detail).apply { layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f).apply { marginStart = dp(12) } }))
 
-    private fun row(vararg children: View) = LinearLayout(this).apply {
+    fun row(vararg children: Pair<View, Float>) = LinearLayout(this).apply {
         isBaselineAligned = false
         setPadding(0, 0, 0, dp(8))
-        children.forEachIndexed { i, child ->
-            addView(child, LinearLayout.LayoutParams(0, MATCH_PARENT, 1f).apply { marginStart = if (i == 0) 0 else dp(8) })
+        children.forEachIndexed { i, (child, weight) ->
+            addView(child, LinearLayout.LayoutParams(0, MATCH_PARENT, weight).apply { marginStart = if (i == 0) 0 else dp(8) })
         }
+    }
+
+    fun strip(vararg children: View) = LinearLayout(this).apply {
+        gravity = Gravity.CENTER_VERTICAL
+        children.forEach(::addView)
+    }
+
+    fun column(vararg children: View) = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        children.forEach(::addView)
+    }
+
+    fun space() = View(this).apply { layoutParams = LinearLayout.LayoutParams(0, 0, 1f) }
+
+    fun scroll(content: View) = ScrollView(this).apply {
+        isVerticalScrollBarEnabled = false
+        addView(content)
+    }
+
+    private fun View.params() =
+        layoutParams as? LinearLayout.LayoutParams ?: LinearLayout.LayoutParams(layoutParams ?: ViewGroup.LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
+
+    fun <T : View> T.after(space: Int): T = apply { layoutParams = params().apply { marginStart = dp(space) } }
+
+    fun <T : View> T.below(space: Int): T = apply { layoutParams = params().apply { topMargin = dp(space) } }
+
+    fun FrameLayout.put(view: View, where: Int = Gravity.CENTER) =
+        addView(view, FrameLayout.LayoutParams(view.layoutParams ?: ViewGroup.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)).apply { gravity = where })
+
+    fun glyph(name: String, key: String, size: Int = 20) = glyph(name, color(key), size)
+
+    fun glyph(name: String, tint: Int, size: Int = 20) = ImageView(this).apply {
+        layoutParams = LinearLayout.LayoutParams(dp(size), dp(size))
+        scaleType = ImageView.ScaleType.FIT_XY
+        mark(this, name, tint)
+    }
+
+    fun mark(view: ImageView, name: String, key: String) = mark(view, name, color(key))
+
+    fun mark(view: ImageView, name: String, tint: Int): Boolean {
+        view.setColorFilter(tint, PorterDuff.Mode.SRC_IN)
+        if (view.contentDescription == name) return false
+        view.contentDescription = name
+        view.setImageDrawable(Glyph(name, symbols))
+        return true
+    }
+
+    fun glide(view: View, time: Long = 260) = view.animate().setStartDelay(0).setDuration(time).setInterpolator(ease)
+
+    private fun scale(to: Float, time: Long) = AnimatorSet().apply {
+        playTogether(ObjectAnimator.ofFloat(null, View.SCALE_X, to), ObjectAnimator.ofFloat(null, View.SCALE_Y, to))
+        duration = time
+        interpolator = ease
+    }
+
+    fun bounce(amount: Float) = StateListAnimator().apply {
+        addState(intArrayOf(android.R.attr.state_pressed), scale(amount, 90))
+        addState(intArrayOf(), scale(1f, 200))
+    }
+
+    fun <T : View> press(view: T, amount: Float = 0.96f, act: () -> Unit): T = view.apply {
+        stateListAnimator = bounce(amount)
+        setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
+            act()
+        }
+    }
+
+    fun button(view: View, act: () -> Unit) = press(
+        FrameLayout(this).apply {
+            minimumWidth = dp(44)
+            minimumHeight = dp(44)
+            put(view)
+        },
+        0.8f,
+        act,
+    )
+
+    fun meter() = FrameLayout(this).apply {
+        setBackgroundColor(fill("fgMuted", 0x33))
+        addView(View(this@Home).apply { pivotX = 0f; scaleX = 0f; setBackgroundColor(color("accent")) }, MATCH_PARENT, MATCH_PARENT)
+    }
+
+    fun level(meter: FrameLayout, fraction: Float, key: String = "accent") {
+        val bar = meter.getChildAt(0)
+        bar.setBackgroundColor(color(key))
+        glide(bar, 600).scaleX(fraction.coerceIn(0f, 1f)).start()
+    }
+
+    fun busy(view: View, on: Boolean) {
+        val running = view.tag as? ValueAnimator
+        if (on == (running != null)) return
+        if (on) {
+            view.tag = ObjectAnimator.ofFloat(view, View.ALPHA, 1f, 0.3f).apply {
+                duration = 700
+                repeatMode = ValueAnimator.REVERSE
+                repeatCount = ValueAnimator.INFINITE
+                start()
+            }
+        } else {
+            running?.cancel()
+            view.tag = null
+            view.alpha = 1f
+        }
+    }
+
+    private fun bump(view: View) {
+        view.scaleX = 0.6f
+        view.scaleY = 0.6f
+        glide(view, 220).scaleX(1f).scaleY(1f).start()
+    }
+
+    private fun rise(group: ViewGroup) {
+        for (i in 0 until group.childCount) {
+            val child = group.getChildAt(i)
+            child.alpha = 0f
+            child.translationY = dp(20).toFloat()
+            glide(child, 360).setStartDelay(i * 40L).alpha(1f).translationY(0f).start()
+        }
+    }
+
+    fun empty(icon: String, label: String) = column(
+        glyph(icon, "fgMuted", 48).apply { alpha = 0.6f },
+        text(13f, "fgMuted", label).below(12),
+    ).apply {
+        gravity = Gravity.CENTER_HORIZONTAL
+        setPadding(0, dp(56), 0, 0)
     }
 
     private fun icon() = ImageView(this).apply {
@@ -577,78 +597,131 @@ class Home : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
         }
         name = theme.optString("name")
         if (name == switching) switching = null
-        face = runCatching { Typeface.createFromAsset(assets, "fonts/${theme.getString("font")}.ttf") }.getOrDefault(Typeface.MONOSPACE)
-        play = native("\u25b6\ufe0e", "\u25ba", "\u25b7", ">")
-        val back = native("\u25c0\ufe0e", "\u25c4", "\u25c1", "<")
-        fetch = block(12f, "fg")
-        weather = block(13f, "fg").apply { setPadding(0, dp(10), 0, 0) }
-        agenda = block(13f, "fg")
-        media = block(14f, "fg")
-        pc = block(13f, "fg")
-        scheme = block(13f, "fg")
-        wall = block(13f, "fg")
-        toggle = text(18f, "accent")
-        val keys = LinearLayout(this).apply {
-            gravity = Gravity.CENTER_VERTICAL
-            for ((glyph, act) in listOf<Pair<String, (MediaController.TransportControls) -> Unit>>(
-                back + back to { it.skipToPrevious() },
-                "" to { if (player()?.playbackState?.state == PlaybackState.STATE_PLAYING) it.pause() else it.play() },
-                play + play to { it.skipToNext() },
-            )) {
-                val key = if (glyph.isEmpty()) toggle else text(18f, "accent").apply { text = glyph }
-                key.setPadding(dp(12), 0, dp(12), 0)
-                key.setOnClickListener { player()?.transportControls?.let(act) }
-                addView(key)
+        face = font(theme.optString("font"))
+        val open = stack.map { it.key }
+        stack.clear()
+
+        val time = press(tile(clock("HH:mm", 54f, "fg"), clock("EEE d MMMM", 14f, "fgMuted")), 0.97f) {
+            runCatching { startActivity(Intent(AlarmClock.ACTION_SHOW_ALARMS)) }
+        }
+        sky = glyph("cloud", "fgMuted", 36)
+        degrees = text(24f, "fg", "--").below(6)
+        spread = text(11f, "fgMuted")
+        val weather = press(tile(sky, degrees, spread).apply { gravity = Gravity.CENTER }, 0.97f) { go("weather") }
+
+        power = glyph("battery-medium", "accent", 14)
+        meters = List(3) { meter() to text(11f, "fgMuted").after(6) }
+        val system = press(
+            tile(
+                LinearLayout(this).apply {
+                    for ((i, icon) in listOf(power, glyph("memory-stick", "accent", 14), glyph("hard-drive", "accent", 14)).withIndex()) {
+                        val (bar, value) = meters[i]
+                        addView(
+                            column(strip(icon, value), bar.apply { layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, dp(3)) }.below(8)),
+                            LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f).apply { if (i > 0) marginStart = dp(16) },
+                        )
+                    }
+                },
+            ),
+            0.97f,
+        ) { go("system") }
+
+        agenda = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
+        val plans = press(tile(agenda), 0.97f) {
+            if (checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED) {
+                day = LocalDate.now()
+                go("agenda")
+            } else {
+                requestPermissions(arrayOf(Manifest.permission.READ_CALENDAR), 1)
             }
         }
-        val today = tile(clock("HH:mm", 44f, "fg"), clock("EEEE", 16f, "accent"), clock("d MMMM yyyy", 14f, "fgMuted"), weather)
-        val playing = tile(
-            LinearLayout(this).apply {
-                gravity = Gravity.CENTER_VERTICAL
-                addView(media, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
-                addView(keys)
-            },
-        ).apply { setOnClickListener { if (!granted()) startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) } }
+
+        cover = ImageView(this).apply { scaleType = ImageView.ScaleType.CENTER_CROP }
+        note = glyph("music", "fgMuted", 20)
+        track = line(14f, "fg")
+        artist = line(12f, "fgMuted")
+        toggle = glyph("play", "accent", 20)
+        val prev = glyph("skip-back", "accent", 20)
+        val next = glyph("skip-forward", "accent", 20)
+        keys = listOf(prev, toggle, next)
+        progress = meter()
+        val playing = press(
+            tile(
+                strip(
+                    FrameLayout(this).apply {
+                        setBackgroundColor(color("bgAlt"))
+                        layoutParams = LinearLayout.LayoutParams(dp(44), dp(44))
+                        addView(cover, MATCH_PARENT, MATCH_PARENT)
+                        put(note)
+                    },
+                    column(track, artist).apply { layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f).apply { marginStart = dp(12) } },
+                    button(prev) { transport { it.skipToPrevious() } },
+                    button(toggle) { playPause() },
+                    button(next) { transport { it.skipToNext() } },
+                ),
+                progress.apply { layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, dp(2)) }.below(10),
+            ),
+            0.97f,
+        ) { if (granted()) go("player") else startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
+
+        terminal = glyph("square-terminal", "fgMuted", 22)
+        link = FrameLayout(this).apply {
+            layoutParams = LinearLayout.LayoutParams(dp(40), dp(40))
+            put(terminal)
+        }
+        way = line(12f, "fgMuted")
+        val pc = press(quick(link, line(15f, "fg", "pc"), way), 0.96f) { connect() }
+        preview = ImageView(this).apply {
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+        }
+        picture = glyph("image", "fgMuted", 20)
+        scheme = line(15f, "fg")
+        chips = strip().apply {
+            for (key in listOf("accent") + SWATCHES) addView(View(this@Home).apply { setBackgroundColor(color(key)) }, LinearLayout.LayoutParams(dp(8), dp(8)).apply { marginEnd = dp(3) })
+        }
+        val look = press(
+            quick(
+                FrameLayout(this).apply {
+                    setBackgroundColor(color("bgAlt"))
+                    layoutParams = LinearLayout.LayoutParams(dp(40), dp(40))
+                    put(preview)
+                    put(picture)
+                },
+                scheme,
+                chips.below(6),
+            ),
+            0.96f,
+        ) { look(0) }
+
         pins = FrameLayout(this)
-        val bar = tile(text(16f, "fgMuted").apply { text = "search apps" }).apply { setOnClickListener { open() } }
+        val bar = press(tile(strip(glyph("search", "fgMuted", 16), text(15f, "fgMuted", "search").after(10))), 0.98f) { open() }
         home = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            addView(row(today, tile(fetch)))
-            addView(
-                row(
-                    tile(agenda).apply {
-                        setOnClickListener {
-                            if (checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED) {
-                                week()
-                            } else {
-                                requestPermissions(arrayOf(Manifest.permission.READ_CALENDAR), 0)
-                            }
-                        }
-                    },
-                ),
-            )
-            addView(row(playing))
-            addView(
-                row(
-                    tile(pc).apply { setOnClickListener { connect() } },
-                    tile(scheme).apply { setOnClickListener { themes() } },
-                    tile(wall).apply { setOnClickListener { wallpapers() } },
-                ),
-            )
+            addView(row(time to 1.75f, weather to 1f))
+            addView(row(system to 1f))
+            addView(row(plans to 1f))
+            addView(row(playing to 1f))
+            addView(row(pc to 1f, look to 1f))
             addView(pins, LinearLayout.LayoutParams(MATCH_PARENT, 0, 1f))
             addView(bar)
         }
 
+        val clear = button(glyph("x", "fgMuted", 14)) { query.text.clear() }.apply { visibility = View.GONE }
         query = EditText(this).apply {
-            setBackgroundColor(color("bgAlt"))
-            hint = "search apps"
+            background = null
+            hint = "search"
             textSize = 16f
             typeface = face
             setTextColor(color("fg"))
             setHintTextColor(color("fgMuted"))
+            textCursorDrawable = GradientDrawable().apply {
+                setColor(color("accent"))
+                setSize(dp(2), 0)
+            }
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
             imeOptions = EditorInfo.IME_ACTION_GO
-            setPadding(dp(14), dp(12), dp(14), dp(12))
+            setPadding(dp(10), dp(12), dp(10), dp(12))
             setOnEditorActionListener { _, _, _ ->
                 shown.firstOrNull()?.let(::launch)
                 true
@@ -658,7 +731,10 @@ class Home : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
 
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
-                override fun afterTextChanged(s: Editable?) = filter()
+                override fun afterTextChanged(s: Editable?) {
+                    clear.visibility = if (s.isNullOrEmpty()) View.GONE else View.VISIBLE
+                    filter()
+                }
             })
         }
         grid = GridView(this).apply {
@@ -670,7 +746,8 @@ class Home : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
             setPadding(0, dp(18), 0, 0)
             clipToPadding = false
             setOnItemClickListener { _, _, i, _ -> launch(shown[i]) }
-            setOnItemLongClickListener { _, _, i, _ ->
+            setOnItemLongClickListener { view, _, i, _ ->
+                view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                 menu(shown[i])
                 true
             }
@@ -680,7 +757,14 @@ class Home : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
             visibility = View.GONE
             isClickable = true
             setBackgroundColor(fill("bgDim", 0xf0))
-            addView(query, MATCH_PARENT, WRAP_CONTENT)
+            addView(
+                strip(glyph("search", "fgMuted", 16), query.apply { layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f) }, clear).apply {
+                    background = frame()
+                    setPadding(dp(14), 0, dp(4), 0)
+                },
+                MATCH_PARENT,
+                WRAP_CONTENT,
+            )
             addView(grid, LinearLayout.LayoutParams(MATCH_PARENT, 0, 1f))
         }
 
@@ -688,91 +772,269 @@ class Home : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
         sheet = FrameLayout(this).apply {
             visibility = View.GONE
             setBackgroundColor(fill("bgDim", 0x99))
-            setOnClickListener { visibility = View.GONE }
+            setOnClickListener { hide() }
             addView(options, FrameLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT, Gravity.BOTTOM))
         }
-        planner = Week()
-        dates = text(12f, "fgMuted").apply {
-            background = GradientDrawable().apply { setColor(fill("fgMuted", 0x24)) }
-            setPadding(dp(8), dp(2), dp(8), dp(2))
-        }
-        jump = text(13f, "accent").apply { text = "today" }
-        val head = LinearLayout(this).apply {
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(0, 0, 0, dp(10))
-            addView(text(22f, "accent").apply { text = "week" })
-            addView(dates, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { marginStart = dp(10) })
-            addView(View(this@Home), LinearLayout.LayoutParams(0, 0, 1f))
-            for ((key, target) in listOf<Pair<TextView, () -> Int>>(
-                text(18f, "accent").apply { text = back } to { shift - 1 },
-                jump to { 0 },
-                text(18f, "accent").apply { text = play } to { shift + 1 },
-            )) {
-                key.setPadding(dp(10), dp(4), dp(10), dp(4))
-                key.setOnClickListener { page(target()) }
-                addView(key)
+
+        root = FrameLayout(this).apply {
+            addView(home)
+            addView(drawer)
+            addView(sheet)
+            setOnApplyWindowInsetsListener { _, insets ->
+                bars = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.ime() or WindowInsets.Type.displayCutout())
+                (listOf(home, drawer, sheet) + stack.map { it.view }).forEach(::pad)
+                insets
             }
         }
-        calendar = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            visibility = View.GONE
-            isClickable = true
-            setBackgroundColor(fill("bgDim", 0xf0))
-            addView(head)
-            addView(planner, LinearLayout.LayoutParams(MATCH_PARENT, 0, 1f))
-        }
-
-        setContentView(
-            FrameLayout(this).apply {
-                addView(home)
-                addView(drawer)
-                addView(calendar)
-                addView(sheet)
-                setOnApplyWindowInsetsListener { _, insets ->
-                    val inset = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.ime())
-                    for (view in listOf(home, drawer, calendar, sheet)) {
-                        view.setPadding(inset.left + dp(12), inset.top + dp(12), inset.right + dp(12), inset.bottom + dp(12))
-                    }
-                    insets
-                }
-            },
-        )
+        setContentView(root)
         val light = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
         window.insetsController?.setSystemBarsAppearance(if (Color.luminance(color("bgDim")) > 0.5f) light else 0, light)
         pin()
         refresh()
+        for (key in open) screen(key)?.let { push(it, false) }
     }
 
-    private fun refresh() {
-        fetch.text = fetchText()
-        agenda.text = agendaText()
-        weather.text = weatherText()
-        val pending = switching?.takeIf { System.currentTimeMillis() - switchedAt < 90_000 }
-        scheme.text = span("theme\n" to "accent", (pending?.let { "$it..." } ?: name) to (if (pending == null) "fg" else "fgMuted"))
-        wall.text = wallText()
-        if (calendar.visibility == View.VISIBLE) planner.invalidate()
+    private fun pad(view: View) = view.setPadding(bars.left + dp(12), bars.top + dp(12), bars.right + dp(12), bars.bottom + dp(12))
+
+    private fun screen(key: String): Screen? =
+        when (key) {
+            "weather" -> weatherScreen()
+            "system" -> systemScreen()
+            "agenda" -> agendaScreen()
+            "week" -> weekScreen()
+            "player" -> playerScreen()
+            "appearance" -> appearanceScreen()
+            else -> null
+        }
+
+    fun go(key: String) {
+        if (stack.lastOrNull()?.key != key) screen(key)?.let(::push)
+    }
+
+    private fun push(screen: Screen, animate: Boolean = true) {
+        val below = stack.lastOrNull()?.view ?: home
+        stack += screen
+        pad(screen.view)
+        root.addView(screen.view, root.indexOfChild(sheet))
+        if (screen.key == "week") requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        if (!animate) {
+            below.visibility = View.INVISIBLE
+            return
+        }
+        val width = root.width.toFloat()
+        if (screen.key == "week") {
+            screen.view.alpha = 0f
+            glide(screen.view).alpha(1f).start()
+        } else {
+            screen.view.translationX = width
+            glide(screen.view, 300).translationX(0f).start()
+        }
+        glide(below, 300).translationX(-width / 4).alpha(0f).withEndAction { below.visibility = View.INVISIBLE }.start()
+    }
+
+    fun pop() {
+        val top = stack.removeLastOrNull() ?: return
+        val below = stack.lastOrNull()?.view ?: home
+        below.visibility = View.VISIBLE
+        glide(below, 300).translationX(0f).alpha(1f).start()
+        if (top.key == "week") {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            glide(top.view, 180).alpha(0f).withEndAction { root.removeView(top.view) }.start()
+        } else {
+            glide(top.view, 260).translationX(root.width.toFloat()).withEndAction { root.removeView(top.view) }.start()
+        }
+        if (stack.isEmpty()) refresh() else stack.last().update()
+    }
+
+    fun back() {
+        when {
+            sheet.visibility == View.VISIBLE -> hide()
+            stack.isNotEmpty() -> pop()
+            drawer.visibility == View.VISIBLE -> close()
+        }
+    }
+
+    private fun lean(progress: Float, settle: Boolean = false) {
+        val view = when {
+            sheet.visibility == View.VISIBLE -> options
+            stack.isNotEmpty() -> stack.last().view
+            drawer.visibility == View.VISIBLE -> drawer
+            else -> return
+        }
+        when {
+            settle -> glide(view, 180).translationX(0f).translationY(0f).scaleX(1f).scaleY(1f).start()
+            view === stack.lastOrNull()?.view -> {
+                view.translationX = progress * dp(56)
+                view.scaleX = 1 - progress * 0.05f
+                view.scaleY = view.scaleX
+            }
+            else -> view.translationY = progress * dp(80)
+        }
+    }
+
+    fun land() {
+        hide()
+        close()
+        if (stack.isEmpty()) return
+        while (stack.size > 1) root.removeView(stack.removeAt(stack.lastIndex).view)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        pop()
+    }
+
+    fun refresh() {
+        val stats = stats()
+        val key = when {
+            stats.charging -> "success"
+            stats.battery <= 15 -> "error"
+            else -> "accent"
+        }
+        mark(
+            power,
+            when {
+                stats.charging -> "battery-charging"
+                stats.battery <= 15 -> "battery-warning"
+                stats.battery <= 40 -> "battery-low"
+                stats.battery <= 80 -> "battery-medium"
+                else -> "battery-full"
+            },
+            key,
+        )
+        val fractions = listOf(stats.battery / 100f, stats.memory.toFloat() / stats.memoryTotal, stats.disk.toFloat() / stats.diskTotal)
+        for ((i, fraction) in fractions.withIndex()) {
+            val (bar, value) = meters[i]
+            level(bar, fraction, if (i == 0) key else "accent")
+            value.text = "${(fraction * 100).roundToInt()}%"
+        }
+        agendaTile()
+        weatherTile()
+        val waiting = pending()
+        scheme.text = waiting?.let { "$it\u2026" } ?: name
+        scheme.setTextColor(color(if (waiting == null) "fg" else "fgMuted"))
+        busy(chips, waiting != null)
+        wallTile()
         live()
+        stack.lastOrNull()?.update?.invoke()
         Thread {
             val route = when {
                 tether().isNotEmpty() -> "usb tether"
                 online() -> "tailnet"
                 else -> null
             }
-            runOnUiThread { pc.text = span("pc\n" to "accent", (route ?: "no network") to (if (route == null) "fgMuted" else "fg")) }
+            runOnUiThread {
+                link.setBackgroundColor(if (route == null) fill("fgMuted", 0x26) else color(if (route == "usb tether") "success" else "accent"))
+                mark(terminal, "square-terminal", if (route == null) "fgMuted" else "bgDim")
+                way.text = route ?: "offline"
+            }
         }.start()
-        if (System.currentTimeMillis() - state.getLong("weatherAt", 0) > 1_800_000) {
-            Thread {
-                val body = runCatching { URL(FORECAST).readText() }.getOrNull() ?: return@Thread
-                state.edit().putString("weather", body).putLong("weatherAt", System.currentTimeMillis()).apply()
-                runOnUiThread { weather.text = weatherText() }
-            }.start()
+        weather(false)
+    }
+
+    fun stats(): Stats {
+        val memory = ActivityManager.MemoryInfo().also { getSystemService(ActivityManager::class.java).getMemoryInfo(it) }
+        val disk = StatFs(Environment.getDataDirectory().path)
+        val battery = getSystemService(BatteryManager::class.java)
+        return Stats(
+            memory.totalMem - memory.availMem,
+            memory.totalMem,
+            disk.totalBytes - disk.availableBytes,
+            disk.totalBytes,
+            battery.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY),
+            battery.isCharging,
+        )
+    }
+
+    fun installed() = apps.size
+
+    private fun agendaTile() {
+        agenda.removeAllViews()
+        if (checkSelfPermission(Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
+            agenda.addView(glyph("calendar", "fgMuted", 18))
+            agenda.addView(text(14f, "fgMuted", "allow calendar").after(12))
+            return
+        }
+        val now = System.currentTimeMillis()
+        val found = events(now, now + 7 * 86_400_000L).filter { it.end > now }
+        val next = found.firstOrNull { !it.allDay } ?: found.firstOrNull()
+        if (next == null) {
+            agenda.addView(glyph("calendar", "fgMuted", 18))
+            agenda.addView(text(14f, "fgMuted", "free this week").after(12))
+            return
+        }
+        val today = LocalDate.now()
+        val running = next.begin <= now
+        val more = found.count { it !== next && !it.allDay && it.on(today) }
+        val tint = if (running) "success" else "accent"
+        val bar = View(this).apply { setBackgroundColor(color(tint)) }
+        agenda.addView(bar, LinearLayout.LayoutParams(dp(3), MATCH_PARENT).apply { marginEnd = dp(12) })
+        if (running) busy(bar, true)
+        val where = next.where()
+        agenda.addView(
+            column(line(15f, "fg", next.label()), strip(glyph("map-pin", "fgMuted", 12), line(12f, "fgDim", where).after(6)).below(4).apply { if (where.isBlank()) visibility = View.GONE }),
+            LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f),
+        )
+        agenda.addView(
+            column(text(14f, tint, until(next, now)), text(11f, "fgMuted", if (more > 0) "+$more today" else "").below(2)).apply { gravity = Gravity.END },
+            LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { marginStart = dp(8) },
+        )
+    }
+
+    private fun until(event: Event, now: Long): String {
+        val minutes = (event.begin - now) / 60_000
+        return when {
+            event.begin <= now -> "now"
+            minutes < 60 -> "in ${minutes}m"
+            event.on(LocalDate.now()) -> DateFormat.format("HH:mm", event.begin).toString()
+            else -> DateFormat.format("EEE", event.begin).toString().lowercase()
         }
     }
 
-    private fun span(vararg parts: Pair<String, String>): CharSequence {
-        val out = SpannableStringBuilder()
-        for ((value, key) in parts) out.append(value, ForegroundColorSpan(color(key)), 0)
-        return out
+    fun forecast(): JSONObject? = runCatching { JSONObject(state.getString("forecast", null)!!) }.getOrNull()
+
+    fun updated() = state.getLong("forecastAt", 0)
+
+    fun weather(force: Boolean) {
+        if (fetching || !force && System.currentTimeMillis() - updated() < 1_800_000) return
+        fetching = true
+        stack.lastOrNull()?.takeIf { it.key == "weather" }?.update?.invoke()
+        Thread {
+            val body = runCatching { URL(FORECAST).readText() }.getOrNull()
+            runOnUiThread {
+                fetching = false
+                if (body != null) state.edit().putString("forecast", body).putLong("forecastAt", System.currentTimeMillis()).apply()
+                weatherTile()
+                stack.lastOrNull()?.takeIf { it.key == "weather" }?.update?.invoke()
+            }
+        }.start()
+    }
+
+    fun sky(code: Int, day: Boolean = true) =
+        when (code) {
+            0, 1 -> if (day) "sun" else "moon"
+            2 -> if (day) "cloud-sun" else "cloud-moon"
+            3 -> "cloud"
+            45, 48 -> "cloud-fog"
+            in 51..57 -> "cloud-drizzle"
+            in 61..67, in 80..82 -> "cloud-rain"
+            in 71..77, 85, 86 -> "cloud-snow"
+            else -> "cloud-lightning"
+        }
+
+    private fun weatherTile() {
+        runCatching {
+            val data = forecast()!!
+            val now = data.getJSONObject("current")
+            val daily = data.getJSONObject("daily")
+            mark(sky, sky(now.getInt("weather_code"), now.optInt("is_day", 1) == 1), "accent")
+            degrees.text = "${now.getDouble("temperature_2m").roundToInt()}°"
+            spread.text = span(
+                "${daily.getJSONArray("temperature_2m_max").getDouble(0).roundToInt()}° " to "fgDim",
+                "${daily.getJSONArray("temperature_2m_min").getDouble(0).roundToInt()}°" to "fgMuted",
+            )
+        }.onFailure {
+            mark(sky, "cloud", "fgMuted")
+            degrees.text = "--"
+            spread.text = ""
+        }
     }
 
     private fun granted() =
@@ -780,76 +1042,177 @@ class Home : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
 
     private fun player(): MediaController? =
         runCatching {
-            getSystemService(MediaSessionManager::class.java).getActiveSessions(ComponentName(this, Listener::class.java)).firstOrNull()
+            val sessions = getSystemService(MediaSessionManager::class.java).getActiveSessions(ComponentName(this, Listener::class.java))
+            sessions.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING } ?: sessions.firstOrNull { it.packageName == music() } ?: sessions.firstOrNull()
         }.getOrNull()
 
-    private fun live() {
-        if (!granted()) {
-            media.text = span("tap to allow notification access" to "fgMuted")
-            return
-        }
-        val player = player()
-        val track = player?.metadata
-        media.text = span(
-            (track?.getString(MediaMetadata.METADATA_KEY_TITLE) ?: "nothing playing") + "\n" to "fg",
-            (track?.getString(MediaMetadata.METADATA_KEY_ARTIST) ?: "") to "fgMuted",
-        )
-        toggle.text = if (player?.playbackState?.state == PlaybackState.STATE_PLAYING) PAUSE else play
+    fun music() = state.getString("music", "").orEmpty()
+
+    fun label(pkg: String) =
+        runCatching { packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString().lowercase() }.getOrNull()
+
+    fun start(pkg: String) {
+        if (pkg.isEmpty()) tunes() else packageManager.getLaunchIntentForPackage(pkg)?.let(::startActivity)
     }
 
-    private fun agendaText(): CharSequence {
-        if (checkSelfPermission(Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
-            return span("agenda\n" to "accent", "tap to allow calendar access" to "fgMuted")
+    fun playPause() {
+        val pkg = music()
+        when {
+            controller != null -> transport { if (playing()) it.pause() else it.play() }
+            pkg.isEmpty() -> tunes()
+            else -> resume(pkg)
         }
-        val now = System.currentTimeMillis()
-        val week = CalendarContract.Instances.CONTENT_URI.buildUpon()
-        ContentUris.appendId(week, now)
-        ContentUris.appendId(week, now + 7 * 86_400_000L)
-        val columns = arrayOf(CalendarContract.Instances.BEGIN, CalendarContract.Instances.TITLE)
-        val out = SpannableStringBuilder()
-        var lines = 0
-        contentResolver.query(week.build(), columns, null, null, CalendarContract.Instances.BEGIN + " ASC")?.use {
-            while (lines < 4 && it.moveToNext()) {
-                if (lines++ > 0) out.append("\n")
-                out.append(span(DateFormat.format("EEE HH:mm ", it.getLong(0)).toString() to "accent", it.getString(1).orEmpty() to "fg"))
-            }
-        }
-        return if (lines == 0) span("agenda\n" to "accent", "nothing this week" to "fgMuted") else out
     }
 
-    private fun weatherText(): CharSequence {
-        val waiting = span("weather\n" to "accent", PLACE to "fgMuted")
-        return runCatching {
-            val data = JSONObject(state.getString("weather", null) ?: return waiting)
-            val now = data.getJSONObject("current")
-            val days = data.getJSONObject("daily")
-            val sky = when (now.getInt("weather_code")) {
-                0 -> "clear"
-                1 -> "mostly clear"
-                2 -> "partly cloudy"
-                3 -> "overcast"
-                45, 48 -> "fog"
-                in 51..57 -> "drizzle"
-                in 61..67 -> "rain"
-                in 71..77, 85, 86 -> "snow"
-                in 80..82 -> "showers"
-                else -> "storm"
+    private fun resume(pkg: String) {
+        val audio = getSystemService(AudioManager::class.java)
+        for (action in listOf(KeyEvent.ACTION_DOWN, KeyEvent.ACTION_UP)) audio.dispatchMediaKeyEvent(KeyEvent(action, KeyEvent.KEYCODE_MEDIA_PLAY))
+        await(pkg, 16)
+    }
+
+    private fun await(pkg: String, tries: Int) {
+        handler.postDelayed({
+            live()
+            val mine = controller?.packageName == pkg
+            val empty = mine && controller?.playbackState?.state == PlaybackState.STATE_STOPPED && controller?.metadata == null
+            when {
+                playing() && mine -> Unit
+                playing() -> {
+                    controller?.transportControls?.pause()
+                    bounce(pkg)
+                }
+                tries == 0 || empty && tries <= 10 -> bounce(pkg)
+                else -> await(pkg, tries - 1)
             }
-            val out = SpannableStringBuilder(
-                span(
-                    "${now.getDouble("temperature_2m").toInt()}\u00b0 " to "fg",
-                    "$sky\n" to "accent",
-                    "feels ${now.getDouble("apparent_temperature").toInt()}\u00b0 \u00b7 $PLACE" to "fgMuted",
-                ),
+        }, 500)
+    }
+
+    private fun bounce(pkg: String) {
+        start(pkg)
+        settle(pkg, 30)
+    }
+
+    private fun settle(pkg: String, tries: Int) {
+        handler.postDelayed({
+            val session = runCatching {
+                getSystemService(MediaSessionManager::class.java).getActiveSessions(ComponentName(this, Listener::class.java)).firstOrNull { it.packageName == pkg }
+            }.getOrNull()
+            val state = session?.playbackState?.state
+            when {
+                state == PlaybackState.STATE_PLAYING -> startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                tries == 0 -> Unit
+                else -> {
+                    if (session?.metadata != null && state != PlaybackState.STATE_BUFFERING && state != PlaybackState.STATE_CONNECTING) session.transportControls.play()
+                    settle(pkg, tries - 1)
+                }
+            }
+        }, 500)
+    }
+
+    fun tunes() {
+        val found = (
+            packageManager.queryIntentServices(Intent("android.media.browse.MediaBrowserService"), 0).map { it.serviceInfo.packageName } +
+                packageManager.queryIntentActivities(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_MUSIC), 0).map { it.activityInfo.packageName }
+            ).toSet()
+        val choices = apps.filter { it.component.packageName in found && it.component.packageName != packageName }.distinctBy { it.component.packageName }
+        val current = music()
+        options.removeAllViews()
+        options.addView(strip(glyph("music", "accent", 22), line(16f, "fg", "default music app").after(14)).apply { setPadding(0, 0, 0, dp(10)) })
+        val rows = column()
+        for (app in choices) {
+            val box = icon().apply {
+                layoutParams = LinearLayout.LayoutParams(dp(36), dp(36))
+                setPadding(dp(4), dp(4), dp(4), dp(4))
+            }
+            draw(box, app)
+            rows.addView(
+                press(
+                    strip(
+                        box,
+                        line(15f, "fg", app.label).apply { layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f).apply { marginStart = dp(14) } },
+                        glyph("check", "accent", 18).apply { if (app.component.packageName != current) visibility = View.INVISIBLE },
+                    ).apply { setPadding(0, dp(8), 0, dp(8)) },
+                    0.98f,
+                ) {
+                    state.edit().putString("music", app.component.packageName).apply()
+                    hide()
+                    live()
+                },
+                MATCH_PARENT,
+                WRAP_CONTENT,
             )
-            for (i in 1 until days.getJSONArray("time").length()) {
-                val day = LocalDate.parse(days.getJSONArray("time").getString(i)).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()).lowercase()
-                val high = days.getJSONArray("temperature_2m_max").getDouble(i).toInt()
-                val low = days.getJSONArray("temperature_2m_min").getDouble(i).toInt()
-                out.append(span("\n$day " to "accent", "$high\u00b0 $low\u00b0" to "fgDim"))
-            }
-            out
-        }.getOrDefault(waiting)
+        }
+        if (choices.isEmpty()) rows.addView(text(14f, "fgMuted", "no music apps found"))
+        options.addView(scroll(rows), MATCH_PARENT, WRAP_CONTENT)
+        show()
+    }
+
+    fun playing() = controller?.playbackState?.state == PlaybackState.STATE_PLAYING
+
+    fun artwork(meta: MediaMetadata?): Bitmap? =
+        meta?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART) ?: meta?.getBitmap(MediaMetadata.METADATA_KEY_ART)
+
+    fun position(): Pair<Long, Long> {
+        val player = controller ?: return 0L to 0L
+        val playback = player.playbackState ?: return 0L to 0L
+        val total = player.metadata?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L
+        var at = playback.position
+        if (playback.state == PlaybackState.STATE_PLAYING) at += ((SystemClock.elapsedRealtime() - playback.lastPositionUpdateTime) * playback.playbackSpeed).toLong()
+        return at.coerceIn(0L, maxOf(total, 0L)) to total
+    }
+
+    fun transport(act: (MediaController.TransportControls) -> Unit) {
+        controller?.transportControls?.let(act)
+        handler.postDelayed(::live, 300)
+    }
+
+    private fun beat() {
+        val (at, total) = position()
+        level(progress, if (total > 0) at.toFloat() / total else 0f)
+        stack.lastOrNull()?.beat?.invoke()
+    }
+
+    fun live() {
+        val allowed = granted()
+        val player = if (allowed) player() else null
+        controller = player
+        val meta = player?.metadata
+        val fallback = if (player == null) label(music()) else null
+        track.text = when {
+            !allowed -> "allow access"
+            meta == null -> "nothing playing"
+            else -> meta.getString(MediaMetadata.METADATA_KEY_TITLE).orEmpty()
+        }
+        track.setTextColor(color(if (meta == null) "fgMuted" else "fg"))
+        artist.text = meta?.getString(MediaMetadata.METADATA_KEY_ARTIST) ?: fallback.orEmpty()
+        artist.visibility = if (artist.text.isEmpty()) View.GONE else View.VISIBLE
+        val art = artwork(meta)
+        cover.setImageBitmap(art)
+        note.visibility = if (art == null) View.VISIBLE else View.GONE
+        if (mark(toggle, if (playing()) "pause" else "play", "accent")) bump(toggle)
+        keys.forEach { it.alpha = if (player == null && (it !== toggle || !allowed)) 0.35f else 1f }
+        beat()
+        handler.removeCallbacks(second)
+        if (playing()) handler.postDelayed(second, 1000)
+        stack.lastOrNull()?.takeIf { it.key == "player" }?.update?.invoke()
+    }
+
+    fun pending() = switching?.takeIf { System.currentTimeMillis() - switchedAt < 90_000 }
+
+    fun thumb(id: String): Bitmap? {
+        val file = File(File(filesDir, WALLS), id)
+        if (!file.exists()) return null
+        val cached = thumbs[id]?.takeIf { it.first == file.lastModified() }
+        return cached?.second ?: BitmapFactory.decodeFile(file.path).also { thumbs[id] = file.lastModified() to it }
+    }
+
+    fun wallName() = walls.getString("current", "").orEmpty().removePrefix("plates+").substringBeforeLast('.')
+
+    private fun wallTile() {
+        val current = walls.getString("current", "").orEmpty()
+        val bitmap = if (current.isEmpty()) null else thumb(current)
+        preview.setImageBitmap(bitmap)
+        picture.visibility = if (bitmap == null) View.VISIBLE else View.GONE
     }
 
     private fun pinned(): List<String> {
@@ -891,7 +1254,7 @@ class Home : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
         var far = false
         val lift = Runnable {
             carrying = true
-            box.alpha = 0.6f
+            glide(box, 160).scaleX(1.15f).scaleY(1.15f).alpha(0.85f).start()
             box.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
         }
         box.setOnTouchListener { view, event ->
@@ -902,12 +1265,16 @@ class Home : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
                     fromX = event.rawX
                     fromY = event.rawY
                     far = false
+                    glide(view, 90).scaleX(0.9f).scaleY(0.9f).start()
                     handler.postDelayed(lift, 350)
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    if (abs(dx) + abs(dy) > dp(12)) {
+                    if (abs(dx) + abs(dy) > dp(12) && !far) {
                         far = true
-                        if (!carrying) handler.removeCallbacks(lift)
+                        if (!carrying) {
+                            handler.removeCallbacks(lift)
+                            glide(view).scaleX(1f).scaleY(1f).start()
+                        }
                     }
                     if (carrying) {
                         view.translationX = dx
@@ -918,9 +1285,7 @@ class Home : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
                     val held = carrying
                     handler.removeCallbacks(lift)
                     carrying = false
-                    view.alpha = 1f
-                    view.translationX = 0f
-                    view.translationY = 0f
+                    glide(view).scaleX(1f).scaleY(1f).alpha(1f).translationX(0f).translationY(0f).start()
                     when {
                         held && far -> move(app, column + Math.round(dx / dp(52)), line - Math.round(dy / dp(52)))
                         held -> menu(app)
@@ -945,8 +1310,8 @@ class Home : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
     private fun menu(app: App) {
         val pinned = pinned()
         val target = Uri.fromParts("package", app.component.packageName, null)
-        val items = listOf<Pair<String, () -> Unit>>(
-            (if (app.id in pinned) "unpin" else "pin") to {
+        val items = listOf<Triple<String, String, () -> Unit>>(
+            Triple(if (app.id in pinned) "pin-off" else "pin", if (app.id in pinned) "unpin" else "pin") {
                 val spots = JSONObject(state.getString("spots", "{}")).apply { remove(app.id) }
                 state.edit()
                     .putString("pins", JSONArray(if (app.id in pinned) pinned - app.id else pinned + app.id).toString())
@@ -954,193 +1319,81 @@ class Home : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
                     .apply()
                 pin()
             },
-            "app info" to { startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, target)) },
-            "uninstall" to { startActivity(Intent(Intent.ACTION_DELETE, target)) },
+            Triple("info", "app info") { startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, target)) },
+            Triple("trash-2", "uninstall") { startActivity(Intent(Intent.ACTION_DELETE, target)) },
         )
-        picking = false
         options.removeAllViews()
-        options.addView(text(14f, "accent").apply { text = app.label })
-        for ((label, act) in items) {
+        val box = icon().apply { layoutParams = LinearLayout.LayoutParams(dp(44), dp(44)) }
+        draw(box, app)
+        options.addView(strip(box, line(16f, "fg", app.label).after(14)).apply { setPadding(0, 0, 0, dp(6)) })
+        for ((glyph, label, act) in items) {
             options.addView(
-                text(17f, "fg").apply {
-                    text = label
-                    setPadding(0, dp(14), 0, dp(14))
-                    setOnClickListener {
-                        sheet.visibility = View.GONE
-                        act()
-                    }
+                press(strip(glyph(glyph, "accent", 18), text(16f, "fg", label).after(16)).apply { setPadding(dp(13), dp(14), 0, dp(14)) }, 0.98f) {
+                    hide()
+                    act()
                 },
                 MATCH_PARENT,
                 WRAP_CONTENT,
             )
         }
+        show()
+    }
+
+    private fun show() {
         sheet.visibility = View.VISIBLE
+        sheet.alpha = 0f
+        glide(sheet, 200).alpha(1f).start()
+        options.translationY = dp(320).toFloat()
+        glide(options, 320).translationY(0f).start()
     }
 
-    private fun week() {
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-        page(0)
-        home.visibility = View.INVISIBLE
-        calendar.visibility = View.VISIBLE
-    }
-
-    private fun page(target: Int) {
-        shift = target
-        val zone = ZoneId.systemDefault()
-        val monday = LocalDate.now().with(DayOfWeek.MONDAY).plusWeeks(shift.toLong())
-        val range = CalendarContract.Instances.CONTENT_URI.buildUpon()
-        ContentUris.appendId(range, monday.minusDays(1).atStartOfDay(zone).toInstant().toEpochMilli())
-        ContentUris.appendId(range, monday.plusDays(8).atStartOfDay(zone).toInstant().toEpochMilli())
-        val columns = arrayOf(
-            CalendarContract.Instances.EVENT_ID,
-            CalendarContract.Instances.BEGIN,
-            CalendarContract.Instances.END,
-            CalendarContract.Instances.TITLE,
-            CalendarContract.Instances.EVENT_LOCATION,
-            CalendarContract.Instances.DESCRIPTION,
-            CalendarContract.Instances.ALL_DAY,
-        )
-        val found = mutableListOf<Event>()
-        contentResolver.query(range.build(), columns, null, null, CalendarContract.Instances.BEGIN + " ASC")?.use {
-            while (it.moveToNext()) {
-                found += Event(it.getLong(0), it.getLong(1), it.getLong(2), it.getString(3).orEmpty(), it.getString(4).orEmpty(), it.getString(5).orEmpty(), it.getInt(6) == 1)
-            }
+    private fun hide(animate: Boolean = true) {
+        if (sheet.visibility != View.VISIBLE) return
+        if (!animate) {
+            sheet.animate().cancel()
+            sheet.visibility = View.GONE
+            return
         }
-        planner.show(monday, found)
-        dates.text = "${monday.format(SHORT)} - ${monday.plusDays(planner.count - 1L).format(SHORT)}".lowercase()
-        jump.setTextColor(color(if (shift == 0) "accent" else "fgDim"))
-    }
-
-    private fun visit(event: Event) {
-        startActivity(
-            Intent(Intent.ACTION_VIEW, ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, event.id))
-                .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, event.begin)
-                .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, event.end),
-        )
-    }
-
-    private fun themes() {
-        val list = JSONArray(assets.open("themes.json").bufferedReader().use { it.readText() })
-        val rows = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        for (i in 0 until list.length()) {
-            val theme = list.getJSONObject(i)
-            val id = theme.getString("name")
-            fun of(key: String) = Color.parseColor(theme.getString(key))
-            val swatches = SpannableStringBuilder()
-            for (key in listOf("accent") + SWATCHES) swatches.append(" \u25a0", ForegroundColorSpan(of(key)), 0)
-            rows.addView(
-                text(14f, "fg").apply {
-                    text = SpannableStringBuilder(id.padEnd(14)).append(swatches)
-                    setTextColor(of("fg"))
-                    background = GradientDrawable().apply {
-                        setColor(of("bgDim"))
-                        setStroke(dp(2), of(if (id == name) "accent" else "border"))
-                    }
-                    setPadding(dp(12), dp(10), dp(12), dp(10))
-                    setOnClickListener {
-                        sheet.visibility = View.GONE
-                        switch(id)
-                    }
-                },
-                LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = dp(8) },
-            )
-        }
-        picking = false
-        options.removeAllViews()
-        options.addView(text(14f, "accent").apply { text = "theme" })
-        options.addView(ScrollView(this).apply { addView(rows) }, MATCH_PARENT, WRAP_CONTENT)
-        sheet.visibility = View.VISIBLE
-    }
-
-    private fun wallText(): CharSequence {
-        val current = walls.getString("current", "").orEmpty().removePrefix("plates+").substringBeforeLast('.')
-        return span("wallpaper\n" to "accent", current.ifEmpty { "pick" } to (if (current.isEmpty()) "fgMuted" else "fg"))
-    }
-
-    private fun wallpapers() {
-        val have = File(filesDir, WALLS).list().orEmpty().filter(ID::matches)
-        walls.edit().putString("status", "syncing").apply()
-        val script = assets.open("pc").bufferedReader().use { it.readText() }
-        val run = Intent("com.termux.RUN_COMMAND")
-            .setClassName(TERMUX, "$TERMUX.app.RunCommandService")
-            .putExtra("$TERMUX.RUN_COMMAND_PATH", "/data/data/$TERMUX/files/usr/bin/bash")
-            .putExtra("$TERMUX.RUN_COMMAND_ARGUMENTS", arrayOf("-c", script, "pc", tether(), "walls") + have)
-            .putExtra("$TERMUX.RUN_COMMAND_BACKGROUND", true)
-        runCatching { startForegroundService(run) }
-        picking = true
-        gallery()
-        sheet.visibility = View.VISIBLE
-    }
-
-    private fun gallery() {
-        val saved = JSONArray(walls.getString("list", "[]"))
-        val ids = List(saved.length(), saved::getString)
-        val current = walls.getString("current", "")
-        val status = walls.getString("status", "").orEmpty()
-        val dir = File(filesDir, WALLS)
-        val scrolled = (options.getChildAt(1) as? ScrollView)?.scrollY ?: 0
-        val width = (resources.displayMetrics.widthPixels - dp(68)) / 3
-        val rows = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        for (line in ids.chunked(3)) {
-            rows.addView(
-                LinearLayout(this).apply {
-                    for (id in line) {
-                        addView(
-                            ImageView(this@Home).apply {
-                                scaleType = ImageView.ScaleType.CENTER_CROP
-                                background = GradientDrawable().apply {
-                                    setColor(color("bgAlt"))
-                                    setStroke(dp(2), color(if (id == current) "accent" else "border"))
-                                }
-                                setPadding(dp(2), dp(2), dp(2), dp(2))
-                                val file = File(dir, id)
-                                val cached = thumbs[id]?.takeIf { it.first == file.lastModified() }
-                                setImageBitmap(cached?.second ?: BitmapFactory.decodeFile(file.path).also { thumbs[id] = file.lastModified() to it })
-                                setOnClickListener { pick(id) }
-                            },
-                            LinearLayout.LayoutParams(width, width * 13 / 6).apply { marginEnd = dp(8) },
-                        )
-                    }
-                },
-                LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = dp(8) },
-            )
-        }
-        options.removeAllViews()
-        options.addView(
-            span("wallpaper" to "accent", (if (status.isEmpty()) "" else "  $status") to "fgMuted").let { title ->
-                text(14f, "accent").apply { text = title }
-            },
-        )
-        options.addView(ScrollView(this).apply { addView(rows) }, MATCH_PARENT, WRAP_CONTENT)
-        if (ids.isEmpty() && status.isEmpty()) options.addView(text(14f, "fgMuted").apply { text = "no wallpapers" })
-        options.getChildAt(1).post { options.getChildAt(1)?.scrollTo(0, scrolled) }
-    }
-
-    private fun pick(id: String) {
-        val script = assets.open("pc").bufferedReader().use { it.readText() }
-        val run = Intent("com.termux.RUN_COMMAND")
-            .setClassName(TERMUX, "$TERMUX.app.RunCommandService")
-            .putExtra("$TERMUX.RUN_COMMAND_PATH", "/data/data/$TERMUX/files/usr/bin/bash")
-            .putExtra("$TERMUX.RUN_COMMAND_ARGUMENTS", arrayOf("-c", script, "pc", tether(), "wall", id))
-            .putExtra("$TERMUX.RUN_COMMAND_BACKGROUND", true)
-        runCatching { startForegroundService(run) }
-        picking = false
-        sheet.visibility = View.GONE
-        walls.edit().putString("current", id).apply()
+        glide(sheet, 200).alpha(0f).withEndAction { sheet.visibility = View.GONE }.start()
+        glide(options, 200).translationY(options.height.toFloat()).start()
     }
 
     private fun switch(theme: String) {
         if (theme == name) return
-        val script = assets.open("pc").bufferedReader().use { it.readText() }
-        val run = Intent("com.termux.RUN_COMMAND")
-            .setClassName(TERMUX, "$TERMUX.app.RunCommandService")
-            .putExtra("$TERMUX.RUN_COMMAND_PATH", "/data/data/$TERMUX/files/usr/bin/bash")
-            .putExtra("$TERMUX.RUN_COMMAND_ARGUMENTS", arrayOf("-c", script, "pc", tether(), "theme", theme))
-            .putExtra("$TERMUX.RUN_COMMAND_BACKGROUND", true)
-        runCatching { startForegroundService(run) }
+        termux("pc", tether(), "theme", theme)
         switching = theme
         switchedAt = System.currentTimeMillis()
         refresh()
+    }
+
+    fun choose(theme: String) = switch(theme)
+
+    fun wallpapers() {
+        val have = File(filesDir, WALLS).list().orEmpty().filter(ID::matches)
+        walls.edit().putString("status", "syncing").apply()
+        termux("pc", tether(), "walls", *have.toTypedArray())
+    }
+
+    fun look(page: Int) {
+        tab = page
+        wallpapers()
+        go("appearance")
+    }
+
+    fun pick(id: String) {
+        termux("pc", tether(), "wall", id)
+        walls.edit().putString("current", id).apply()
+        if (stack.lastOrNull()?.key == "appearance") pop()
+    }
+
+    private fun termux(script: String, vararg args: String, session: Boolean = false) {
+        val run = Intent("com.termux.RUN_COMMAND")
+            .setClassName(TERMUX, "$TERMUX.app.RunCommandService")
+            .putExtra("$TERMUX.RUN_COMMAND_PATH", "/data/data/$TERMUX/files/usr/bin/bash")
+            .putExtra("$TERMUX.RUN_COMMAND_ARGUMENTS", arrayOf("-c", assets.open(script).bufferedReader().use { it.readText() }, script, *args))
+            .putExtra("$TERMUX.RUN_COMMAND_BACKGROUND", !session)
+        if (session) run.putExtra("$TERMUX.RUN_COMMAND_SESSION_ACTION", "0")
+        runCatching { startForegroundService(run) }
     }
 
     private fun tether(): String =
@@ -1157,63 +1410,48 @@ class Home : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
             ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) == true
 
     private fun connect() {
-        val script = assets.open("pc").bufferedReader().use { it.readText() }
-        val run = Intent("com.termux.RUN_COMMAND")
-            .setClassName(TERMUX, "$TERMUX.app.RunCommandService")
-            .putExtra("$TERMUX.RUN_COMMAND_PATH", "/data/data/$TERMUX/files/usr/bin/bash")
-            .putExtra("$TERMUX.RUN_COMMAND_ARGUMENTS", arrayOf("-c", script, "pc", tether()))
-            .putExtra("$TERMUX.RUN_COMMAND_BACKGROUND", false)
-            .putExtra("$TERMUX.RUN_COMMAND_SESSION_ACTION", "0")
-        runCatching { startForegroundService(run) }
+        termux("pc", tether(), session = true)
         packageManager.getLaunchIntentForPackage(TERMUX)?.let(::startActivity)
     }
 
     private fun serve() {
-        val script = assets.open("serve").bufferedReader().use { it.readText() }
-        for (daemon in listOf("sshd", "tailscaled")) {
-            val run = Intent("com.termux.RUN_COMMAND")
-                .setClassName(TERMUX, "$TERMUX.app.RunCommandService")
-                .putExtra("$TERMUX.RUN_COMMAND_PATH", "/data/data/$TERMUX/files/usr/bin/bash")
-                .putExtra("$TERMUX.RUN_COMMAND_ARGUMENTS", arrayOf("-c", script, "serve", daemon))
-                .putExtra("$TERMUX.RUN_COMMAND_BACKGROUND", true)
-            runCatching { startForegroundService(run) }
-        }
+        for (daemon in listOf("sshd", "tailscaled")) termux("serve", daemon)
     }
 
-    private fun open() {
-        home.visibility = View.INVISIBLE
+    fun open() {
+        if (drawer.visibility == View.VISIBLE) return
         drawer.visibility = View.VISIBLE
+        drawer.alpha = 0f
+        drawer.translationY = dp(64).toFloat()
+        glide(drawer, 300).alpha(1f).translationY(0f).start()
+        glide(home, 200).alpha(0f).withEndAction { home.visibility = View.INVISIBLE }.start()
         query.requestFocus()
         query.post { getSystemService(InputMethodManager::class.java).showSoftInput(query, 0) }
     }
 
-    private fun shade() {
-        runCatching { Class.forName("android.app.StatusBarManager").getMethod("expandNotificationsPanel").invoke(getSystemService("statusbar")) }
+    private fun close(animate: Boolean = true) {
+        if (drawer.visibility != View.VISIBLE) return
+        query.text.clear()
+        query.clearFocus()
+        getSystemService(InputMethodManager::class.java).hideSoftInputFromWindow(query.windowToken, 0)
+        home.visibility = View.VISIBLE
+        if (!animate) {
+            drawer.animate().cancel()
+            home.animate().cancel()
+            drawer.visibility = View.GONE
+            home.alpha = 1f
+            grid.setSelection(0)
+            return
+        }
+        glide(home).alpha(1f).start()
+        glide(drawer, 220).alpha(0f).translationY(dp(64).toFloat()).withEndAction {
+            drawer.visibility = View.GONE
+            grid.setSelection(0)
+        }.start()
     }
 
-    private fun fetchText(): CharSequence {
-        val memory = ActivityManager.MemoryInfo().also { getSystemService(ActivityManager::class.java).getMemoryInfo(it) }
-        val disk = StatFs(Environment.getDataDirectory().path)
-        val battery = getSystemService(BatteryManager::class.java)
-        val up = SystemClock.elapsedRealtime() / 60_000
-        val rows = listOf(
-            "os" to "Android ${Build.VERSION.RELEASE}",
-            "host" to Build.MODEL,
-            "kernel" to System.getProperty("os.version").orEmpty().substringBefore('-'),
-            "uptime" to "${up / 1440}d ${up / 60 % 24}h ${up % 60}m",
-            "apps" to apps.size.toString(),
-            "theme" to name,
-            "memory" to "%.1f/%.0fG".format((memory.totalMem - memory.availMem) / GB, memory.totalMem / GB),
-            "disk" to "%.0f/%.0fG".format((disk.totalBytes - disk.availableBytes) / GB, disk.totalBytes / GB),
-            "battery" to "${battery.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)}%" + if (battery.isCharging) " +" else "",
-        )
-        val out = SpannableStringBuilder()
-        for (key in SWATCHES) out.append("■ ", ForegroundColorSpan(color(key)), 0)
-        for ((key, value) in rows) {
-            out.append("\n" + key.padEnd(8), ForegroundColorSpan(color("accent")), 0)
-            out.append(value)
-        }
-        return out
+    private fun shade() {
+        runCatching { Class.forName("android.app.StatusBarManager").getMethod("expandNotificationsPanel").invoke(getSystemService("statusbar")) }
     }
 
     private fun load(): List<App> =
@@ -1243,17 +1481,5 @@ class Home : Activity(), SharedPreferences.OnSharedPreferenceChangeListener {
         shown = apps.filter { it.label.contains(text, true) }
             .sortedWith(compareBy<App> { text.isNotEmpty() && !it.label.startsWith(text, true) }.thenByDescending { usage.optInt(it.id) })
         cells.notifyDataSetChanged()
-    }
-
-    private fun reset() {
-        query.text.clear()
-        query.clearFocus()
-        grid.setSelection(0)
-        home.visibility = View.VISIBLE
-        drawer.visibility = View.GONE
-        calendar.visibility = View.GONE
-        sheet.visibility = View.GONE
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        getSystemService(InputMethodManager::class.java).hideSoftInputFromWindow(query.windowToken, 0)
     }
 }

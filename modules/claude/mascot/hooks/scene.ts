@@ -30,6 +30,7 @@ const EYE = 0x1a1a1a
 const PAPER = 0xede8dc
 const INK = 0x8a8378
 const BULB_ON = 0xffd24a
+const BULB_GLOW = 0xfff2b0
 const BULB_OFF = 0x8a7f5a
 const METAL = 0x9a9a9a
 const METAL_DARK = 0x4a4a4a
@@ -47,6 +48,7 @@ const MUG = 0xe9e1d3
 const TEA = 0x8b5a2b
 const STEAM = 0xbfc5cc
 const SNOOZE = 0x9cc9f5
+const CAP = 0x4f6fd0
 const DROP = 0x7cc4f5
 const DOT_ON = 0xe6e6e6
 const DOT_OFF = 0x5a5a5a
@@ -54,7 +56,15 @@ const DUST = 0xa89f91
 
 const MINI_BODY = ['.OOOOOO.', '.OOOOOO.', 'OOOOOOOO', '..O..O..']
 const CROWN = ['Y.YY.Y', 'YYYYYY']
-const MINI_Z = ['ZZZ', '..Z', '.Z.', 'ZZZ']
+const NIGHTCAP = ['..CCCCCW', '.CCCCCC.']
+const MINI_BUBBLE = [
+  ['B'],
+  ['BB', 'BB'],
+  ['.B.', 'B.B', '.B.'],
+  ['.BB.', 'BW.B', 'B..B', '.BB.'],
+  ['.BBB.', 'BW..B', 'B...B', 'B...B', '.BBB.'],
+  ['B...B', '.....', '.....', '.....', 'B...B'],
+]
 const SPARKLE = ['.Y.', 'YYY', '.Y.']
 const MINI_CUP = ['MTM.', 'MMMM', 'MMM.']
 const MINI_BULB = ['YYY', 'YYY', '.G.']
@@ -140,10 +150,12 @@ const MINI_SCENES: Record<Scene, (c: Canvas, f: number) => void> = {
   },
   sleep(c, f) {
     miniClawd(c, { eyes: 'closed' })
-    const rise = every(f, 3) % 8
-    if (rise < 6) {
-      sprite(c, MINI_Z, 8 + Math.floor(rise / 2), 3 - Math.floor((rise + 1) / 2), { Z: SNOOZE })
-    }
+    const isExhale = every(f, 6) % 2 === 1
+    if (isExhale) block(c, 1, 4, 6, 1, CLEAR)
+    sprite(c, NIGHTCAP, 0, isExhale ? 3 : 2, { C: CAP, W: DOT_ON })
+    const stage = every(f, 3) % 14
+    const bubble = stage < 10 ? MINI_BUBBLE[Math.floor(stage / 2)] : stage === 10 ? MINI_BUBBLE[5] : undefined
+    if (bubble) sprite(c, bubble, 9, 6 - bubble.length, { B: SNOOZE, W: DOT_ON })
   },
   waiting(c, f) {
     miniClawd(c, { eyes: 'right', step: every(f, 2) % 2 === 1 })
@@ -154,13 +166,11 @@ const MINI_SCENES: Record<Scene, (c: Canvas, f: number) => void> = {
     const beat = every(f, 2) % 12
     miniClawd(c, { eyes: beat < 6 ? 'right' : 'open' })
     if (beat >= 1) put(c, 8, 3, DOT_ON)
-    if (beat >= 2) put(c, 10, 1, DOT_ON)
+    if (beat >= 2) put(c, 10, 2, DOT_ON)
     if (beat >= 3) {
       const isLit = beat >= 5 && beat <= 9
-      sprite(c, MINI_BULB, 12, 0, { Y: isLit ? BULB_ON : BULB_OFF, G: METAL })
-      if (isLit && f % 2 === 0) {
-        for (const [x, y] of [[16, 0], [16, 2]] as const) put(c, x, y, BULB_ON)
-      }
+      const glass = isLit ? (f % 2 === 0 ? BULB_GLOW : BULB_ON) : BULB_OFF
+      sprite(c, MINI_BULB, 13, 0, { Y: glass, G: METAL })
     }
   },
   writing(c, f) {

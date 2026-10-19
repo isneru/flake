@@ -264,13 +264,36 @@ Singleton {
         function onTrackArtistChanged() { if (root.osdReady) trackOsd.restart(); }
     }
 
+    property string layoutName: ""
     Connections {
         target: Hyprland
         function onRawEvent(event) {
-            if (!root.osdReady || event.name !== "activelayout")
+            if (event.name !== "activelayout")
                 return;
             const parts = event.data.split(",");
+            const seen = root.layoutName;
+            root.layoutName = parts[1] ?? "";
+            if (!root.osdReady || seen === "" || seen === root.layoutName)
+                return;
             root.showOsd("caps", { label: "Keyboard layout", sub: parts[0] ?? "", right: parts[1] ?? "" });
+        }
+    }
+
+    property var inputEvent: ({})
+    Process {
+        running: true
+        command: ["udevadm", "monitor", "--udev", "--subsystem-match=input", "--property"]
+        stdout: SplitParser {
+            onRead: line => {
+                if (line.startsWith("UDEV"))
+                    root.inputEvent = {};
+                else if (line.startsWith("ACTION="))
+                    root.inputEvent.action = line.slice(7);
+                else if (line.startsWith("NAME="))
+                    root.inputEvent.name = line.slice(5).replace(/^"|"$/g, "");
+                else if (line === "ID_INPUT_MOUSE=1" && root.osdReady && root.inputEvent.action === "add" && root.inputEvent.name)
+                    root.showOsd("msg", { label: root.inputEvent.name, sub: "connected", color: Theme.accent });
+            }
         }
     }
 

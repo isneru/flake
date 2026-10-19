@@ -125,7 +125,13 @@ config.bind(";m", "hint links userscript qute-mpv")
 config.bind("<Ctrl-g>", "spawn --userscript qute-clone")
 
 
-for _generated in ("theme.py", "downloads.py", "statusbar.py", "darkmode.py"):
+for _generated in (
+    "theme.py",
+    "downloads.py",
+    "statusbar.py",
+    "darkmode.py",
+    "autologin.py",
+):
     if (config.configdir / _generated).exists():
         config.source(_generated)
 

@@ -80,6 +80,12 @@ in
         text = builtins.readFile ../../scripts/browser/qute-reload.sh;
       };
 
+      isep-login = pkgs.writeShellApplication {
+        name = "isep-login";
+        runtimeInputs = [ pkgs.libsecret ];
+        text = builtins.readFile ../../scripts/browser/isep-login.sh;
+      };
+
       qute-ytdl = mkUserscript pkgs "qute-ytdl" (
         with pkgs;
         [
@@ -119,6 +125,7 @@ in
     in
     {
       home.packages = [
+        isep-login
         pkgs.qutebrowser
         qute-reload
       ]
@@ -134,6 +141,8 @@ in
         utils.create_symlink "${utils.dotfiles}/browser/darkmode.py";
       xdg.configFile."qutebrowser/reload.py".source =
         utils.create_symlink "${utils.dotfiles}/browser/reload.py";
+      xdg.configFile."qutebrowser/autologin.py".source =
+        utils.create_symlink "${utils.dotfiles}/browser/autologin.py";
 
       xdg.dataFile =
         lib.mapAttrs' (name: drv: {
@@ -152,6 +161,9 @@ in
 
           "qutebrowser/greasemonkey/x-minimal.js".source =
             utils.create_symlink "${utils.dotfiles}/browser/greasemonkey/x-minimal.js";
+
+          "qutebrowser/greasemonkey/x-fixup.js".source =
+            utils.create_symlink "${utils.dotfiles}/browser/greasemonkey/x-fixup.js";
         };
 
       theme-engine.apps.qutebrowser-start = {
