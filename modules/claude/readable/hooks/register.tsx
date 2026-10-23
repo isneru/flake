@@ -244,7 +244,7 @@ async function renderCache($: EngineInterface) {
   if (!cache) {
     const runtime = await $.env.get('XDG_RUNTIME_DIR')
     const renderer = await $.process
-      .run(['sh', '-c', 'readlink -f "$(command -v readable-render)"'], { timeoutMs: 5_000 })
+      .run(['sh', '-c', 'readlink -f "$(command -v neru)"'], { timeoutMs: 5_000 })
       .catch(() => undefined)
     cache = { dir: `${runtime || '/tmp'}/claude-readable`, version: renderer?.stdout?.trim() ?? '' }
   }
@@ -259,7 +259,7 @@ function schedule($: EngineInterface, key: string, kind: Kind, src: string, colo
       const { dir } = await renderCache($)
       await $.fs.write(`${dir}/${key}.src`, src)
       const run = await $.process.run(
-        ['readable-render', kind, `${dir}/${key}.src`, `${dir}/${key}.png`, color],
+        ['neru', 'render', kind, `${dir}/${key}.src`, `${dir}/${key}.png`, color],
         { timeoutMs: 60_000 },
       )
       if (run.exitCode === 0) {

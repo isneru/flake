@@ -60,19 +60,6 @@
 
       services.mpd-mpris.enable = true;
 
-      services.mpd-discord-rpc = {
-        enable = true;
-        settings = {
-          hosts = [ "127.0.0.1:6600" ];
-          format = {
-            details = "$title";
-            state = "by $artist";
-            small_image = "";
-            display_type = "details";
-          };
-        };
-      };
-
       xdg.configFile."rmpc/config.ron".text = ''
         #![enable(implicit_some)]
         #![enable(unwrap_newtypes)]

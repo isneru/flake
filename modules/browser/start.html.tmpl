@@ -1,7 +1,7 @@
 <!doctype html>
 <!--
   Rendered by theme-engine from modules/theme-engine/themes/{{theme}}.toml.
-  Do not edit: `theme-set` overwrites this on every switch. The source is
+  Do not edit: `neru theme` overwrites this on every switch. The source is
   modules/browser/start.html.tmpl.
 
   qutebrowser points url.start_pages and url.default_page here, resolved from
@@ -124,14 +124,14 @@ a:hover, a:focus {
     <span class="theme-name">{{theme}}</span>
   </div>
 
-  <!-- Submits to DuckDuckGo directly rather than to qutebrowser: a page has no
+  <!-- Submits to Google directly rather than to qutebrowser: a page has no
        way to reach url.searchengines. Press o for the real thing. -->
-  <form action="https://duckduckgo.com/" method="get">
+  <form action="https://www.google.com/search" method="get">
     <input name="q" type="text" autofocus autocomplete="off" spellcheck="false"
            placeholder="search, or press o for qutebrowser's own bar">
   </form>
 
-  <!-- Edit these in modules/browser/start.html.tmpl, then `theme-set reapply`. -->
+  <!-- Edit these in modules/browser/start.html.tmpl, then `neru theme reapply`. -->
   <div class="groups">
     <section>
       <h2>nix</h2>

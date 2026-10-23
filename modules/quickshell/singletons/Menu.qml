@@ -612,7 +612,7 @@ Singleton {
 
     function calState() {
         if (!Agenda.connected)
-            return "not connected, run gcal sync";
+            return "not connected, run neru cal sync";
         return Agenda.syncing ? "syncing" : (Agenda.writing ? "saving" : "google calendar");
     }
 

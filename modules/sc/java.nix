@@ -1,6 +1,6 @@
 { ... }:
 {
-  flake.modules.nixos.java =
+  flake.modules.nixos.sc =
     { pkgs, ... }:
     {
       environment.systemPackages = [ pkgs.jdk ];
@@ -8,7 +8,7 @@
       environment.variables.JAVA_HOME = pkgs.jdk.home;
     };
 
-  flake.modules.homeManager.java =
+  flake.modules.homeManager.sc =
     { pkgs, ... }:
     {
       home.packages = with pkgs; [

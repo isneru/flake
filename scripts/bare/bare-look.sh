@@ -20,9 +20,9 @@ fi
 
 hyprctl reload >/dev/null
 
-qute-reload >/dev/null 2>&1 || true
+neru qute reload >/dev/null 2>&1 || true
 
-zathura-mode reload >/dev/null 2>&1 || true
+neru zathura reload >/dev/null 2>&1 || true
 
 for sock in /tmp/kitty-*; do
   [ -S "$sock" ] || continue

@@ -690,9 +690,9 @@ clip)
 theme)
   cache="${XDG_CACHE_HOME:-$HOME/.cache}/bare-pick/theme"
   width=$(hyprctl monitors -j | jq '.[] | select(.focused) | .width / .scale / 10 | floor')
-  theme-set previews "$cache" "${width:-192}" || true
-  sel=$(theme-set list | sed 's/^[* ]*//' | menu theme "$LIST" -I "$cache")
-  [ -n "$sel" ] && theme-set "$sel"
+  neru theme previews "$cache" "${width:-192}" || true
+  sel=$(neru theme list | sed 's/^[* ]*//' | menu theme "$LIST" -I "$cache")
+  [ -n "$sel" ] && neru theme "$sel"
   ;;
 wall)
   dir="$HOME/pictures/wallpapers"
@@ -736,18 +736,18 @@ wall)
     "[x] recolor" | "[ ] recolor")
       src=$(cat "$state/wallpaper-source" 2>/dev/null) || src=
       if [ -n "$src" ]; then
-        theme-set wallpaper "$src" "${flag[@]}"
+        neru theme wallpaper "$src" "${flag[@]}"
       else
         mkdir -p "$state"
         if [ "$recolor" = on ]; then echo 1; else echo 0; fi >"$state/wallpaper-recolor"
       fi
       ;;
     plates/*)
-      theme-set wallpaper "$plates/${sel#plates/}" "${flag[@]}"
+      neru theme wallpaper "$plates/${sel#plates/}" "${flag[@]}"
       exit 0
       ;;
     *)
-      theme-set wallpaper "$dir/$sel" "${flag[@]}"
+      neru theme wallpaper "$dir/$sel" "${flag[@]}"
       exit 0
       ;;
     esac
@@ -798,7 +798,7 @@ calendar) calendar_menu ;;
 notes) exec note ;;
 record)
   mode=$(choose $'none\tno audio\nsystem\tsystem audio\nmic\tmicrophone\nboth\tsystem audio and microphone' record "$LIST") || exit 0
-  [ -n "$mode" ] && exec record "$mode"
+  [ -n "$mode" ] && exec neru rec "$mode"
   ;;
 shelf) shelf ;;
 home)

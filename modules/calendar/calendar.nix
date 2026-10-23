@@ -25,7 +25,10 @@
       };
     in
     {
-      home.packages = [ gcal ];
+      neru.commands.cal = {
+        package = gcal;
+        desc = "Google Calendar sync, add and remove";
+      };
 
       xdg.configFile = {
         "bare/pick/deadlines.sh".source = pkgs.writeTextFile {
@@ -34,7 +37,7 @@
           checkPhase = "${lib.getExe pkgs.shellcheck} -s bash -e SC2154 $target";
         };
         "hypr/extra.lua".text =
-          ''bind({ MOD, "SHIFT" }, "D", hl.dsp.exec_cmd("bare-pick deadlines"), { group = "SHELL", desc = "Course deadlines" })'';
+          ''bind({ MOD, "SHIFT" }, "D", hl.dsp.exec_cmd("neru pick deadlines"), { group = "SHELL", desc = "Course deadlines" })'';
       };
 
       systemd.user.services.gcal-sync = {

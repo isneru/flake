@@ -8,6 +8,9 @@ function M.setup()
 	require("neru.colors").setup()
 	require("neru.bar").setup()
 	require("neru.scratch").setup()
+	require("neru.read").setup()
+	require("neru.cursors").setup()
+	require("neru.align").setup()
 end
 
 return M

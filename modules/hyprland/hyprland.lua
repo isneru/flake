@@ -79,6 +79,7 @@ hl.config({
 	},
 	misc = {
 		focus_on_activate = true,
+		allow_session_lock_restore = true,
 	},
 	general = {
 		gaps_in = 6,
@@ -89,11 +90,11 @@ hl.config({
 	group = {
 		auto_group = false,
 		groupbar = {
-			render_titles = false,
+			enabled = false,
 		},
 	},
 	scrolling = {
-		column_width = 1,
+		column_width = 0.5,
 		focus_fit_method = 1,
 		follow_min_visible = 0.9,
 		direction = "right",
@@ -212,14 +213,59 @@ local function column_tabs()
 	hl.dispatch(hl.dsp.focus({ window = w }))
 end
 
-local function tab_or_focus(dir, step)
+local function in_column(w, dir)
+	for _, o in ipairs(hl.get_windows({ workspace = w.workspace.id, floating = false })) do
+		if
+			o.address ~= w.address
+			and o.at.x == w.at.x
+			and (dir == "d" and o.at.y > w.at.y or dir == "u" and o.at.y < w.at.y)
+		then
+			return true
+		end
+	end
+	return false
+end
+
+local function vertical(dir, within, across, step)
 	return function()
 		local w = hl.get_active_window()
-		if w and w.group and w.group.size > 1 then
+		if step and w and w.group and w.group.size > 1 then
 			hl.dispatch(step)
+		elseif w and (w.floating or in_column(w, dir)) then
+			hl.dispatch(within)
 		else
-			hl.dispatch(hl.dsp.focus({ direction = dir }))
+			hl.dispatch(across)
 		end
+	end
+end
+
+local function focus_vertical(dir, step)
+	return vertical(
+		dir,
+		hl.dsp.focus({ direction = dir }),
+		hl.dsp.focus({ workspace = dir == "d" and "e+1" or "e-1" }),
+		step
+	)
+end
+
+local function swap_vertical(dir)
+	return vertical(
+		dir,
+		hl.dsp.window.swap({ direction = dir }),
+		hl.dsp.window.move({ workspace = dir == "d" and "r+1" or "r-1" })
+	)
+end
+
+local refullscreen = {}
+
+local function column_focus(dir)
+	return function()
+		local w = hl.get_active_window()
+		if w and w.fullscreen > 0 then
+			refullscreen[w.address] = w.fullscreen
+			hl.dispatch(hl.dsp.window.fullscreen_state({ internal = 0, client = w.fullscreen_client, window = w }))
+		end
+		hl.dispatch(hl.dsp.layout("focus " .. dir))
 	end
 end
 
@@ -232,21 +278,21 @@ local function to_monitor(dir)
 end
 
 section("SHELL")
-bind(MOD, "B", hl.dsp.exec_cmd("bare-pick home"), { desc = "Every menu" })
-bind(MOD, "SPACE", hl.dsp.exec_cmd("bare-pick run"), { desc = "Launcher, or search the web" })
-bind(nil, "XF86Calculator", hl.dsp.exec_cmd("bare-pick calc"), { desc = "Calculator", keys = "CALC" })
-bind(MOD, "V", hl.dsp.exec_cmd("bare-pick clip"), { desc = "Clipboard history" })
-bind(MOD, "A", hl.dsp.exec_cmd("bare-pick wall"), { desc = "Wallpaper" })
-bind(MOD, "TAB", hl.dsp.exec_cmd("bare-pick windows"), { desc = "Windows" })
+bind(MOD, "B", hl.dsp.exec_cmd("neru pick home"), { desc = "Every menu" })
+bind(MOD, "SPACE", hl.dsp.exec_cmd("neru pick run"), { desc = "Launcher, or search the web" })
+bind(nil, "XF86Calculator", hl.dsp.exec_cmd("neru pick calc"), { desc = "Calculator", keys = "CALC" })
+bind(MOD, "V", hl.dsp.exec_cmd("neru pick clip"), { desc = "Clipboard history" })
+bind(MOD, "A", hl.dsp.exec_cmd("neru pick wall"), { desc = "Wallpaper" })
+bind(MOD, "TAB", hl.dsp.exec_cmd("neru pick windows"), { desc = "Windows" })
 bind(MOD, "O", hl.dsp.exec_cmd("quickshell ipc call bare overview"), { desc = "Overview of every workspace" })
-bind(MOD, "ESCAPE", hl.dsp.exec_cmd("bare-pick power"), { desc = "Power menu" })
-bind(MOD, "M", hl.dsp.exec_cmd("bare-pick media"), { desc = "Media controls" })
-bind({ MOD, "SHIFT" }, "V", hl.dsp.exec_cmd("bare-pick shelf"), { desc = "Files shelf" })
-bind({ MOD, "SHIFT" }, "S", hl.dsp.exec_cmd("bare-pick send"), { desc = "Send with LocalSend" })
-bind({ MOD, "SHIFT" }, "T", hl.dsp.exec_cmd("bare-pick timer"), { desc = "Timer" })
-bind({ MOD, "SHIFT" }, "O", hl.dsp.exec_cmd("bare-pick repos"), { desc = "Open a repository" })
-bind(MOD, "N", hl.dsp.exec_cmd("note"), { desc = "Notes" })
-bind(MOD, "T", hl.dsp.exec_cmd("bare-pick tray"), { desc = "Tray" })
+bind(MOD, "ESCAPE", hl.dsp.exec_cmd("neru pick power"), { desc = "Power menu" })
+bind(MOD, "M", hl.dsp.exec_cmd("neru pick media"), { desc = "Media controls" })
+bind({ MOD, "SHIFT" }, "V", hl.dsp.exec_cmd("neru pick shelf"), { desc = "Files shelf" })
+bind({ MOD, "SHIFT" }, "S", hl.dsp.exec_cmd("neru pick send"), { desc = "Send with LocalSend" })
+bind({ MOD, "SHIFT" }, "T", hl.dsp.exec_cmd("neru pick timer"), { desc = "Timer" })
+bind({ MOD, "SHIFT" }, "O", hl.dsp.exec_cmd("neru pick repos"), { desc = "Open a repository" })
+bind(MOD, "N", hl.dsp.exec_cmd("neru note"), { desc = "Notes" })
+bind(MOD, "T", hl.dsp.exec_cmd("neru pick tray"), { desc = "Tray" })
 bind(
 	{ MOD, "SHIFT" },
 	"apostrophe",
@@ -307,23 +353,23 @@ bind({ MOD, "SHIFT" }, "P", function()
 	end
 end, { desc = "Pin on top, everywhere / unpin" })
 
-local focus = { desc = "Move focus" }
-bind(MOD, "Up", tab_or_focus("u", hl.dsp.group.prev()), focus)
-bind(MOD, "Down", tab_or_focus("d", hl.dsp.group.next()), focus)
-bind(MOD, "Left", hl.dsp.layout("focus l"), focus)
-bind(MOD, "Right", hl.dsp.layout("focus r"), focus)
-bind(MOD, "K", tab_or_focus("u", hl.dsp.group.prev()), focus)
-bind(MOD, "J", tab_or_focus("d", hl.dsp.group.next()), focus)
-bind(MOD, "H", hl.dsp.layout("focus l"), focus)
-bind(MOD, "L", hl.dsp.layout("focus r"), focus)
+local focus = { desc = "Move focus, then workspace" }
+bind(MOD, "Up", focus_vertical("u", hl.dsp.group.prev()), focus)
+bind(MOD, "Down", focus_vertical("d", hl.dsp.group.next()), focus)
+bind(MOD, "Left", column_focus("l"), focus)
+bind(MOD, "Right", column_focus("r"), focus)
+bind(MOD, "K", focus_vertical("u", hl.dsp.group.prev()), focus)
+bind(MOD, "J", focus_vertical("d", hl.dsp.group.next()), focus)
+bind(MOD, "H", column_focus("l"), focus)
+bind(MOD, "L", column_focus("r"), focus)
 
-local swap = { desc = "Move the column / swap in it" }
-bind({ MOD, "SHIFT" }, "Up", hl.dsp.window.swap({ direction = "u" }), swap)
-bind({ MOD, "SHIFT" }, "Down", hl.dsp.window.swap({ direction = "d" }), swap)
+local swap = { desc = "Move column / window, then workspace" }
+bind({ MOD, "SHIFT" }, "Up", swap_vertical("u"), swap)
+bind({ MOD, "SHIFT" }, "Down", swap_vertical("d"), swap)
 bind({ MOD, "SHIFT" }, "Left", hl.dsp.layout("swapcol l"), swap)
 bind({ MOD, "SHIFT" }, "Right", hl.dsp.layout("swapcol r"), swap)
-bind({ MOD, "SHIFT" }, "K", hl.dsp.window.swap({ direction = "u" }), swap)
-bind({ MOD, "SHIFT" }, "J", hl.dsp.window.swap({ direction = "d" }), swap)
+bind({ MOD, "SHIFT" }, "K", swap_vertical("u"), swap)
+bind({ MOD, "SHIFT" }, "J", swap_vertical("d"), swap)
 bind({ MOD, "SHIFT" }, "H", hl.dsp.layout("swapcol l"), swap)
 bind({ MOD, "SHIFT" }, "L", hl.dsp.layout("swapcol r"), swap)
 
@@ -334,14 +380,15 @@ local widen = { desc = "Widen / narrow the column" }
 bind(MOD, "plus", hl.dsp.layout("colresize +conf"), widen)
 bind(MOD, "minus", hl.dsp.layout("colresize -conf"), widen)
 bind(MOD, "W", column_tabs, { desc = "Tab the column / untab it" })
+bind({ MOD, "SHIFT" }, "W", hl.dsp.window.tag({ tag = "notitle" }), { desc = "Hide the window's title / show it" })
 local wheel = { desc = "Workspace up / down" }
 bind(MOD, "mouse_down", hl.dsp.focus({ workspace = "e+1" }), wheel)
 bind(MOD, "mouse_up", hl.dsp.focus({ workspace = "e-1" }), wheel)
 local columns = { desc = "Previous / next column" }
-bind({ MOD, "SHIFT" }, "mouse_down", hl.dsp.layout("focus r"), columns)
-bind({ MOD, "SHIFT" }, "mouse_up", hl.dsp.layout("focus l"), columns)
-bind(MOD, "mouse_right", hl.dsp.layout("focus r"))
-bind(MOD, "mouse_left", hl.dsp.layout("focus l"))
+bind({ MOD, "SHIFT" }, "mouse_down", column_focus("r"), columns)
+bind({ MOD, "SHIFT" }, "mouse_up", column_focus("l"), columns)
+bind(MOD, "mouse_right", column_focus("r"))
+bind(MOD, "mouse_left", column_focus("l"))
 bind(MOD, "mouse:272", hl.dsp.window.drag(), { desc = "Move a window" })
 bind(MOD, "mouse:273", hl.dsp.window.resize(), { desc = "Resize a window" })
 bind(
@@ -366,9 +413,9 @@ for i = 0, 9 do
 end
 
 section("CAPTURE")
-bind(nil, "PRINT", hl.dsp.exec_cmd("screenshot full"), { desc = "Screenshot everything" })
-bind("SHIFT", "PRINT", hl.dsp.exec_cmd("screenshot region"), { desc = "Screenshot a region" })
-bind(MOD, "PRINT", hl.dsp.exec_cmd("screenshot region --edit"), { desc = "A region, then edit it" })
+bind(nil, "PRINT", hl.dsp.exec_cmd("neru shot full"), { desc = "Screenshot everything" })
+bind("SHIFT", "PRINT", hl.dsp.exec_cmd("neru shot region"), { desc = "Screenshot a region" })
+bind(MOD, "PRINT", hl.dsp.exec_cmd("neru shot region --edit"), { desc = "A region, then edit it" })
 bind(
 	{ MOD, "SHIFT" },
 	"R",
@@ -468,11 +515,13 @@ hl.workspace_rule({ workspace = "special:pad", gaps_in = 24, gaps_out = 48 })
 hl.window_rule({
 	match = { class = "vesktop" },
 	workspace = "special:pad silent",
+	scrolling_width = 1.0,
 })
 
 hl.window_rule({
 	match = { class = "rmpc" },
 	workspace = "special:pad silent",
+	scrolling_width = 1.0,
 })
 
 hl.window_rule({
@@ -520,6 +569,25 @@ hl.on("window.open", function(w)
 	end
 
 	hl.dispatch(hl.dsp.window.move({ workspace = target.id }))
+end)
+
+hl.on("window.active", function(w)
+	local mode = w and refullscreen[w.address]
+	if not mode then
+		return
+	end
+	refullscreen[w.address] = nil
+	if w.fullscreen == 0 then
+		hl.dispatch(hl.dsp.window.fullscreen({
+			mode = mode == 1 and "maximized" or "fullscreen",
+			action = "set",
+			window = w,
+		}))
+	end
+end)
+
+hl.on("window.close", function(w)
+	refullscreen[w.address] = nil
 end)
 
 local FLOAT_WS = 5

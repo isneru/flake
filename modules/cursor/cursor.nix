@@ -1,6 +1,11 @@
 {
   flake.modules.homeManager.cursor =
-    { config, pkgs, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
       name = "Bibata-Modern-Accent";
       inherit (config.home) pointerCursor;
@@ -30,8 +35,6 @@
       };
     in
     {
-      home.packages = [ cursor-recolor ];
-
       home.sessionVariables = {
         XCURSOR_THEME = name;
         HYPRCURSOR_THEME = name;
@@ -46,7 +49,7 @@
       theme-engine.apps.cursor = {
         target = colors;
         template = builtins.readFile ./colors.json.tmpl;
-        reload = [ "cursor-recolor" ];
+        reload = [ (lib.getExe cursor-recolor) ];
       };
     };
 }

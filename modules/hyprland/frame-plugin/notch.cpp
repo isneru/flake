@@ -7,6 +7,7 @@
 #include <hyprland/src/Compositor.hpp>
 #include <hyprland/src/config/ConfigValue.hpp>
 #include <hyprland/src/desktop/state/FocusState.hpp>
+#include <hyprland/src/desktop/view/Group.hpp>
 #include <hyprland/src/desktop/view/Window.hpp>
 #include <hyprland/src/managers/fullscreen/FullscreenController.hpp>
 #include <hyprland/src/render/Renderer.hpp>
@@ -17,6 +18,8 @@ using namespace Render::GL;
 constexpr double BAND  = 4;
 constexpr double INSET = 14;
 constexpr double PAD   = 6;
+constexpr double GAP   = 4;
+constexpr float  DIM   = 0.6;
 constexpr auto   EDGES = DECORATION_EDGE_TOP | DECORATION_EDGE_BOTTOM | DECORATION_EDGE_LEFT | DECORATION_EDGE_RIGHT;
 
 static CHyprColor color(const SP<Config::Values::CColorValue>& value, float a) {
@@ -89,6 +92,10 @@ bool CNotch::glass() {
     return window && blurEnabled() && !window->m_ruleApplicator->noBlur().valueOrDefault() && CHyprColor{static_cast<uint64_t>(config.bg->value())}.a < 1;
 }
 
+bool CNotch::xray() {
+    return glass() && g_pHyprRenderer->shouldUseNewBlurOptimizations(nullptr, m_window.lock());
+}
+
 CBox CNotch::reach() {
     return frameBox().expand(config.fontSize->value());
 }
@@ -129,39 +136,68 @@ void CNotch::drawPass(PHLMONITOR monitor, float a) {
     const auto line       = std::max(1.0, std::round(scale));
 
     g_pHyprOpenGL->scissor(nullptr);
-    const CHyprOpenGLImpl::SRectRenderData fill = {.blur = glass, .blurA = a};
+    const CHyprOpenGLImpl::SRectRenderData fill = {.blur = glass, .blurA = a, .xray = xray()};
     outline(box, band, paper, fill);
     outline(box, line, ink);
     if (focused)
         outline(box.copy().expand(line - band), line, ink);
 
+    const auto group = window->m_group;
+    if (!group && window->m_ruleApplicator->m_tagKeeper.isTagged("notitle"))
+        return;
+
+    std::vector<PHLWINDOW> tabs;
+    if (group) {
+        for (const auto& ref : group->windows())
+            if (const auto tab = ref.lock())
+                tabs.push_back(tab);
+    } else
+        tabs.push_back(window);
+    if (tabs.empty())
+        return;
+
     const int px       = std::round(config.fontSize->value() * scale);
     const int inset    = std::round(INSET * scale);
     const int pad      = std::round(PAD * scale);
-    const int maxWidth = box.w - 2 * inset - 2 * pad;
-    if (window->m_title.empty() || window->m_group || maxWidth < px)
+    const int gap      = std::round(GAP * scale);
+    const int maxWidth = (box.w - 2 * inset - (tabs.size() - 1) * gap) / tabs.size() - 2 * pad;
+    if (maxWidth < px)
         return;
 
-    const auto key = std::format("{}\n{}\n{}\n{}\n{:x}", window->m_title, px, maxWidth, config.font->value(), inkSetting->value());
-    if (key != m_titleKey || !m_title) {
-        m_title    = g_pHyprRenderer->renderText(window->m_title, color(inkSetting, 1), px, false, config.font->value(), maxWidth);
-        m_titleKey = key;
-    }
-    if (!m_title)
-        return;
+    m_titles.resize(tabs.size());
+    double x = box.x + inset;
+    for (size_t i = 0; i < tabs.size(); ++i) {
+        const auto& tab     = tabs[i];
+        const bool  current = tab == window;
+        const auto  title   = tab->m_title.empty() && group ? tab->m_class : tab->m_title;
+        if (title.empty())
+            continue;
 
-    const auto size  = m_title->m_size;
-    CBox       notch = {box.x + inset, box.y + std::round(band / 2 - size.y / 2), size.x + 2 * pad, size.y};
-    g_pHyprOpenGL->renderRect(notch, paper, fill);
-    const double above = box.y + line - notch.y;
-    const double below = focused ? box.y + band - line : notch.y;
-    g_pHyprOpenGL->renderRect({notch.x, notch.y, notch.w, line}, ink, {});
-    g_pHyprOpenGL->renderRect({notch.x, notch.y + notch.h - line, notch.w, line}, ink, {});
-    for (const double x : {notch.x, notch.x + notch.w - line}) {
-        g_pHyprOpenGL->renderRect({x, notch.y, line, above}, ink, {});
-        g_pHyprOpenGL->renderRect({x, below, line, notch.y + notch.h - below}, ink, {});
+        const auto setting      = current ? inkSetting : config.rule;
+        const auto key          = std::format("{}\n{}\n{}\n{}\n{:x}", title, px, maxWidth, config.font->value(), setting->value());
+        auto& [cached, texture] = m_titles[i];
+        if (key != cached || !texture) {
+            texture = g_pHyprRenderer->renderText(title, color(setting, 1), px, false, config.font->value(), maxWidth);
+            cached  = key;
+        }
+        if (!texture)
+            continue;
+
+        const auto size    = texture->m_size;
+        const auto chipInk = color(setting, a);
+        CBox       notch   = {x, box.y + std::round(band / 2 - size.y / 2), size.x + 2 * pad, size.y};
+        g_pHyprOpenGL->renderRect(notch, paper, fill);
+        const double above = box.y + line - notch.y;
+        const double below = focused ? box.y + band - line : notch.y;
+        g_pHyprOpenGL->renderRect({notch.x, notch.y, notch.w, line}, chipInk, {});
+        g_pHyprOpenGL->renderRect({notch.x, notch.y + notch.h - line, notch.w, line}, chipInk, {});
+        for (const double side : {notch.x, notch.x + notch.w - line}) {
+            g_pHyprOpenGL->renderRect({side, notch.y, line, above}, chipInk, {});
+            g_pHyprOpenGL->renderRect({side, below, line, notch.y + notch.h - below}, chipInk, {});
+        }
+        g_pHyprOpenGL->renderTexture(texture, {notch.x + pad, notch.y, size.x, size.y}, {.a = current ? a : a * DIM});
+        x += notch.w + gap;
     }
-    g_pHyprOpenGL->renderTexture(m_title, {notch.x + pad, notch.y, size.x, size.y}, {.a = a});
 }
 
 CNotchReach::CNotchReach(PHLWINDOW window) : IHyprWindowDecoration(window) {}
@@ -206,7 +242,7 @@ std::vector<UP<IPassElement>> CNotchPass::draw() {
 }
 
 bool CNotchPass::needsLiveBlur() {
-    return m_notch->glass();
+    return m_notch->glass() && !m_notch->xray();
 }
 
 std::optional<CBox> CNotchPass::boundingBox() {
@@ -214,7 +250,7 @@ std::optional<CBox> CNotchPass::boundingBox() {
 }
 
 bool CNotchPass::needsPrecomputeBlur() {
-    return false;
+    return m_notch->xray();
 }
 
 const char* CNotchPass::passName() {

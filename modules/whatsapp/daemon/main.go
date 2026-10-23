@@ -39,7 +39,7 @@ func die(format string, args ...any) {
 }
 
 func usage() {
-	die("usage: whatsapp login | daemon | logout | send <chat> <text> [quote-id] | file <chat> <path> <auto|photo|document|sticker> [quote-id] | open <chat> | fetch <chat> <id> | save <chat> <id>")
+	die("usage: neru whatsapp login | daemon | logout | send <chat> <text> [quote-id] | file <chat> <path> <auto|photo|document|sticker> [quote-id] | open <chat> | fetch <chat> <id> | save <chat> <id>")
 }
 
 type request struct {

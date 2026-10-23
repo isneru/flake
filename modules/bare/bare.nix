@@ -56,12 +56,24 @@
       };
     in
     {
-      home.packages = [
-        bare-look
-        bare-menu
-        bare-pick
-        note
-      ];
+      neru.commands = {
+        look = {
+          package = bare-look;
+          desc = "switch the look (flat or soft)";
+        };
+        menu = {
+          package = bare-menu;
+          desc = "themed wmenu filter, stdin to stdout";
+        };
+        note = {
+          package = note;
+          desc = "open a note";
+        };
+        pick = {
+          package = bare-pick;
+          desc = "open a menu (no source lists them)";
+        };
+      };
 
       theme-engine.apps.wmenu = {
         target = "~/.config/wmenu/colors.env";

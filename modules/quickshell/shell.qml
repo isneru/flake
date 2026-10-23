@@ -228,7 +228,7 @@ ShellRoot {
         function send(path: string): string {
             if (!LocalSend.stage([path]))
                 return "not a local file";
-            Quickshell.execDetached(["bare-pick", "send"]);
+            Quickshell.execDetached(["neru", "pick", "send"]);
             return "staged " + LocalSend.outbox.length;
         }
         function to(device: string): string {
@@ -267,7 +267,7 @@ ShellRoot {
         function start(): void { BareState.startRecording(); }
         function stop(): void { BareState.stopRecording(); }
         function toggle(): void {
-            Quickshell.execDetached(BareState.recording ? ["record"] : ["bare-pick", "record"]);
+            Quickshell.execDetached(BareState.recording ? ["neru", "rec"] : ["neru", "pick", "record"]);
         }
     }
 }

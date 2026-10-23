@@ -1,0 +1,9 @@
+{
+  "name": "excalidraw-local",
+  "private": true,
+  "dependencies": {
+    "@excalidraw/excalidraw": "0.18.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  }
+}

@@ -22,6 +22,7 @@
         modules = [
           config.flake.modules.homeManager.utils
           config.flake.modules.homeManager.theme-engine
+          config.flake.modules.homeManager.neru
           {
             home.username = "preview";
             home.homeDirectory = "/tmp/theme-preview";

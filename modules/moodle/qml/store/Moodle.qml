@@ -261,7 +261,7 @@ Singleton {
 
     function newNote(): void {
         if (root.course?.home)
-            Quickshell.execDetached(["note", root.course.home]);
+            Quickshell.execDetached(["neru", "note", root.course.home]);
     }
 
     function refresh(id: int): void {

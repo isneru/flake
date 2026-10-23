@@ -15,7 +15,7 @@ plain: one status line along the bottom, a themed `wmenu` for every choice, and
 flat cards only where something needs an answer. The Omen key switches the
 whole desktop between a **flat** look (square, translucent, blurred, still
 layers) and a **soft** one (rounded, opaque, animated layers). Colours are
-runtime, not build-time: `theme-set <name>` repaints almost everything without
+runtime, not build-time: `neru theme <name>` repaints almost everything without
 a rebuild.
 
 ## Structure
@@ -44,16 +44,18 @@ modules/                                       # one directory per aspect: <name
                                                # picker xdg-desktop-portal-hyprland raises
   hyprland/                                    # compositor: nixos enable + homeManager
                                                # config (Lua, live-edited via symlink)
-  theme-engine/                                # runtime theming system - theme-set CLI,
+  neru/                                        # the one command on PATH: every script
+                                               # is a `neru <command>` (`neru help`)
+  theme-engine/                                # runtime theming system - neru theme,
                                                # theme_engine.py, themes/*.toml
   quickshell/                                  # the shell (QML) - see below, plus its
                                                # lock screen's PAM service and hypridle
-  bare/                                        # the menus: bare-menu (themed wmenu,
-                                               # patched for image previews), bare-pick
-                                               # (the menus), bare-look (flat / soft)
+  bare/                                        # the menus: neru menu (themed wmenu,
+                                               # patched for image previews), neru pick
+                                               # (the menus), neru look (flat / soft)
   gaming/                                      # RTX 3050 Ti under PRIME offload, Steam
                                                # and gamescope, the gamerun wrapper
-  calendar/                                    # Google Calendar sync (gcal CLI + timer)
+  calendar/                                    # Google Calendar sync (neru cal + timer)
                                                # feeding the agenda, and course deadlines
                                                # pushed from Markdown files on save
   audio/, files/, localsend/                   # remaining service aspects
@@ -83,7 +85,7 @@ of it is backed by a real service - PipeWire, MPRIS, UPower, NetworkManager,
 bluez, cliphist, StatusNotifier, open-meteo, PAM, polkit, xdg-desktop-portal,
 Hyprland's IPC - with nothing mocked.
 
-- **Choices are menus.** `bare-pick <source>` opens a themed `wmenu` for each
+- **Choices are menus.** `neru pick <source>` opens a themed `wmenu` for each
   of them: apps (or a web search), windows, clipboard, wallpaper, theme, media
   controls, power and profiles, Wi-Fi, Bluetooth, audio, displays, calendar,
   course deadlines, notes, the timer, the files shelf, LocalSend, the tray (an
@@ -127,8 +129,8 @@ Driven by keybinds or over IPC:
 | `SUPER+D`                   | Discord and music pad           |
 
 ```sh
-bare-pick                         # list every menu
-bare-pick wifi                    # open one from a terminal
+neru pick                         # list every menu
+neru pick wifi                    # open one from a terminal
 quickshell ipc call bare osd vol
 quickshell ipc call look toggle
 quickshell ipc call timer start 300
@@ -138,12 +140,12 @@ QML is symlinked from the repo, so edits apply on save with no rebuild.
 
 ## Theming
 
-The theme engine (`theme-set <name>`) renders each app's config from a
+The theme engine (`neru theme <name>`) renders each app's config from a
 template and reloads it in place. Hyprland, kitty, Neovim, vesktop, rmpc,
 GTK, Qt, SDDM and the shell all follow it without a rebuild.
 
 A theme is a palette and a font, nothing else - no wallpaper, no radius, no
-light/dark flag. The wallpaper is your own pick (`theme-set wallpaper <path>`,
+light/dark flag. The wallpaper is your own pick (`neru theme wallpaper <path>`,
 or the wallpaper menu) and persists across theme switches, re-tinted
 to each theme's accent unless you pass `--no-recolor`. The wallpaper menu also
 lists Gustave Doré's engravings, which are always dithered to two tones of the
@@ -168,11 +170,11 @@ somewhere else, rename those and delete the parts that only make sense here.
 3. Delete what is personal to this machine's owner - each is one directory, plus its
    scripts under `scripts/`:
    ```sh
-   git rm -r modules/{calendar,isep-site,sharkcoders-site,phone,moodle,java,mic,wireguard} modules/packages/personal.nix scripts/{calendar,phone,moodle,mic,packages}
+   git rm -r modules/{calendar,isep-site,phone,moodle,sc,mic,wireguard} modules/packages/personal.nix scripts/{calendar,phone,moodle,mic,packages}
    ```
    and, unless you set them up, `modules/secureboot` (needs `sbctl create-keys` and the
    keys enrolled in firmware) and `modules/gaming` (needs NVIDIA hybrid graphics).
-   Without `calendar` and `isep-site` nothing reads `secrets/`, so no sops key is needed.
+   Without `calendar`, `isep-site` and `sc` nothing reads `secrets/`, so no sops key is needed.
    `modules/whatsapp` (a WhatsApp client you link to your own account) and
    `modules/claude` (Claude Code skills) are optional - delete them if you do not use them.
    `modules/packages/optional.nix` is tools nothing else in the flake calls - keep,
@@ -226,7 +228,7 @@ Run `just` with no arguments to list all recipes.
 - Source files carry no comments at all.
 - App configs are symlinked directly from the repo via `mkOutOfStoreSymlink`
   (`utils.create_symlink`), so structural edits take effect immediately;
-  Nix-generated and templated files still need a rebuild or `theme-set reapply`.
+  Nix-generated and templated files still need a rebuild or `neru theme reapply`.
 - `nix run github:isneru/flake#kitty` (also `#quickshell`, `#btop`, `#shell`)
   starts either app with this config and a theme of your choice, with no
   checkout and nothing written to your `$HOME`.

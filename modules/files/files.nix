@@ -11,6 +11,17 @@
       pkgs,
       ...
     }:
+    let
+      imgview = pkgs.writeShellApplication {
+        name = "imgview";
+        runtimeInputs = with pkgs; [
+          ffmpeg
+          jq
+          swayimg
+        ];
+        text = builtins.readFile ../../scripts/files/imgview.sh;
+      };
+    in
     {
       xdg.userDirs = {
         enable = true;
@@ -28,15 +39,7 @@
       };
 
       home.packages = [
-        (pkgs.writeShellApplication {
-          name = "imgview";
-          runtimeInputs = with pkgs; [
-            ffmpeg
-            jq
-            swayimg
-          ];
-          text = builtins.readFile ../../scripts/files/imgview.sh;
-        })
+        imgview
       ]
       ++ (with pkgs; [
         # keep-sorted start
@@ -83,7 +86,7 @@
       xdg.desktopEntries.imgview = {
         name = "Image Viewer";
         genericName = "Image Viewer";
-        exec = "imgview %F";
+        exec = "${lib.getExe imgview} %F";
         icon = "swayimg";
         terminal = false;
         categories = [

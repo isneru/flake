@@ -34,7 +34,7 @@ Singleton {
 
     Process {
         id: sync
-        command: ["gcal", "sync"]
+        command: ["neru", "cal", "sync"]
     }
 
     Process {
@@ -62,14 +62,14 @@ Singleton {
     function add(text) {
         if (writer.running || !text.trim())
             return;
-        writer.command = ["gcal", "add", text.trim()];
+        writer.command = ["neru", "cal", "add", text.trim()];
         writer.running = true;
     }
 
     function remove(e) {
         if (writer.running || !e)
             return;
-        writer.command = ["gcal", "rm", e.calendarId, e.id];
+        writer.command = ["neru", "cal", "rm", e.calendarId, e.id];
         writer.running = true;
     }
 

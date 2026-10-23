@@ -18,7 +18,6 @@
       };
     in
     {
-      home.packages = [ picker ];
       xdg.configFile."hypr/xdph.conf".text = ''
         screencopy {
             custom_picker_binary = ${picker}/bin/bare-share-picker

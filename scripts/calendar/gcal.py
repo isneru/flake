@@ -235,11 +235,13 @@ def cmd_sync():
 
 def cmd_add(text):
     if not text:
-        die('usage: gcal add "gym tomorrow 7pm"')
+        die('usage: neru cal add "gym tomorrow 7pm"')
     token = access_token()
     cal = next((c for c in calendars(token) if mine(c)), None)
     if not cal:
-        die("no calendar of yours is shared - run gcal subscribe <your gmail address>")
+        die(
+            "no calendar of yours is shared - run neru cal subscribe <your gmail address>"
+        )
     path = f"/calendars/{urllib.parse.quote(cal['id'])}/events/quickAdd"
     created = api("POST", path, token, {"text": text})
     print(f"added: {created.get('summary', text)}")
@@ -248,7 +250,7 @@ def cmd_add(text):
 
 def cmd_rm(calendar_id, event_id):
     if not calendar_id or not event_id:
-        die("usage: gcal rm <calendarId> <eventId>")
+        die("usage: neru cal rm <calendarId> <eventId>")
     token = access_token()
     api(
         "DELETE",
@@ -344,7 +346,7 @@ def cmd_push():
 
 def cmd_done(name):
     if not name:
-        die("usage: gcal done <file>")
+        die("usage: neru cal done <file>")
     src = Path(name).resolve()
     if src.suffix != ".md" or src.parent.name != "deadlines" or not src.is_file():
         die(f"{name} is not a file in a deadlines/ folder")
@@ -360,7 +362,7 @@ def cmd_done(name):
 
 def cmd_subscribe(calendar_id):
     if not calendar_id:
-        die("usage: gcal subscribe <calendarId>")
+        die("usage: neru cal subscribe <calendarId>")
     token = access_token()
     cal = api(
         "POST",
@@ -389,7 +391,7 @@ def main():
         cmd_done(args[0] if args else "")
     else:
         die(
-            'usage: gcal [sync|subscribe <calendarId>|add "<text>"'
+            'usage: neru cal [sync|subscribe <calendarId>|add "<text>"'
             "|rm <calendarId> <eventId>|push|done <file>]"
         )
 

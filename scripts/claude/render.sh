@@ -5,7 +5,8 @@ trap 'rm -rf "$tmp"' EXIT
 
 case $kind in
 math)
-  body=$(sed -E \
+  body=$(LC_ALL=C sed -E \
+    -e 's/(^|[^\\A-Za-z])([A-Za-z]*(\xC3[\x80-\xBF][A-Za-z]*)+)/\1\\text{\2}/g' \
     -e 's/\\(begin|end)\{(align|alignat|flalign|split)\*?\}/\\\1{aligned}/g' \
     -e 's/\\(begin|end)\{(gather|multline)\*?\}/\\\1{gathered}/g' \
     -e 's/\\(begin|end)\{equation\*?\}//g' \

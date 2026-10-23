@@ -24,7 +24,10 @@
       };
     in
     {
-      home.packages = [ zathura-mode ];
+      neru.commands.zathura = {
+        package = zathura-mode;
+        desc = "cycle zathura's colours (next, light, dark, theme, reload)";
+      };
 
       programs.zathura = {
         enable = true;
@@ -32,7 +35,7 @@
           selection-notification = true;
           guioptions = "none";
         };
-        mappings."<C-r>" = "exec zathura-mode";
+        mappings."<C-r>" = "exec ${lib.getExe zathura-mode}";
         extraConfig = ''
           include ${theme}
           include ${state}
@@ -74,7 +77,7 @@
       theme-engine.apps.zathura = {
         target = "~/.config/zathura/theme";
         reload = [
-          "zathura-mode"
+          (lib.getExe zathura-mode)
           "reload"
         ];
         template = ''

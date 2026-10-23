@@ -77,7 +77,7 @@ def pick(key: str) -> None:
         name, _, value = line.partition("=")
         if name in SESSION:
             env[name] = value
-    os.execvpe("theme-set", ["theme-set", "wallpaper", str(path)], env)
+    os.execvpe("neru", ["neru", "theme", "wallpaper", str(path)], env)
 
 
 def main() -> None:
@@ -87,7 +87,7 @@ def main() -> None:
     elif len(args) == 2 and args[0] == "set":
         pick(args[1])
     else:
-        sys.exit("usage: phone-walls list [<id>...]|set <id>")
+        sys.exit("usage: neru phone walls list [<id>...]|set <id>")
 
 
 if __name__ == "__main__":

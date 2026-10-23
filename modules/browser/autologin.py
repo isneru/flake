@@ -41,7 +41,9 @@ def _fill(tab, form, process, code):
     process.deleteLater()
     lines = output.split("\n")
     if code != 0 or len(lines) < 2 or not lines[0] or not lines[1]:
-        message.error("ISEP autologin: no credentials in the keyring, run isep-login")
+        message.error(
+            "ISEP autologin: no credentials in the keyring, run neru isep login"
+        )
         return
     tab.run_js_async(
         _FILL % (json.dumps(form), json.dumps(lines[0]), json.dumps(lines[1]))
@@ -54,7 +56,7 @@ def _lookup(tab, form, found):
     tab._isep_login_at = time.monotonic()
     process = QProcess(tab)
     process.finished.connect(lambda code, _status: _fill(tab, form, process, code))
-    process.start("isep-login", ["get"])
+    process.start("neru", ["isep", "login", "get"])
 
 
 def _loaded(tab, ok):

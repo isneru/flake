@@ -124,12 +124,18 @@ in
       };
     in
     {
-      home.packages = [
-        isep-login
-        pkgs.qutebrowser
-        qute-reload
-      ]
-      ++ builtins.attrValues userscripts;
+      home.packages = [ pkgs.qutebrowser ];
+
+      neru.commands = {
+        "isep login" = {
+          package = isep-login;
+          desc = "store the ISEP login in the keyring";
+        };
+        "qute reload" = {
+          package = qute-reload;
+          desc = "reload qutebrowser's config";
+        };
+      };
 
       xdg.configFile."qutebrowser/config.py".source =
         utils.create_symlink "${utils.dotfiles}/browser/config.py";
@@ -179,7 +185,7 @@ in
       theme-engine.apps.qutebrowser = {
         target = "~/.config/qutebrowser/theme.py";
         template = builtins.readFile ./theme.py.tmpl;
-        reload = [ "qute-reload" ];
+        reload = [ (lib.getExe qute-reload) ];
       };
 
     };

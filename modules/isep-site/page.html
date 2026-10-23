@@ -5,6 +5,8 @@
 {{- $stat := fileStat $cur}}
 {{- $doc := dict}}
 {{- if not $stat.IsDir}}{{$doc = splitFrontMatter (readFile $cur)}}{{end}}
+{{- $editing := ph "http.vars.edit"}}
+{{- $editable := and $editing (not $stat.IsDir) (hasSuffix ".md" $cur) (not (regexMatch "^/[^/]+/materials/" $cur))}}
 <!doctype html>
 <html lang="en">
   <head>
@@ -51,7 +53,7 @@
         padding: 1.4rem 0.75rem 2rem;
         background: var(--side);
         border-right: 1px solid var(--line);
-        font-size: 0.87rem;
+        font-size: 0.95rem;
         line-height: 1.5;
         scrollbar-width: thin;
         scrollbar-color: var(--line) transparent;
@@ -63,7 +65,7 @@
         display: block;
         margin: 0 0.5rem 1rem;
         color: var(--fg);
-        font: 22px/1 var(--chrome), var(--mono), monospace;
+        font: 24px/1 var(--chrome), var(--mono), monospace;
       }
       .home:hover {
         color: var(--accent);
@@ -100,7 +102,7 @@
       #tree summary,
       #tree a {
         display: block;
-        padding: 0.1rem 0.5rem;
+        padding: 0.15rem 0.5rem;
         border-left: 2px solid transparent;
         color: var(--soft);
         white-space: nowrap;
@@ -229,6 +231,106 @@
         border-color: var(--accent);
         color: var(--accent);
         text-decoration: none;
+      }
+      .acts {
+        display: flex;
+        flex-shrink: 0;
+        gap: 0.6rem;
+      }
+      button.save,
+      #editor button {
+        background: none;
+        font: inherit;
+        font-size: 0.87rem;
+        cursor: pointer;
+      }
+      #edit::before {
+        content: "\f040";
+      }
+      #review {
+        display: block;
+        margin: 0 0.5rem 1rem;
+        text-align: center;
+      }
+      #review::before {
+        content: "\f046";
+      }
+      #review[hidden],
+      #edit[hidden] {
+        display: none;
+      }
+      #editor {
+        display: grid;
+        gap: 0.75rem;
+      }
+      #editor[hidden] {
+        display: none;
+      }
+      .tabs {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      #tools {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        padding-left: 0.6rem;
+        border-left: 1px solid var(--line);
+      }
+      #tools[hidden] {
+        display: none;
+      }
+      #tools button {
+        min-width: 2.2rem;
+        padding: 0.1rem 0.5rem;
+        font-size: 1.07rem;
+      }
+      body:has(#editor:not([hidden])) {
+        grid-template-columns: 19rem minmax(0, 1fr);
+      }
+      body:has(#editor:not([hidden])) main {
+        max-width: none;
+      }
+      body:has(#editor:not([hidden])) #toc {
+        display: none;
+      }
+      #editor button {
+        padding: 0.2rem 0.7rem;
+        border: 1px solid var(--line);
+        border-radius: 0;
+        color: var(--soft);
+      }
+      #editor button:hover,
+      #editor button[aria-pressed="true"] {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      #editor textarea {
+        width: 100%;
+        min-height: 70vh;
+        padding: 0.9rem 1.1rem;
+        border: 1px solid var(--line);
+        border-radius: 0;
+        background: var(--side);
+        color: var(--fg);
+        font: inherit;
+        font-size: 0.93rem;
+        line-height: 1.55;
+        resize: vertical;
+        tab-size: 4;
+      }
+      #editor textarea:focus {
+        outline: 0;
+        border-color: var(--accent);
+      }
+      #editor textarea[hidden] {
+        display: none;
+      }
+      .status {
+        color: var(--muted);
+        font-size: 0.87rem;
       }
       .list {
         margin: 0;
@@ -553,18 +655,21 @@
       }
     </style>
     {{- if not $stat.IsDir}}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous" />
-    <script defer src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js" integrity="sha384-wLhprpjsmjc/XYIcF+LpMxd8yS1gss6jhevOp6F6zhiIoFK6AmHtm4bGKtehTani" crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/markdown-it-footnote@4.0.0/dist/markdown-it-footnote.min.js" integrity="sha384-7mE/Iobn0ulfWG/11wQHPJLIV11r3mVxTdSnuNIL71f/DM1wFjtMREh+nxliUVdY" crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/markdown-it-task-lists@2.1.1/dist/markdown-it-task-lists.min.js" integrity="sha384-FKY5Inm02LmR+QgGl8g9DxuTQ+UuOo3tWGSVd7ZmWSPl9DyYsmi7kE3tTjC3ZEow" crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/markdown-it-texmath@1.0.0/texmath.min.js" integrity="sha384-IJTt8+6hpcfxunTzDwSuS8o8lsOFjDwoUddKsTvs+x8oa9muA1PbBBcXaz8D6yR0" crossorigin="anonymous"></script>
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js" integrity="sha384-RH2xi4eIQ/gjtbs9fUXM68sLSi99C7ZWBRX1vDrVv6GQXRibxXLbwO2NGZB74MbU" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="/.site/lib/katex/katex.min.css" />
+    <script defer src="/.site/lib/markdown-it.min.js"></script>
+    <script defer src="/.site/lib/markdown-it-footnote.min.js"></script>
+    <script defer src="/.site/lib/markdown-it-task-lists.min.js"></script>
+    <script defer src="/.site/lib/katex/katex.min.js"></script>
+    <script defer src="/.site/lib/texmath.js"></script>
+    <script defer src="/.site/lib/highlight.min.js"></script>
     {{- end}}
   </head>
   <body>
     <aside>
       <a class="home" href="/">ISEP</a>
+      {{- if $editing}}
+      <a id="review" class="save" href="/.edit/review" hidden>Review</a>
+      {{- end}}
       <details id="side" open>
         <summary>Files</summary>
         <input id="filter" type="search" placeholder="Filter files  /" autocomplete="off" />
@@ -577,7 +682,12 @@
         <h1 class="path">{{template "path" $cur}}</h1>
         {{- else}}
         <nav class="path">{{template "path" $cur}}</nav>
-        <a class="save" href="{{html $here}}?download">Download</a>
+        <div class="acts">
+          {{- if $editable}}
+          <button id="edit" class="save" type="button" hidden>Edit</button>
+          {{- end}}
+          <a class="save" href="{{html $here}}?download">Download</a>
+        </div>
         {{- end}}
       </header>
       {{- if $stat.IsDir}}
@@ -610,6 +720,38 @@
       {{- end}}
       {{- else}}
       <article><pre id="src">{{html $doc.Body}}</pre></article>
+      {{- if $editable}}
+      <form id="editor" hidden>
+        <div class="tabs">
+          <button type="button" data-tab="write" aria-pressed="true">Write</button>
+          <button type="button" data-tab="preview" aria-pressed="false">Preview</button>
+          <div id="tools" role="toolbar" aria-label="Formatting">
+            <button type="button" data-tool="heading" title="Heading" aria-label="Heading">&#xf1dc;</button>
+            <button type="button" data-tool="bold" title="Bold (Ctrl+B)" aria-label="Bold (Ctrl+B)">&#xf032;</button>
+            <button type="button" data-tool="italic" title="Italic (Ctrl+I)" aria-label="Italic (Ctrl+I)">&#xf033;</button>
+            <button type="button" data-tool="strike" title="Strikethrough" aria-label="Strikethrough">&#xf0cc;</button>
+            <button type="button" data-tool="code" title="Inline code" aria-label="Inline code">&#xf121;</button>
+            <button type="button" data-tool="math" title="Math" aria-label="Math">&#x2211;</button>
+            <button type="button" data-tool="link" title="Link (Ctrl+K)" aria-label="Link (Ctrl+K)">&#xf0c1;</button>
+            <button type="button" data-tool="quote" title="Quote" aria-label="Quote">&#xf10d;</button>
+            <button type="button" data-tool="ul" title="Bulleted list" aria-label="Bulleted list">&#xf0ca;</button>
+            <button type="button" data-tool="ol" title="Numbered list" aria-label="Numbered list">&#xf0cb;</button>
+            <button type="button" data-tool="task" title="Task list" aria-label="Task list">&#xf046;</button>
+            <button type="button" data-tool="block" title="Code block" aria-label="Code block">&#xf1c9;</button>
+            <button type="button" data-tool="table" title="Table" aria-label="Table">&#xf0ce;</button>
+            <button type="button" data-tool="tidy" title="Format: align tables (Shift+Alt+F)" aria-label="Format: align tables">&#xf0d0;</button>
+            <button type="button" data-wrap aria-pressed="false" title="Wrap long lines" aria-label="Wrap long lines">&#xf035;</button>
+          </div>
+        </div>
+        <textarea spellcheck="false" wrap="off" aria-label="Note source"></textarea>
+        <article id="preview" hidden></article>
+        <div class="tabs">
+          <button type="submit">Save</button>
+          <button type="button" data-cancel>Cancel</button>
+          <span class="status"></span>
+        </div>
+      </form>
+      {{- end}}
       <dialog id="zoom" aria-label="Zoomed view">
         <div id="stage"></div>
         <menu>
@@ -624,199 +766,12 @@
     {{- if not $stat.IsDir}}
     <nav id="toc" aria-label="Outline" hidden><p>Outline</p></nav>
     {{- end}}
-    <script>
-      const side = document.getElementById("side")
-      if (matchMedia("(max-width: 50rem)").matches) side.open = false
-      const filter = document.getElementById("filter")
-      const tree = document.getElementById("tree")
-      const items = [...tree.querySelectorAll("li")].reverse()
-      const folders = [...tree.querySelectorAll("details")]
-      const initial = folders.map((d) => d.open)
-      addEventListener("keydown", (e) => {
-        if (e.key !== "/" || e.target.matches("input, textarea")) return
-        e.preventDefault()
-        side.open = true
-        filter.focus()
-      })
-      filter.addEventListener("input", () => {
-        const q = filter.value.trim().toLowerCase()
-        for (const li of items) li.hidden = false
-        if (!q) {
-          folders.forEach((d, i) => (d.open = initial[i]))
-          return
-        }
-        for (const li of items) {
-          const label = li.querySelector(":scope > a, :scope > details > summary")
-          const own = label.textContent.toLowerCase().includes(q)
-          const folder = li.querySelector(":scope > details")
-          const inner = folder?.querySelector(":scope > ul > li:not([hidden])")
-          if (folder) folder.open = Boolean(inner)
-          li.hidden = !own && !inner
-          if (own && folder) for (const child of li.querySelectorAll("li")) child.hidden = false
-        }
-      })
-    </script>
+    <script src="/.site/tree.js"></script>
     {{- if not $stat.IsDir}}
-    <script type="module">
-      const src = document.getElementById("src")
-      const md = markdownit({
-        html: false,
-        linkify: true,
-        breaks: true,
-        highlight: (code, lang) =>
-          hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang, ignoreIllegals: true }).value : "",
-      })
-        .use(texmath, { engine: katex, delimiters: "dollars", katexOptions: { throwOnError: false } })
-        .use(markdownitFootnote)
-        .use(markdownitTaskLists)
-      src.parentElement.innerHTML = md.render(src.textContent)
-      const toc = document.getElementById("toc")
-      const headings = [...document.querySelectorAll("article :is(h1, h2, h3, h4)")]
-      if (headings.length > 1) {
-        const top = Math.min(...headings.map((h) => Number(h.tagName[1])))
-        const links = headings.map((h) => {
-          const base =
-            h.textContent
-              .trim()
-              .toLowerCase()
-              .replace(/[^\p{L}\p{N}]+/gu, "-")
-              .replace(/^-|-$/g, "") || "section"
-          let id = base
-          for (let n = 2; document.getElementById(id); n++) id = `${base}-${n}`
-          h.id = id
-          const a = document.createElement("a")
-          a.href = `#${encodeURIComponent(id)}`
-          a.textContent = h.textContent
-          a.style.setProperty("--depth", Number(h.tagName[1]) - top)
-          return a
-        })
-        toc.append(...links)
-        toc.hidden = false
-        const spy = () => {
-          const end = innerHeight + scrollY >= document.documentElement.scrollHeight - 2
-          const i = end ? headings.length - 1 : headings.findLastIndex((h) => h.getBoundingClientRect().top <= 40)
-          for (const [j, a] of links.entries()) {
-            if (j === Math.max(i, 0)) a.setAttribute("aria-current", "location")
-            else a.removeAttribute("aria-current")
-          }
-        }
-        addEventListener("scroll", spy, { passive: true })
-        spy()
-        if (location.hash) document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView()
-      }
-      const diagrams = document.querySelectorAll("code.language-mermaid")
-      if (diagrams.length) {
-        for (const code of diagrams) {
-          const pre = document.createElement("pre")
-          pre.className = "mermaid"
-          pre.textContent = code.textContent
-          code.closest("pre").replaceWith(pre)
-        }
-        const { default: mermaid } = await import(
-          "https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.0/mermaid.esm.min.mjs"
-        )
-        const css = getComputedStyle(document.documentElement)
-        const v = (name) => css.getPropertyValue(name).trim()
-        mermaid.initialize({
-          startOnLoad: false,
-          theme: "base",
-          themeVariables: {
-            darkMode: v("color-scheme") === "dark",
-            fontFamily: `${v("--mono")}, monospace`,
-            background: v("--bg"),
-            primaryColor: v("--raise"),
-            primaryTextColor: v("--fg"),
-            primaryBorderColor: v("--muted"),
-            secondaryColor: v("--side"),
-            tertiaryColor: v("--side"),
-            lineColor: v("--muted"),
-            textColor: v("--fg"),
-          },
-        })
-        await document.fonts.ready
-        await mermaid.run({ querySelector: "pre.mermaid", suppressErrors: true })
-      }
-
-      const zoom = document.getElementById("zoom")
-      const stage = document.getElementById("stage")
-      const touches = new Map()
-      let scale = 1
-      let x = 0
-      let y = 0
-      let moved = false
-      const draw = () => (stage.style.transform = `translate(${x}px, ${y}px) scale(${scale})`)
-      const zoomAt = (factor, px, py) => {
-        const next = Math.min(Math.max(scale * factor, 0.5), 16)
-        const cx = px - innerWidth / 2
-        const cy = py - innerHeight / 2
-        x = cx - ((cx - x) * next) / scale
-        y = cy - ((cy - y) * next) / scale
-        scale = next
-        draw()
-      }
-      const reset = () => {
-        scale = 1
-        x = y = 0
-        draw()
-      }
-      const show = (node) => {
-        const copy = node.cloneNode(true)
-        copy.removeAttribute("style")
-        copy.removeAttribute("tabindex")
-        stage.replaceChildren(copy)
-        reset()
-        zoom.showModal()
-      }
-      for (const node of document.querySelectorAll("article img, pre.mermaid svg")) {
-        node.tabIndex = 0
-        node.addEventListener("click", () => show(node))
-        node.addEventListener("keydown", (e) => e.key === "Enter" && show(node))
-      }
-      zoom.addEventListener("wheel", (e) => {
-        e.preventDefault()
-        zoomAt(Math.exp(-e.deltaY * 0.002), e.clientX, e.clientY)
-      })
-      zoom.addEventListener("pointerdown", (e) => {
-        if (e.target.closest("menu")) return
-        zoom.setPointerCapture(e.pointerId)
-        touches.set(e.pointerId, e)
-        moved = e.target !== zoom
-      })
-      zoom.addEventListener("pointermove", (e) => {
-        const last = touches.get(e.pointerId)
-        if (!last) return
-        if (touches.size === 2) {
-          const [other] = [...touches.values()].filter((t) => t.pointerId !== e.pointerId)
-          const before = Math.hypot(last.clientX - other.clientX, last.clientY - other.clientY)
-          const after = Math.hypot(e.clientX - other.clientX, e.clientY - other.clientY)
-          zoomAt(after / before, (e.clientX + other.clientX) / 2, (e.clientY + other.clientY) / 2)
-        } else {
-          x += e.clientX - last.clientX
-          y += e.clientY - last.clientY
-          draw()
-        }
-        moved = true
-        touches.set(e.pointerId, e)
-      })
-      for (const type of ["pointerup", "pointercancel"]) {
-        zoom.addEventListener(type, (e) => {
-          const held = touches.delete(e.pointerId)
-          if (held && !moved && type === "pointerup") zoom.close()
-        })
-      }
-      zoom.addEventListener("dblclick", (e) => e.target.closest("menu") || reset())
-      zoom.addEventListener("keydown", (e) => {
-        if (e.key === "+" || e.key === "=") zoomAt(1.25, innerWidth / 2, innerHeight / 2)
-        if (e.key === "-") zoomAt(0.8, innerWidth / 2, innerHeight / 2)
-        if (e.key === "0") reset()
-      })
-      zoom.querySelector("menu").addEventListener("click", (e) => {
-        const action = e.target.dataset.zoom
-        if (action === "close") zoom.close()
-        else if (action === "0") reset()
-        else if (action) zoomAt(Number(action), innerWidth / 2, innerHeight / 2)
-      })
-    </script>
+    <script type="module" src="/.site/note.js"></script>
+    {{- end}}
+    {{- if $editing}}
+    <script type="module" src="/.site/edit.js"></script>
     {{- end}}
   </body>
 </html>

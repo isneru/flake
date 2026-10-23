@@ -1,6 +1,11 @@
 {
   flake.modules.homeManager.icons =
-    { config, pkgs, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
       name = "Papirus-Dark-Accent";
       theme = "Papirus-Dark";
@@ -27,8 +32,6 @@
       };
     in
     {
-      home.packages = [ icons-recolor ];
-
       gtk.iconTheme = {
         inherit name;
         package = pkgs.papirus-icon-theme;
@@ -37,7 +40,7 @@
       theme-engine.apps.icons = {
         target = colors;
         template = builtins.readFile ./colors.json.tmpl;
-        reload = [ "icons-recolor" ];
+        reload = [ (lib.getExe icons-recolor) ];
       };
     };
 }

@@ -81,6 +81,6 @@ Singleton {
         text = "";
         error = "";
         BareState.close();
-        Quickshell.execDetached(["qrscan"]);
+        Quickshell.execDetached(["neru", "qr"]);
     }
 }

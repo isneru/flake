@@ -9,6 +9,7 @@
         (config.flake.lib.mkPreviewHome pkgs (
           builtins.attrValues (
             removeAttrs config.flake.modules.homeManager [
+              "neru"
               "theme-engine"
               "utils"
             ]

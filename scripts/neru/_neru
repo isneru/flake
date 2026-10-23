@@ -1,0 +1,30 @@
+#compdef neru
+
+local -a entries choices
+local -A groups
+local entry key
+
+entries=("${(@f)$(neru --commands 2>/dev/null)}")
+
+if (( CURRENT == 2 )); then
+  for entry in $entries; do
+    key=${entry%%$'\t'*}
+    if [[ $key == *' '* ]]; then
+      groups[${key%% *}]=1
+    else
+      choices+=("$key:${entry#*$'\t'}")
+    fi
+  done
+  for key in ${(k)groups}; do
+    choices+=("$key:${(j:, :)${(@)${(@M)${(@)entries%%$'\t'*}:#$key *}#$key }}")
+  done
+  _describe command choices
+elif (( CURRENT == 3 )) && [[ -n ${(M)entries:#$words[2] *} ]]; then
+  for entry in ${(M)entries:#$words[2] *}; do
+    key=${entry%%$'\t'*}
+    choices+=("${key#* }:${entry#*$'\t'}")
+  done
+  _describe command choices
+else
+  _files
+fi

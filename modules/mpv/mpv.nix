@@ -23,6 +23,7 @@
           osd-bar = "no";
           volume = 50;
           volume-max = 150;
+          wayland-internal-vsync = "yes";
           ytdl-format = "bestvideo[height<=?1080]+bestaudio/best";
         };
       };

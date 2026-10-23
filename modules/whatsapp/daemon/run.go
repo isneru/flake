@@ -23,7 +23,7 @@ func daemon() {
 	if a.cli.Store.ID == nil {
 		a.setState("logged-out")
 		a.flush(ctx)
-		fmt.Fprintln(os.Stderr, "whatsapp: not linked; run whatsapp login")
+		fmt.Fprintln(os.Stderr, "whatsapp: not linked; run neru whatsapp login")
 		return
 	}
 	go a.flusher(ctx)
@@ -45,7 +45,7 @@ func login() {
 	ctx := context.Background()
 	a := open(ctx)
 	if a.cli.Store.ID != nil {
-		die("already linked as +%s; run whatsapp logout first", a.cli.Store.ID.User)
+		die("already linked as +%s; run neru whatsapp logout first", a.cli.Store.ID.User)
 	}
 	codes, err := a.cli.GetQRChannel(ctx)
 	if err != nil {

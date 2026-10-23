@@ -126,12 +126,15 @@
             })
             [
               # keep-sorted start
+              "align"
               "bar"
               "buffers"
               "colors"
+              "cursors"
               "init"
               "lsp"
               "numbers"
+              "read"
               "scratch"
               "statusline"
               "tree"
@@ -145,7 +148,6 @@
           clang-tools
           nixfmt
           prettier
-          python3Packages.pylatexenc
           ruff
           shfmt
           stylua
@@ -160,9 +162,22 @@
         plugins = {
           web-devicons.enable = true;
           treesitter.enable = true;
-          which-key.enable = true;
+          which-key = {
+            enable = true;
+            settings = {
+              preset = "helix";
+              win.col = 0;
+              icons = {
+                breadcrumb = "";
+                mappings = false;
+                separator = "";
+              };
+              show_help = false;
+            };
+          };
           guess-indent.enable = true;
 
+          multicursor.enable = true;
           flash = {
             enable = true;
             settings.modes.char.enabled = false;
@@ -577,107 +592,6 @@
           neogit.enable = true;
           diffview.enable = true;
 
-          render-markdown = {
-            enable = true;
-            settings = {
-              heading = {
-                icons = [
-                  "# "
-                  "## "
-                  "### "
-                  "#### "
-                  "##### "
-                  "###### "
-                ];
-                backgrounds.__raw = "{}";
-                sign = false;
-              };
-              bullet.icons = [
-                "•"
-                "◦"
-                "▪"
-                "▫"
-              ];
-              code = {
-                width = "block";
-                left_pad = 2;
-                right_pad = 2;
-                inline_pad = 1;
-                highlight_border = false;
-              };
-              html.tag =
-                let
-                  scoped =
-                    hl: tags:
-                    lib.genAttrs tags (_: {
-                      scope_highlight = hl;
-                    });
-                in
-                lib.genAttrs
-                  [
-                    "center"
-                    "details"
-                    "div"
-                    "p"
-                    "span"
-                    "summary"
-                    "table"
-                    "tbody"
-                    "td"
-                    "thead"
-                    "tr"
-                  ]
-                  (_: {
-                    __raw = "{}";
-                  })
-                // scoped "@markup.strong" [
-                  "b"
-                  "strong"
-                  "th"
-                ]
-                // scoped "@markup.italic" [
-                  "em"
-                  "i"
-                ]
-                // scoped "@markup.strikethrough" [
-                  "del"
-                  "s"
-                  "strike"
-                ]
-                // scoped "@markup.underline" [
-                  "ins"
-                  "u"
-                ]
-                // scoped "RenderMarkdownCodeInline" [
-                  "code"
-                  "kbd"
-                ]
-                // builtins.listToAttrs (
-                  map
-                    (n: {
-                      name = "h${n}";
-                      value.scope_highlight = "RenderMarkdownH${n}";
-                    })
-                    [
-                      "1"
-                      "2"
-                      "3"
-                      "4"
-                      "5"
-                      "6"
-                    ]
-                )
-                // {
-                  a = {
-                    icon = "󰌹 ";
-                    highlight = "RenderMarkdownLink";
-                    scope_highlight = "RenderMarkdownLink";
-                  };
-                };
-              latex.converter = [ "latex2text" ];
-              completions.blink.enabled = true;
-            };
-          };
           typst-preview.enable = true;
           vimtex = {
             enable = true;
@@ -738,6 +652,11 @@
             key = "]d";
             action.__raw = "function() vim.diagnostic.jump({ count = 1, float = true }) end";
             options.desc = "Next diagnostic";
+          }
+          {
+            key = "<leader>k";
+            action.__raw = "vim.diagnostic.open_float";
+            options.desc = "Diagnostic under cursor";
           }
           {
             key = "<leader>d";
@@ -929,6 +848,24 @@
           }
         ];
       };
+
+      home.packages = [
+        (pkgs.writeShellApplication {
+          name = "md-read";
+          runtimeInputs = [
+            (pkgs.python3.withPackages (
+              ps: with ps; [
+                markdown-it-py
+                mdit-py-plugins
+                pygments
+                pylatexenc
+                wcwidth
+              ]
+            ))
+          ];
+          text = ''exec python3 ${../../scripts/neovim/md-read.py} "$@"'';
+        })
+      ];
 
       xdg.desktopEntries.nvim-kitty = {
         name = "Neovim";

@@ -72,7 +72,7 @@ Item {
 
                 TapHandler {
                     gesturePolicy: TapHandler.ReleaseWithinBounds
-                    onTapped: Quickshell.execDetached(["kitty", "--title", "WhatsApp login", "-e", "whatsapp", "login"])
+                    onTapped: Quickshell.execDetached(["kitty", "--title", "WhatsApp login", "-e", "neru", "whatsapp", "login"])
                 }
 
                 Text {

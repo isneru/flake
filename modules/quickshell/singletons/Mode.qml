@@ -32,7 +32,7 @@ Singleton {
             return;
         soft = v;
         applier.running = false;
-        applier.command = ["bare-look", current()];
+        applier.command = ["neru", "look", current()];
         applier.running = true;
     }
 

@@ -67,14 +67,14 @@ PanelWindow {
             mons[m.id] = m;
             add(m.activeWorkspace.id, m.activeWorkspace.name, m);
             if (m.focused) {
-                here = m.specialWorkspace.id || m.activeWorkspace.id;
+                here = m.activeWorkspace.id;
                 root.special = m.specialWorkspace.name.replace("special:", "");
             }
         }
         let focused = "";
         for (const c of clients) {
             const m = mons[c.monitor];
-            if (!m || !c.mapped || c.hidden)
+            if (!m || !c.mapped || c.hidden || c.workspace.id < 0)
                 continue;
             add(c.workspace.id, c.workspace.name, m).wins.push({
                 addr: c.address,
@@ -94,7 +94,7 @@ PanelWindow {
             const vh = r.m.height / r.m.scale;
             r.wins.sort((a, b) => a.x - b.x || a.y - b.y);
             return {
-                label: r.id > 0 ? (r.id === here ? `[${r.name}]` : ` ${r.name} `) : r.name.replace("special:", ""),
+                label: r.id === here ? `[${r.name}]` : ` ${r.name} `,
                 current: r.id === here,
                 vw,
                 vh,
@@ -104,7 +104,7 @@ PanelWindow {
                 id: r.id
             };
         });
-        rows.sort((a, b) => (a.id < 0) - (b.id < 0) || Math.abs(a.id) - Math.abs(b.id));
+        rows.sort((a, b) => a.id - b.id);
         const cur = rows.find(r => r.current);
         root.sel = focused || (cur?.wins[0] ?? rows.find(r => r.wins.length)?.wins[0])?.addr || "";
         root.rows = rows;
@@ -151,7 +151,7 @@ PanelWindow {
         Mode.overview = false;
         if (!row)
             return;
-        if (row.id > 0 && root.special)
+        if (root.special)
             Hyprland.dispatch(`hl.dsp.workspace.toggle_special("${root.special}")`);
         Hyprland.dispatch(`hl.dsp.focus{ window = "address:${addr}" }`);
     }

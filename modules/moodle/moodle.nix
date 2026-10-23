@@ -30,15 +30,15 @@
       };
     in
     {
-      home.packages = [
-        app
-        cli
-      ];
+      neru.commands.moodle = {
+        package = cli;
+        desc = "Moodle login, sync and course mirror";
+      };
 
       xdg.configFile = {
         "bare/notebooks".text = "isep";
         "hypr/extra.lua".text = ''
-          bind(MOD, "I", hl.dsp.exec_cmd("moodle-app"), { group = "SHELL", desc = "Moodle" })
+          bind(MOD, "I", hl.dsp.exec_cmd("${app}/bin/moodle-app"), { group = "SHELL", desc = "Moodle" })
           table.insert(blur, "moodle")
         '';
         "quickshell/moodle/shell.qml".source =

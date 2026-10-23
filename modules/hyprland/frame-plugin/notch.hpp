@@ -3,6 +3,8 @@
 #define WLR_USE_UNSTABLE
 
 #include <string>
+#include <utility>
+#include <vector>
 
 #include <hyprland/src/config/values/types/ColorValue.hpp>
 #include <hyprland/src/config/values/types/IntValue.hpp>
@@ -42,6 +44,7 @@ class CNotch : public IHyprWindowDecoration {
     void                       drawPass(PHLMONITOR, float a);
     CBox                       reach();
     bool                       glass();
+    bool                       xray();
 
   private:
     CBox                 frameBox();
@@ -49,8 +52,7 @@ class CNotch : public IHyprWindowDecoration {
 
     PHLWINDOWREF         m_window;
     CBox                 m_assigned;
-    SP<Render::ITexture> m_title;
-    std::string          m_titleKey;
+    std::vector<std::pair<std::string, SP<Render::ITexture>>> m_titles;
 };
 
 class CNotchReach : public IHyprWindowDecoration {

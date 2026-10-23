@@ -58,7 +58,7 @@ Item {
                 anchors.centerIn: parent
                 glyph: "cloud_off"
                 title: "Nothing synced yet"
-                detail: "Run moodle login in a terminal, then press the refresh button."
+                detail: "Run neru moodle login in a terminal, then press the refresh button."
             }
         }
 

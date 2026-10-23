@@ -28,6 +28,7 @@ c.content.autoplay = True
 _start_page = (config.datadir / "start.html").as_uri()
 c.url.start_pages = [_start_page]
 c.url.default_page = _start_page
+c.url.searchengines = {"DEFAULT": "https://www.google.com/search?q={}"}
 
 config.set(
     "content.local_content_can_access_remote_urls", True, f"{config.datadir.as_uri()}/*"

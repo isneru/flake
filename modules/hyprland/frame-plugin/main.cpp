@@ -4,6 +4,7 @@
 
 #include <hyprland/src/Compositor.hpp>
 #include <hyprland/src/desktop/state/WindowState.hpp>
+#include <hyprland/src/desktop/view/Group.hpp>
 #include <hyprland/src/desktop/view/Window.hpp>
 #include <hyprland/src/event/EventBus.hpp>
 #include <hyprland/src/render/Renderer.hpp>
@@ -54,6 +55,8 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     auto& events = Event::bus()->m_events;
     static auto onOpen       = events.window.open.listen([](PHLWINDOW w) { frame(w); });
     static auto onTitle      = events.window.title.listen([](PHLWINDOW w) {
+        if (w->m_group)
+            w = w->m_group->current();
         if (auto notch = notchOf(w))
             notch->damageEntire();
     });

@@ -91,7 +91,29 @@ in
 
   flake.modules.homeManager.scripts =
     { pkgs, ... }:
+    let
+      scripts = mkScripts pkgs;
+    in
     {
-      home.packages = lib.attrValues (mkScripts pkgs);
+      home.packages = with scripts; [
+        colorpicker
+        ns
+        ocr
+      ];
+
+      neru.commands = {
+        qr = {
+          package = scripts.qrscan;
+          desc = "read a QR code in a region";
+        };
+        "rec" = {
+          package = scripts.record;
+          desc = "start or stop a screen recording";
+        };
+        shot = {
+          package = scripts.screenshot;
+          desc = "take a screenshot (full, region [--edit])";
+        };
+      };
     };
 }

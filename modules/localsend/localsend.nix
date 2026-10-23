@@ -21,8 +21,6 @@
 
     in
     {
-      home.packages = [ daemon ];
-
       systemd.user.services.bare-localsend = {
         Unit = {
           Description = "LocalSend for the bare shell";

@@ -1,9 +1,48 @@
+{{- /* partilha/ is <curso>/<turma>/aulaNN/<files>. Any folder may hold an info.md whose
+       front matter `nome:` is its display name; a course's info.md body is the help box
+       on its lesson pages. So a new course or class is a new folder, no rebuild. */}}
+{{- define "label"}}
+{{- $n := base .}}
+{{- $depth := len (splitList "/" .)}}
+{{- $l := $n}}
+{{- if le $depth 3}}{{$l = title (replace "-" " " $n)}}{{end}}
+{{- if and (eq $depth 4) (hasPrefix "aula" $n)}}{{$l = print "Aula " (trimPrefix "aula" $n)}}{{end}}
+{{- $md := print . "/info.md"}}
+{{- if fileExists $md}}{{$l = default $l (index (splitFrontMatter (readFile $md)).Meta "nome")}}{{end}}
+{{- html $l}}
+{{- end}}
+{{- define "href"}}{{range rest (splitList "/" .)}}/{{html (pathEscape .)}}{{end}}/{{end}}
+{{- define "turmas"}}
+{{- $c := .}}
+<ul class="grid">
+        {{- range sortAlpha (listFiles $c)}}
+        {{- if hasPrefix "." .}}{{continue}}{{end}}
+        {{- $t := print $c "/" .}}
+        {{- if not (fileStat $t).IsDir}}{{continue}}{{end}}
+        {{- $n := 0}}
+        {{- range listFiles $t}}{{if not (hasPrefix "." .)}}{{if (fileStat (print $t "/" .)).IsDir}}{{$n = add $n 1}}{{end}}{{end}}{{end}}
+        <li>
+          <a href="{{template "href" $t}}">
+            <strong>{{template "label" $t}}</strong>
+            <span class="count">{{$n}} {{if eq $n 1}}aula{{else}}aulas{{end}}</span>
+          </a>
+        </li>
+        {{- end}}
+      </ul>
+{{- end}}
 {{- $cur := trimSuffix "/" (ph "http.request.orig_uri.path")}}
 {{- if not (fileExists $cur)}}{{httpError 404}}{{end}}
+{{- $parts := rest (splitList "/" $cur)}}
+{{- $depth := len $parts}}
 {{- $here := ""}}
-{{- range rest (splitList "/" $cur)}}{{$here = print $here "/" (pathEscape .)}}{{end}}
-{{- $label := "Aulas de Java"}}
-{{- if $cur}}{{$label = base $cur}}{{if hasPrefix "aula" $label}}{{$label = print "Aula " (trimPrefix "aula" $label)}}{{end}}{{end}}
+{{- $parent := ""}}
+{{- range $parts}}{{$parent = $here}}{{$here = print $here "/" (pathEscape .)}}{{end}}
+{{- $curso := ""}}
+{{- $turma := ""}}
+{{- if $depth}}{{$curso = print "/" (index $parts 0)}}{{end}}
+{{- if gt $depth 1}}{{$turma = print $curso "/" (index $parts 1)}}{{end}}
+{{- $help := ""}}
+{{- if gt $depth 2}}{{$md := print $curso "/info.md"}}{{if fileExists $md}}{{$help = (splitFrontMatter (readFile $md)).Body}}{{end}}{{end}}
 <!doctype html>
 <html lang="pt">
   <head>
@@ -11,7 +50,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <meta name="color-scheme" content="light dark">
-    <title>{{html $label}}</title>
+    <title>{{if $depth}}{{template "label" $cur}}{{else}}Aulas{{end}}</title>
     <style>
       :root {
         --bg: #f4f7fb;
@@ -99,8 +138,13 @@
         border-radius: 14px;
       }
       .help h2 { margin: 0 0 8px; font-size: 1.1rem; }
-      .help ol { margin: 0; padding-left: 22px; }
-      .help li + li { margin-top: 4px; }
+      .md > :first-child { margin-top: 0; }
+      .md > :last-child { margin-bottom: 0; }
+      .md h2 { font-size: 1.1rem; }
+      .file.md h1, .file.md h2 { font-size: 1.35rem; }
+      .md a { color: var(--accent); font-weight: 600; }
+      .md ol, .md ul { padding-left: 22px; }
+      .md li + li { margin-top: 4px; }
       kbd {
         padding: 1px 7px;
         border: 1px solid var(--line);
@@ -150,31 +194,71 @@
         tab-size: 4;
       }
       .empty { color: var(--muted); }
+      .curso + .curso { margin-top: 32px; }
+      .curso > h2 { margin: 0 0 12px; font-size: 1.5rem; }
     </style>
   </head>
   <body>
     <main>
-      {{- if not $cur}}
+      {{- if not $depth}}
       <header>
-        <h1>Aulas de Java</h1>
-        <p class="sub">Escolhe a aula de hoje.</p>
+        <h1>Aulas</h1>
+        <p class="sub">Escolhe a tua turma.</p>
       </header>
-      {{- $names := reverse (sortAlpha (listFiles "/"))}}
+      {{- $shown := 0}}
+      {{- range sortAlpha (listFiles "/")}}
+      {{- if hasPrefix "." .}}{{continue}}{{end}}
+      {{- $c := print "/" .}}
+      {{- if not (fileStat $c).IsDir}}{{continue}}{{end}}
+      {{- $n := 0}}
+      {{- range listFiles $c}}{{if not (hasPrefix "." .)}}{{if (fileStat (print $c "/" .)).IsDir}}{{$n = add $n 1}}{{end}}{{end}}{{end}}
+      {{- if not $n}}{{continue}}{{end}}
+      {{- $shown = add $shown 1}}
+      <section class="curso">
+        <h2>{{template "label" $c}}</h2>
+        {{template "turmas" $c}}
+      </section>
+      {{- end}}
+      {{- if not $shown}}
+      <p class="empty">Ainda não há turmas aqui.</p>
+      {{- end}}
+      {{- else}}
+      <header>
+        {{- if eq $depth 1}}
+        <a class="back" href="/">← Todas as turmas</a>
+        {{- else if eq $depth 2}}
+        <a class="back" href="{{html $parent}}/">← {{template "label" $curso}}</a>
+        {{- else if eq $depth 3}}
+        <a class="back" href="{{html $parent}}/">← {{template "label" $turma}}</a>
+        {{- else}}
+        <a class="back" href="{{html $parent}}/">← Voltar</a>
+        {{- end}}
+        <h1>{{template "label" $cur}}</h1>
+        {{- if eq $depth 1}}
+        <p class="sub">Escolhe a tua turma.</p>
+        {{- else if eq $depth 2}}
+        <p class="sub">{{template "label" $curso}} · Escolhe a aula de hoje.</p>
+        {{- else}}
+        <p class="sub">{{template "label" $curso}} · {{template "label" $turma}}</p>
+        {{- end}}
+      </header>
+      {{- if eq $depth 1}}
+      {{template "turmas" $cur}}
+      {{- else if eq $depth 2}}
       {{- $first := true}}
       {{- $shown := 0}}
       <ul class="grid">
-        {{- range $names}}
+        {{- range reverse (sortAlpha (listFiles $cur))}}
         {{- if hasPrefix "." .}}{{continue}}{{end}}
-        {{- if not (fileStat (print "/" .)).IsDir}}{{continue}}{{end}}
+        {{- $path := print $cur "/" .}}
+        {{- if not (fileStat $path).IsDir}}{{continue}}{{end}}
         {{- $shown = add $shown 1}}
-        {{- $name := .}}
-        {{- if hasPrefix "aula" .}}{{$name = print "Aula " (trimPrefix "aula" .)}}{{end}}
         {{- $count := 0}}
-        {{- range listFiles (print "/" .)}}{{if not (hasPrefix "." .)}}{{$count = add $count 1}}{{end}}{{end}}
+        {{- range listFiles $path}}{{if not (or (hasPrefix "." .) (eq . "info.md"))}}{{$count = add $count 1}}{{end}}{{end}}
         <li{{if $first}} class="latest"{{end}}>
-          <a href="/{{html (pathEscape .)}}/">
+          <a href="{{html $here}}/{{html (pathEscape .)}}/">
             {{- if $first}}<span class="tag">Mais recente</span>{{end}}
-            <strong>{{html $name}}</strong>
+            <strong>{{template "label" $path}}</strong>
             <span class="count">{{$count}} {{if eq $count 1}}ficheiro{{else}}ficheiros{{end}}</span>
           </a>
         </li>
@@ -182,34 +266,19 @@
         {{- end}}
       </ul>
       {{- if not $shown}}
-      <p class="empty">Ainda não há aulas aqui.</p>
+      <p class="empty">Esta turma ainda não tem aulas.</p>
       {{- end}}
       {{- else}}
-      <header>
-        <a class="back" href="/">← Todas as aulas</a>
-        <h1>{{html $label}}</h1>
-      </header>
-      {{- $names := sortAlpha (listFiles $cur)}}
-      {{- $java := false}}
-      {{- range $names}}{{if hasSuffix ".java" .}}{{$java = true}}{{end}}{{end}}
-      {{- if $java}}
-      <section class="help">
-        <h2>Como usar</h2>
-        <ol>
-          <li>Carrega em <strong>Copiar código</strong>.</li>
-          <li>No IntelliJ, botão direito em <strong>src</strong> → <strong>New</strong> → <strong>Java Class</strong>.</li>
-          <li>Escreve o <strong>nome da classe</strong> que aparece no cartão e carrega em <kbd>Enter</kbd>.</li>
-          <li>Apaga o que lá está (<kbd>Ctrl</kbd> + <kbd>A</kbd>) e cola (<kbd>Ctrl</kbd> + <kbd>V</kbd>).</li>
-          <li>Corre com <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F10</kbd>.</li>
-        </ol>
-      </section>
+      {{- if $help}}
+      <section class="help md">{{markdown $help}}</section>
       {{- end}}
       {{- $shown := 0}}
       <ul class="files">
-        {{- range $i, $n := $names}}
-        {{- if hasPrefix "." $n}}{{continue}}{{end}}
+        {{- range $i, $n := sortAlpha (listFiles $cur)}}
+        {{- if or (hasPrefix "." $n) (eq $n "info.md")}}{{continue}}{{end}}
         {{- $path := print $cur "/" $n}}
         {{- $href := html (print $here "/" (pathEscape $n))}}
+        {{- $ext := ext $n}}
         {{- $shown = add $shown 1}}
         {{- if (fileStat $path).IsDir}}
         <li class="file">
@@ -218,12 +287,14 @@
             <a class="btn" href="{{$href}}/">Abrir pasta</a>
           </div>
         </li>
-        {{- else if hasSuffix ".java" $n}}
+        {{- else if has $ext (list ".java" ".py" ".lua" ".rpy")}}
         <li class="file">
           <div class="row">
             <div>
               <h2>{{html $n}}</h2>
+              {{- if eq $ext ".java"}}
               <p class="class">Nome da classe: <code>{{html (trimSuffix ".java" $n)}}</code></p>
+              {{- end}}
             </div>
             <button class="btn copy" type="button" data-target="code-{{$i}}">Copiar código</button>
           </div>
@@ -232,11 +303,13 @@
             <pre id="code-{{$i}}">{{html (readFile $path)}}</pre>
           </details>
         </li>
+        {{- else if eq $ext ".md"}}
+        <li class="file md">{{markdown (readFile $path)}}</li>
         {{- else}}
         <li class="file">
           <div class="row">
             <h2>{{html $n}}</h2>
-            <a class="btn" href="{{$href}}" target="_blank" rel="noopener">Abrir</a>
+            <a class="btn" href="{{$href}}" download>Descarregar</a>
           </div>
         </li>
         {{- end}}
@@ -244,6 +317,7 @@
       </ul>
       {{- if not $shown}}
       <p class="empty">Esta aula ainda não tem ficheiros.</p>
+      {{- end}}
       {{- end}}
       {{- end}}
     </main>
@@ -263,7 +337,7 @@
           area.remove();
         }
         button.classList.add("done");
-        button.textContent = "Copiado! Agora cola no IntelliJ";
+        button.textContent = "Copiado! Agora cola no editor";
         setTimeout(() => {
           button.classList.remove("done");
           button.textContent = "Copiar código";

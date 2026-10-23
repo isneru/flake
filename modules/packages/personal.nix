@@ -43,9 +43,12 @@
         ani-skip
         arduino-ide
         eduvpn-client
+        gradle
         insomnia
+        maven
         nmap
         processing
+        stremio-linux-shell
         wavemon
         # keep-sorted end
       ]);

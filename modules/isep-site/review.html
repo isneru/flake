@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Review · ISEP</title>
+    <link rel="stylesheet" href="/.site/theme.css" />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        font-size: 15px;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font: 1rem/1.65 var(--mono), ui-monospace, monospace;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      main {
+        max-width: calc(110ch + 6rem);
+        margin: 0 auto;
+        padding: 2.5rem 3rem 5rem;
+      }
+      h1 {
+        margin: 0 0 1.5rem;
+        padding-bottom: 0.9rem;
+        border-bottom: 1px solid var(--line);
+        font: 22px/1.35 var(--chrome), var(--mono), monospace;
+      }
+      h1 a {
+        color: var(--muted);
+      }
+      h1 span {
+        margin: 0 0.5ch;
+        color: var(--line);
+      }
+      .empty,
+      .who,
+      .state,
+      .status {
+        color: var(--muted);
+        font-size: 0.87rem;
+      }
+      section {
+        margin-bottom: 2.5rem;
+      }
+      section header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0 1.5rem;
+        align-items: baseline;
+      }
+      .state {
+        flex-basis: 100%;
+        color: var(--accent);
+      }
+      .state:empty {
+        display: none;
+      }
+      pre {
+        overflow-x: auto;
+        margin: 0.75rem 0;
+        padding: 0.9rem 1.1rem;
+        border: 1px solid var(--line);
+        background: var(--side);
+        font-size: 0.93rem;
+        line-height: 1.55;
+      }
+      .add {
+        color: var(--string);
+      }
+      .del {
+        color: var(--keyword);
+      }
+      .hunk {
+        color: var(--muted);
+      }
+      footer {
+        display: flex;
+        gap: 0.75rem;
+        align-items: baseline;
+      }
+      button {
+        padding: 0.2rem 0.7rem;
+        border: 1px solid var(--line);
+        border-radius: 0;
+        background: none;
+        color: var(--soft);
+        font: inherit;
+        font-size: 0.87rem;
+        cursor: pointer;
+      }
+      button:hover:not(:disabled) {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      @media (max-width: 50rem) {
+        main {
+          padding: 1.5rem 1rem 3rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1><a href="/">isep</a><span>/</span>review</h1>
+      <p id="empty" class="empty" hidden>Nothing is waiting for review.</p>
+      <div id="list"></div>
+      <template id="item">
+        <section>
+          <header>
+            <a class="path"></a>
+            <span class="who"></span>
+            <span class="state"></span>
+          </header>
+          <pre class="diff"></pre>
+          <footer>
+            <button type="button" data-act="approve">Approve</button>
+            <button type="button" data-act="reject">Reject</button>
+            <span class="status"></span>
+          </footer>
+        </section>
+      </template>
+    </main>
+    <script type="module" src="/.site/review.js"></script>
+  </body>
+</html>

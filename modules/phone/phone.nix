@@ -201,12 +201,26 @@
       };
     in
     {
-      home.packages = [
-        install
-        pkgs.tmux
-        stickers
-        walls
-      ];
+      home.packages = [ pkgs.tmux ];
+
+      neru.commands = {
+        "phone install" = {
+          package = install;
+          desc = "install the launcher on the phone";
+        };
+        "phone stickers" = {
+          package = stickers;
+          desc = "build and install a WhatsApp sticker pack";
+        };
+        "phone sync" = {
+          package = sync;
+          desc = "push the wallpaper and theme to the phone";
+        };
+        "phone walls" = {
+          package = walls;
+          desc = "list or set wallpapers (called by the phone's pc)";
+        };
+      };
 
       xdg.dataFile."phone/tailscaled".source = tailscaled;
 

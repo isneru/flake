@@ -104,6 +104,7 @@
           }/bin/quickshell";
           Restart = "on-failure";
           RestartSec = 2;
+          OOMPolicy = "continue";
         };
         Install.WantedBy = [ "graphical-session.target" ];
       };

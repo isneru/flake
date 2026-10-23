@@ -32,8 +32,6 @@
       };
     in
     {
-      home.packages = [ agent ];
-
       systemd.user.services.bare-bt-agent = {
         Unit = {
           Description = "BlueZ pairing agent rendered by the bare shell";

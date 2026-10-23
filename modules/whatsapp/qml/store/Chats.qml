@@ -129,12 +129,12 @@ Singleton {
 
     function markRead(): void {
         if (root.chat && root.active && root.chat.unread > 0)
-            Quickshell.execDetached(["whatsapp", "open", root.jid]);
+            Quickshell.execDetached(["neru", "whatsapp", "open", root.jid]);
     }
 
     function opened(): void {
         if (root.jid)
-            Quickshell.execDetached(["whatsapp", "open", root.jid]);
+            Quickshell.execDetached(["neru", "whatsapp", "open", root.jid]);
     }
 
     function queue(args: var): void {
@@ -147,13 +147,13 @@ Singleton {
 
     function send(text: string): void {
         if (root.jid && text.trim())
-            root.queue(["whatsapp", "send", root.jid, text]);
+            root.queue(["neru", "whatsapp", "send", root.jid, text]);
     }
 
     function sendFile(path: string, as: string): void {
         root.attachments = root.attachments.slice(1);
         if (root.jid)
-            root.queue(["whatsapp", "file", root.jid, path, as]);
+            root.queue(["neru", "whatsapp", "file", root.jid, path, as]);
     }
 
     function pump(): void {

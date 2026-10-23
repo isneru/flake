@@ -15,8 +15,8 @@
       home.file.".claude/skills/readable".source =
         utils.create_symlink "${utils.dotfiles}/claude/readable";
 
-      home.packages = [
-        (pkgs.writeShellApplication {
+      neru.commands.render = {
+        package = pkgs.writeShellApplication {
           name = "readable-render";
           runtimeInputs = with pkgs; [
             imagemagick
@@ -35,7 +35,8 @@
             typst
           ];
           text = builtins.readFile ../../scripts/claude/render.sh;
-        })
-      ];
+        };
+        desc = "render a diagram or formula to PNG (Claude's readable mod)";
+      };
     };
 }

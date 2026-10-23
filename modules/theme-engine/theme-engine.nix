@@ -56,7 +56,10 @@ in
       };
 
       config = {
-        home.packages = [ theme-set ];
+        neru.commands.theme = {
+          package = theme-set;
+          desc = "set or cycle the theme, font and wallpaper";
+        };
 
         home.file =
           lib.mapAttrs' (name: app: {

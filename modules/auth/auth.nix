@@ -34,19 +34,15 @@ in
       };
     };
 
-  flake.modules.homeManager.auth =
-    { pkgs, ... }:
-    {
-      home.packages = [ (mkAskpass pkgs) ];
-
-      programs.zsh.initContent = ''
-        sudo() {
-          if [[ -n $WAYLAND_DISPLAY && -z $SSH_CONNECTION ]]; then
-            BARE_ASK_SOURCE=sudo command sudo -A "$@"
-          else
-            command sudo "$@"
-          fi
-        }
-      '';
-    };
+  flake.modules.homeManager.auth = {
+    programs.zsh.initContent = ''
+      sudo() {
+        if [[ -n $WAYLAND_DISPLAY && -z $SSH_CONNECTION ]]; then
+          BARE_ASK_SOURCE=sudo command sudo -A "$@"
+        else
+          command sudo "$@"
+        fi
+      }
+    '';
+  };
 }

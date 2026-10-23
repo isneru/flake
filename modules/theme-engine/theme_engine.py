@@ -791,7 +791,7 @@ def previews_command(args: list[str]) -> None:
 
 
 USAGE = (
-    "usage: theme-set <name>|list|current|next|prev|reapply|"
+    "usage: neru theme <name>|list|current|next|prev|reapply|"
     "font [<family>|default]|wallpaper <path> [--no-recolor]|"
     "wallpaper-reset|previews <dir> <width>"
 )

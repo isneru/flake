@@ -73,7 +73,7 @@ walls() {
     [[ $f =~ ^[A-Za-z0-9._+-]+$ ]] && have+=("$f")
   done
   fresh=$(mktemp -d)
-  if ssh "${via[@]}" -o BatchMode=yes pc "phone-walls list ${have[*]}" | tar -xf - -C "$fresh"; then
+  if ssh "${via[@]}" -o BatchMode=yes pc "neru phone walls list ${have[*]}" | tar -xf - -C "$fresh"; then
     list=(--es list "$(cat "$fresh/list")")
     [ ! -s "$fresh/current" ] || list+=(--es current "$(cat "$fresh/current")")
     am broadcast -n dev.neru.bare/.WallReceiver "${list[@]}" >/dev/null 2>&1
@@ -118,11 +118,11 @@ main() {
   theme)
     [[ $3 =~ ^[a-z0-9-]+$ ]] || exit 1
     exec ssh "${via[@]}" -o BatchMode=yes pc \
-      "env \$(systemctl --user show-environment | grep -E '^(WAYLAND_DISPLAY|HYPRLAND_INSTANCE_SIGNATURE|DISPLAY)=') theme-set $3"
+      "env \$(systemctl --user show-environment | grep -E '^(WAYLAND_DISPLAY|HYPRLAND_INSTANCE_SIGNATURE|DISPLAY)=') neru theme $3"
     ;;
   wall)
     [[ $3 =~ ^[A-Za-z0-9._+-]+$ ]] || exit 1
-    exec ssh "${via[@]}" -o BatchMode=yes pc "phone-walls set $3"
+    exec ssh "${via[@]}" -o BatchMode=yes pc "neru phone walls set $3"
     ;;
   walls)
     shift 2

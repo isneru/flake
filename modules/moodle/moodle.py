@@ -38,6 +38,7 @@ CALENDAR_PAGES = 4
 REMIND_MARKS = [10080, 1440, 120]
 DOWNLOAD_WORKERS = 6
 DETAIL_MODS = {"assign", "quiz", "forum"}
+MATERIALS = {"material", "materiais", "materials"}
 MUTED_EVENTS = {"newlogin"}
 
 
@@ -101,7 +102,7 @@ def post(url, data, timeout=60):
 def token():
     saved = read_json(TOKEN_FILE, {})
     if not saved.get("token"):
-        die("not logged in - run: moodle login")
+        die("not logged in - run: neru moodle login")
     return saved["token"]
 
 
@@ -294,6 +295,25 @@ def collect_courses(tok, userid):
 
 
 IMG_SRC = re.compile(r'(<img\b[^>]*?\bsrc=")([^"]+)(")', re.IGNORECASE)
+PAGE_FILE = re.compile(r'(?:href|src)="[^"]*/mod_page/content/\d+/([^"?#]+)')
+
+
+def section_dir(course_dir, section_name):
+    if section_name.casefold() in MATERIALS:
+        return course_dir
+    return course_dir / safe(section_name)
+
+
+def page_links(course_id):
+    """Maps each page's cmid to the files its current content links."""
+    pages = maybe("mod_page_get_pages_by_courses", {}, courseids=[course_id])
+    return {
+        page["coursemodule"]: {
+            urllib.parse.unquote(html.unescape(ref))
+            for ref in PAGE_FILE.findall(page.get("content") or "")
+        }
+        for page in (pages or {}).get("pages", [])
+    }
 
 
 def embed_images(markup, course_dir, section_name):
@@ -310,7 +330,7 @@ def embed_images(markup, course_dir, section_name):
         name = safe(urllib.parse.unquote(parts.path.rsplit("/", 1)[-1])) or "image"
         when = urllib.parse.parse_qs(parts.query).get("time", [""])[0]
         digest = hashlib.sha1(url.encode()).hexdigest()[:8]
-        dest = course_dir / safe(section_name) / "_media" / digest / name
+        dest = section_dir(course_dir, section_name) / "_media" / digest / name
         wanted.append(
             {
                 "name": name,
@@ -326,9 +346,17 @@ def embed_images(markup, course_dir, section_name):
     return IMG_SRC.sub(swap, markup), wanted
 
 
-def module_files(course_dir, section_name, module):
+def module_files(course_dir, section_name, module, linked=None):
     files, links = [], []
-    for item in module.get("contents") or []:
+    contents = module.get("contents") or []
+    folder = section_dir(course_dir, section_name)
+    name = label(module.get("name"))
+    own = sum(item.get("type") == "file" for item in contents) > 1
+    if (module.get("modname") != "resource" or own) and (
+        name.casefold() != section_name.casefold()
+    ):
+        folder = folder / safe(name)
+    for item in contents:
         if item.get("type") == "url":
             links.append(
                 {
@@ -341,9 +369,14 @@ def module_files(course_dir, section_name, module):
             continue
         rel = (item.get("filepath") or "/").strip("/")
         parts = [safe(p) for p in rel.split("/") if p]
-        dest = course_dir.joinpath(
-            safe(section_name), *parts, safe(item.get("filename"))
-        )
+        filename = item.get("filename") or ""
+        if (
+            linked is not None
+            and filename != "index.html"
+            and f"{rel}/{filename}".strip("/") not in linked
+        ):
+            continue
+        dest = folder.joinpath(*parts, safe(filename))
         files.append(
             {
                 "name": label(item.get("filename")),
@@ -359,6 +392,7 @@ def module_files(course_dir, section_name, module):
 
 def build_sections(course, course_dir, media):
     contents = maybe("core_course_get_contents", [], courseid=course["id"])
+    pages = page_links(course["id"]) if contents else {}
     sections, taken = [], {}
     for raw in contents or []:
         name = label(re.sub(r"<[^>]+>", "", raw.get("name") or "")) or (
@@ -366,7 +400,9 @@ def build_sections(course, course_dir, media):
         )
         modules = []
         for module in raw.get("modules") or []:
-            files, links = module_files(course_dir, name, module)
+            files, links = module_files(
+                course_dir, name, module, pages.get(module.get("id"))
+            )
             for item in files:
                 item["path"] = unique_path(taken, item["path"], item["url"])
             body, found = embed_images(
@@ -999,12 +1035,41 @@ def cmd_sync(full):
     )
 
 
+def follow(wanted, mirror):
+    """Moves files Moodle now places elsewhere, so a layout change re-downloads nothing."""
+    paths = {item["path"] for item in wanted}
+    stale = {}
+    for path, mark in mirror.items():
+        if path not in paths:
+            stale.setdefault(mark.get("url"), []).append(path)
+    moved = 0
+    for item in wanted:
+        if item["path"] in mirror or not stale.get(item["url"]):
+            continue
+        old = stale[item["url"]].pop()
+        source, dest = Path(old), Path(item["path"])
+        if not source.is_file() or dest.exists():
+            continue
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        source.rename(dest)
+        mirror[item["path"]] = mirror.pop(old)
+        moved += 1
+        for parent in source.parents:
+            try:
+                parent.rmdir()
+            except OSError:
+                break
+    if moved:
+        print(f"  moved {moved} files", flush=True)
+
+
 def fetch_downloads(items, mirror):
     seen, wanted = set(), []
     for item in items:
         if item["path"] not in seen:
             seen.add(item["path"])
             wanted.append(item)
+    follow(wanted, mirror)
     got, changed = 0, []
     if not wanted:
         return got, changed
@@ -1034,17 +1099,17 @@ def fetch_downloads(items, mirror):
 
 def cmd_course(course_id):
     if not course_id:
-        die("usage: moodle course <courseId>")
+        die("usage: neru moodle course <courseId>")
     wanted = int(course_id)
     userid = read_json(TOKEN_FILE, {}).get("userid")
     index = read_json(INDEX_FILE, {})
     record = next((c for c in index.get("courses", []) if c["id"] == wanted), None)
     if not record:
-        die(f"course {wanted} is not in the index - run: moodle sync")
+        die(f"course {wanted} is not in the index - run: neru moodle sync")
     if record.get("hidden"):
-        die(f"course {wanted} is hidden - run: moodle unhide {wanted}")
+        die(f"course {wanted} is hidden - run: neru moodle unhide {wanted}")
     if not record.get("dir"):
-        die(f"course {wanted} has no folder yet - run: moodle sync")
+        die(f"course {wanted} has no folder yet - run: neru moodle sync")
     course_dir = Path(record["dir"])
     media = []
     sections = build_sections({"id": wanted}, course_dir, media)
@@ -1081,7 +1146,7 @@ def cmd_browser(target):
     private = saved.get("privatetoken")
     if not private:
         print(
-            "no private token stored - run: moodle login (opening without a session)",
+            "no private token stored - run: neru moodle login (opening without a session)",
             file=sys.stderr,
         )
     else:
@@ -1104,7 +1169,7 @@ def cmd_browser(target):
 
 def cmd_prefs(action, course_id):
     if not course_id:
-        die(f"usage: moodle {action} <courseId>")
+        die(f"usage: neru moodle {action} <courseId>")
     wanted = int(course_id)
     prefs = read_json(PREFS_FILE, {"hidden": [], "pinned": []})
     key = "hidden" if action in ("hide", "unhide") else "pinned"
@@ -1131,7 +1196,7 @@ def cmd_prefs(action, course_id):
             print(f"removed {removed} files ({freed / 1048576:.1f} MB) from disk")
         print("it will be skipped by every sync until you unhide it")
     if action == "unhide":
-        print("run: moodle sync --full   to mirror it again")
+        print("run: neru moodle sync --full   to mirror it again")
     if courses:
         courses.sort(key=course_order)
         write_json(INDEX_FILE, index)
@@ -1166,7 +1231,7 @@ def main():
         cmd_status()
     else:
         die(
-            "usage: moodle [login|sync [--full]|course <id>|browser [url]"
+            "usage: neru moodle [login|sync [--full]|course <id>|browser [url]"
             "|hide|unhide|pin|unpin <id>|status]"
         )
 

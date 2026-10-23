@@ -48,10 +48,10 @@
       };
     in
     {
-      home.packages = [
-        app
-        cli
-      ];
+      neru.commands.whatsapp = {
+        package = cli;
+        desc = "WhatsApp login, send and daemon";
+      };
 
       xdg.configFile = {
         "hypr/extra.lua".text = ''table.insert(blur, "whatsapp")'';

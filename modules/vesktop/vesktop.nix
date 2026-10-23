@@ -74,8 +74,6 @@
 
     in
     {
-      services.arrpc.enable = true;
-
       xdg.configFile = {
         "vesktop/theme-looks/flat.css".source = ./flat.css;
         "vesktop/theme-looks/soft.css".source = ./soft.css;
@@ -102,10 +100,11 @@
         settings = {
           discordBranch = "stable";
           firstLaunch = false;
-          arRPC = "off";
+          arRPC = false;
           minimizeToTray = "on";
           closeToTray = "on";
           hardwareAcceleration = true;
+          hardwareVideoAcceleration = true;
           customTitleBar = false;
           appBadge = true;
           transparentWindow = false;
@@ -129,7 +128,6 @@
           winNativeTitleBar = false;
           plugins = {
             # keep-sorted start
-            "WebRichPresence (arRPC)".enabled = true;
             BypassDnD.enabled = true;
             ClearURLs.enabled = true;
             CrashHandler.enabled = true;

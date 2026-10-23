@@ -1,4 +1,4 @@
-src=${1:?usage: phone-stickers <url-list|directory>}
+src=${1:?usage: neru phone stickers <url-list|directory>}
 cache="${XDG_CACHE_HOME:-$HOME/.cache}/phone-stickers"
 key="${XDG_DATA_HOME:-$HOME/.local/share}/phone-launcher/key.jks"
 frame="scale=512:512:force_original_aspect_ratio=decrease,format=rgba,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=0x00000000"

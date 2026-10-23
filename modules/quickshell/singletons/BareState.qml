@@ -300,7 +300,7 @@ Singleton {
     function saveShot() {
         const p = osdData.path;
         if (p)
-            Quickshell.execDetached(["screenshot", "--save", p]);
+            Quickshell.execDetached(["neru", "shot", "--save", p]);
     }
 
     function startRecording() {

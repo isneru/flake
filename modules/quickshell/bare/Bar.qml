@@ -54,7 +54,7 @@ Scope {
     readonly property bool popOpen: pop.visible
 
     function pick(source) {
-        Quickshell.execDetached(["bare-pick", source]);
+        Quickshell.execDetached(["neru", "pick", source]);
     }
 
     function popAt(item) {
@@ -528,7 +528,7 @@ Scope {
                 visible: BareState.recording
                 text: `[rec ${BareState.fmt(BareState.recElapsed)}]`
                 fg: Theme.ansiRed
-                onClicked: Quickshell.execDetached(["record"])
+                onClicked: Quickshell.execDetached(["neru", "rec"])
             }
 
             Seg {

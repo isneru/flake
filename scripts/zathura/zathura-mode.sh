@@ -16,7 +16,7 @@ next)
 light | dark | theme) mode=$1 ;;
 reload) mode="" ;;
 *)
-  echo "usage: zathura-mode [next|light|dark|theme|reload]" >&2
+  echo "usage: neru zathura [next|light|dark|theme|reload]" >&2
   exit 2
   ;;
 esac
